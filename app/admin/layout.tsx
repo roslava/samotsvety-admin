@@ -1,16 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { 
-  Gem, 
-  List, 
-  PlusCircle, 
-  LogOut, 
-  Home 
-} from 'lucide-react';
+import { Gem, List, PlusCircle, LogOut } from 'lucide-react';
 
 export default function AdminLayout({
   children,
@@ -19,14 +13,13 @@ export default function AdminLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [apiKey, setApiKey] = useState<string | null>(null);
 
   useEffect(() => {
     const key = localStorage.getItem('admin_api_key');
-    if (!key && pathname !== '/admin/login') {
+    const authenticated = !!key;
+
+    if (!authenticated && pathname !== '/admin/login') {
       router.push('/admin/login');
-    } else {
-      setApiKey(key);
     }
   }, [router, pathname]);
 
@@ -39,10 +32,6 @@ export default function AdminLayout({
     { href: '/admin/minerals', label: 'Все минералы', icon: List },
     { href: '/admin/minerals/new', label: 'Добавить новый', icon: PlusCircle },
   ];
-
-  if (!apiKey && pathname !== '/admin/login') {
-    return <div>Загрузка...</div>;
-  }
 
   return (
     <div className="flex h-screen bg-slate-950 text-slate-100">

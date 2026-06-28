@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { api } from '@/lib/api';
 import { Mineral } from '@/types/mineral';
 import { Button } from '@/components/ui/button';
@@ -21,25 +21,23 @@ import { toast } from 'sonner';
 export default function MineralsPage() {
   const [minerals, setMinerals] = useState<Mineral[]>([]);
   const [loading, setLoading] = useState(true);
-  const [apiKey] = useState(() => localStorage.getItem('admin_api_key') || '');
 
-  useEffect(() => {
-    loadMinerals();
-  }, []);
-
-  const loadMinerals = async () => {
+  const loadMinerals = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await api.getMinerals({ limit: 100 });
-      // API может возвращать { minerals: [...] } или сразу массив
-      setMinerals(Array.isArray(data) ? data : data.minerals || []);
+      const list = await api.getMinerals({ limit: 100 });
+      setMinerals(list);
     } catch (error) {
       console.error(error);
       toast.error('Не удалось загрузить список минералов');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadMinerals();
+  }, [loadMinerals]);
 
   return (
     <div className="p-8 space-y-8">
@@ -91,26 +89,21 @@ export default function MineralsPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right space-x-2">
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/admin/minerals/${mineral.slug}`}>
+                      <Link href={`/admin/minerals/${mineral.slug}`}>
+                        <Button variant="ghost" size="sm">
                           <Eye className="h-4 w-4" />
-                        </Link>
-                      </Button>
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/admin/minerals/${mineral.slug}/edit`}>
+                        </Button>
+                      </Link>
+                      <Link href={`/admin/minerals/${mineral.slug}/edit`}>
+                        <Button variant="ghost" size="sm">
                           <Edit className="h-4 w-4" />
-                        </Link>
-                      </Button>
+                        </Button>
+                      </Link>
                       <Button 
                         variant="ghost" 
                         size="sm"
                         className="text-red-400 hover:text-red-500"
-                        onClick={() => {
-                          if (confirm(`Удалить ${mineral.i18n.ru.name}?`)) {
-                            // TODO: delete function
-                            toast.info('Удаление пока в разработке');
-                          }
-                        }}
+                        onClick={() => toast.info('Удаление пока в разработке')}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

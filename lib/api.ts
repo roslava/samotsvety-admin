@@ -1,10 +1,5 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
-export interface ApiError {
-  message: string;
-  status?: number;
-}
-
 const getHeaders = (apiKey?: string) => {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -37,7 +32,9 @@ export const api = {
 
     const res = await fetch(`${API_BASE}/api/v1/minerals?${query}`);
     if (!res.ok) throw new Error('Failed to fetch minerals');
-    return res.json();
+    
+    const result = await res.json();
+    return Array.isArray(result) ? result : (result.data || []);
   },
 
   async getMineral(slug: string, lang: 'ru' | 'en' = 'ru', view: 'normal' | 'esoteric' = 'normal') {
@@ -47,7 +44,7 @@ export const api = {
   },
 
   // Admin endpoints (require API Key)
-  async createMineral(data: any, apiKey: string) {
+  async createMineral(data: Record<string, unknown>, apiKey: string) {
     const res = await fetch(`${API_BASE}/api/v1/minerals`, {
       method: 'POST',
       headers: getHeaders(apiKey),
@@ -57,7 +54,7 @@ export const api = {
     return res.json();
   },
 
-  async updateMineral(slug: string, data: any, apiKey: string) {
+  async updateMineral(slug: string, data: Record<string, unknown>, apiKey: string) {
     const res = await fetch(`${API_BASE}/api/v1/minerals/${slug}`, {
       method: 'PUT',
       headers: getHeaders(apiKey),
