@@ -22,6 +22,7 @@ export default function NewMineralPage() {
       chemical_formula: '',
       mineral_group: '',
       crystal_system: '',
+      crystal_habit: '',
       hardness: { min: 3, max: 7 },
       specific_gravity: { min: 2.5, max: 4 },
       streak: '',
@@ -95,7 +96,6 @@ export default function NewMineralPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Основное */}
             <div>
               <Label>Slug *</Label>
               <Input value={formData.slug} onChange={(e) => handleChange('slug', e.target.value.toLowerCase())} required />
@@ -106,7 +106,6 @@ export default function NewMineralPage() {
               <Input value={formData.i18n?.ru?.name} onChange={(e) => handleChange('i18n.ru.name', e.target.value)} required />
             </div>
 
-            {/* Научные данные */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Chemical Formula *</Label>
@@ -118,24 +117,45 @@ export default function NewMineralPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Crystal System</Label>
+              <Input value={formData.scientific?.crystal_system} onChange={(e) => handleChange('scientific.crystal_system', e.target.value)} />
+            </div>
+
+            <div>
+              <Label>Crystal Habit</Label>
+              <Input value={formData.scientific?.crystal_habit} onChange={(e) => handleChange('scientific.crystal_habit', e.target.value)} />
+            </div>
+
+            {/* Hardness */}
+            <div className="grid grid-cols-3 gap-4">
               <div>
-                <Label>Crystal System</Label>
-                <Input value={formData.scientific?.crystal_system} onChange={(e) => handleChange('scientific.crystal_system', e.target.value)} />
+                <Label>Hardness Min</Label>
+                <Input type="number" value={formData.scientific?.hardness?.min} onChange={(e) => handleChange('scientific.hardness.min', parseFloat(e.target.value))} />
               </div>
               <div>
-                <Label>Rarity</Label>
-                <Input value={formData.scientific?.rarity} onChange={(e) => handleChange('scientific.rarity', e.target.value)} />
+                <Label>Hardness Max</Label>
+                <Input type="number" value={formData.scientific?.hardness?.max} onChange={(e) => handleChange('scientific.hardness.max', parseFloat(e.target.value))} />
+              </div>
+              <div>
+                <Label>Streak</Label>
+                <Input value={formData.scientific?.streak} onChange={(e) => handleChange('scientific.streak', e.target.value)} />
               </div>
             </div>
 
-            {/* Цвета */}
             <div>
-              <Label>Цвета (RU)</Label>
-              <Input 
-                placeholder="зелёный, тёмно-зелёный" 
-                onChange={(e) => handleChange('i18n.ru.color', e.target.value.split(',').map(s => s.trim()))} 
-              />
+              <Label>Luster</Label>
+              <Input value={formData.scientific?.luster} onChange={(e) => handleChange('scientific.luster', e.target.value)} />
+            </div>
+
+            <div>
+              <Label>Transparency</Label>
+              <Input value={formData.scientific?.transparency} onChange={(e) => handleChange('scientific.transparency', e.target.value)} />
+            </div>
+
+            <div>
+              <Label>Main Image URL</Label>
+              <Input value={formData.main_image_url} onChange={(e) => handleChange('main_image_url', e.target.value)} />
             </div>
 
             <div>
