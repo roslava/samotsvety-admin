@@ -17,9 +17,9 @@ import { Plus, Trash2 } from 'lucide-react';
 
 const IMAGE_TYPES = [
   { value: 'specimen', label: 'Образец (сырой)' },
-  { value: 'polished', label: 'Полированный срез' },
-  { value: 'jewelry', label: 'В ювелирном изделии' },
-  { value: 'micro', label: 'Макро / Микрофото' },
+  { value: 'polished', label: 'Полированный' },
+  { value: 'jewelry', label: 'В ювелирке' },
+  { value: 'micro', label: 'Микро' },
 ];
 
 interface GallerySectionProps {
@@ -33,14 +33,6 @@ export function GallerySection({ form, slug = '' }: GallerySectionProps) {
     name: 'gallery',
   });
 
-  const generateUrl = (type: string, index: number) => {
-    if (!slug) return '';
-    const typePrefix = type === 'specimen' ? 'specimen' : 
-                      type === 'polished' ? 'polished' : 
-                      type === 'jewelry' ? 'jewelry' : 'micro';
-    return `https://storage.yandexcloud.net/samotsvety-cdn/${slug}/gallery/${typePrefix}-${String(index + 1).padStart(2, '0')}.webp`;
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -50,15 +42,12 @@ export function GallerySection({ form, slug = '' }: GallerySectionProps) {
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => {
-              const newIndex = fields.length;
-              append({
-                url: '',
-                type: 'specimen',
-                description_ru: '',
-                description_en: '',
-              });
-            }}
+            onClick={() => append({
+              url: '',
+              type: undefined,        // ← не заполняем по умолчанию
+              description_ru: '',
+              description_en: '',
+            })}
           >
             <Plus className="mr-2 h-4 w-4" />
             Добавить
@@ -67,14 +56,13 @@ export function GallerySection({ form, slug = '' }: GallerySectionProps) {
       </CardHeader>
       <CardContent className="space-y-6">
         {fields.length === 0 && (
-          <div className="text-slate-500 text-center py-12 border border-dashed border-slate-700 rounded-lg">
-            Добавьте изображения в галерею
+          <div className="text-slate-500 text-center py-12 border border-dashed rounded-lg">
+            Добавьте изображения
           </div>
         )}
 
         {fields.map((field, index) => {
-          const currentType = form.watch(`gallery.${index}.type`);
-          const suggestedUrl = generateUrl(currentType || 'specimen', index);
+          const currentUrl = form.watch(`gallery.${index}.url`);
 
           return (
             <div key={field.id} className="border border-slate-700 rounded-lg p-5 space-y-4">
@@ -85,54 +73,57 @@ export function GallerySection({ form, slug = '' }: GallerySectionProps) {
                 </Button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-<FormField
-  control={form.control}
-  name={`gallery.${index}.type`}
-  render={({ field: typeField }) => (
-    <FormItem>
-      <FormLabel>Тип изображения</FormLabel>   {/* убрали * */}
-      <Select 
-        onValueChange={(value) => {
-          typeField.onChange(value);
-          const newUrl = generateUrl(value, index);
-          form.setValue(`gallery.${index}.url`, newUrl);
-        }} 
-        value={typeField.value}
-      >
-        <FormControl>
-          <SelectTrigger>
-            <SelectValue placeholder="Не указан" />   {/* изменили placeholder */}
-          </SelectTrigger>
-        </FormControl>
-        <SelectContent>
-          {IMAGE_TYPES.map(t => (
-            <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <FormMessage />
-    </FormItem>
-  )}
-/>
+              <FormField
+                control={form.control}
+                name={`gallery.${index}.url`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>URL изображения</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="https://storage.yandexcloud.net/..." />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name={`gallery.${index}.url`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>URL изображения</FormLabel>
+              {/* Выбор типа — опциональный */}
+              <FormField
+                control={form.control}
+                name={`gallery.${index}.type`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Тип изображения (опционально)</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ''}>
                       <FormControl>
-                        <Input 
-                          {...field} 
-                          placeholder={suggestedUrl || "https://storage.yandexcloud.net/samotsvety-cdn/..."} 
-                        />
+                        <SelectTrigger>
+                          <SelectValue placeholder="Не указан" />
+                        </SelectTrigger>
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                      <SelectContent>
+                        {IMAGE_TYPES.map(t => (
+                          <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+
+              {/* Предпросмотр */}
+              {currentUrl && (
+                <div className="mt-3">
+                  <p className="text-xs text-slate-500 mb-1">Предпросмотр:</p>
+                  <img 
+                    key={currentUrl}
+                    src={currentUrl} 
+                    alt="Preview" 
+                    className="max-h-48 rounded-md border border-slate-700 object-contain bg-slate-950" 
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.opacity = '0.4';
+                    }}
+                  />
+                </div>
+              )}
 
               <FormField
                 control={form.control}
@@ -141,7 +132,7 @@ export function GallerySection({ form, slug = '' }: GallerySectionProps) {
                   <FormItem>
                     <FormLabel>Описание (Русский)</FormLabel>
                     <FormControl>
-                      <Input placeholder="Крупный натуральный образец с Урала" {...field} />
+                      <Input placeholder="Описание этого изображения" {...field} />
                     </FormControl>
                   </FormItem>
                 )}
