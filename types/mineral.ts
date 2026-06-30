@@ -66,6 +66,7 @@ export interface Mineral {
   };
   localities: Locality[];
   main_image_url: string;
+  thumbnail_url?: string;           // ← Добавили
   gallery: GalleryImage[];
   safety_notes?: string;
   related_minerals?: string[];

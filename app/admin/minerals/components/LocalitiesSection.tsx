@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Trash2 } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';   // если нет — добавь через shadcn
+import { Switch } from '@/components/ui/switch';
 
 interface LocalitiesSectionProps {
   form: UseFormReturn<MineralFormData>;
@@ -101,7 +101,7 @@ export function LocalitiesSection({ form }: LocalitiesSectionProps) {
                 name={`localities.${index}.locality`}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Конкретное месторождение *</FormLabel>
+                    <FormLabel>Конкретное месторождение</FormLabel>
                     <FormControl>
                       <Input placeholder="Меднорудянское (Нижний Тагил)" {...field} />
                     </FormControl>
@@ -109,7 +109,7 @@ export function LocalitiesSection({ form }: LocalitiesSectionProps) {
                   </FormItem>
                 )}
               />
-            </div>
+            </div>   {/* ← Закрыли grid */}
 
             <div className="flex gap-6">
               <FormField

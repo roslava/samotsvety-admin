@@ -1,6 +1,6 @@
 'use client';
 
-import { useForm, FormProvider } from 'react-hook-form';
+import { useForm, FormProvider, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { MineralSchema, type MineralFormData } from '@/lib/validations/mineral';
 import { Button } from '@/components/ui/button';
@@ -16,27 +16,33 @@ import { I18nSection } from './I18nSection';
 import { LocalitiesSection } from './LocalitiesSection';
 import { GallerySection } from './GallerySection';
 import { EsotericSection } from './EsotericSection';
-import {ImportJsonSection} from './ImportJsonSection'
- 
+import { ImportJsonSection } from './ImportJsonSection';
 
 interface MineralFormProps {
   defaultValues?: Partial<MineralFormData>;
   isEdit?: boolean;
-  slug?: string;
+  slug?: string; // slug для режима редактирования
 }
 
-export default function MineralForm({ defaultValues, isEdit = false, slug }: MineralFormProps) {
+export default function MineralForm({ defaultValues, isEdit = false, slug: editSlug }: MineralFormProps) {
   const router = useRouter();
   
   const form = useForm<MineralFormData>({
     resolver: zodResolver(MineralSchema),
     defaultValues: {
-      localities: [/* можно дефолт */],
+      localities: [],
       gallery: [],
       related_minerals: [],
       ...defaultValues,
     },
     mode: 'onBlur',
+  });
+
+  // Следим за slug в реальном времени
+  const currentSlug = useWatch({
+    control: form.control,
+    name: 'slug',
+    defaultValue: editSlug || '',
   });
 
   const onSubmit = async (data: MineralFormData) => {
@@ -47,8 +53,8 @@ export default function MineralForm({ defaultValues, isEdit = false, slug }: Min
     }
 
     try {
-      if (isEdit && slug) {
-        await api.updateMineral(slug, data, apiKey);
+      if (isEdit && editSlug) {
+        await api.updateMineral(editSlug, data, apiKey);
         toast.success('Минерал обновлён!');
       } else {
         await api.createMineral(data, apiKey);
@@ -93,7 +99,7 @@ export default function MineralForm({ defaultValues, isEdit = false, slug }: Min
               </TabsContent>
 
               <TabsContent value="gallery" className="mt-6">
-                <GallerySection form={form} />
+                <GallerySection form={form} slug={currentSlug} />
               </TabsContent>
 
               <TabsContent value="esoteric" className="mt-6">
@@ -103,7 +109,6 @@ export default function MineralForm({ defaultValues, isEdit = false, slug }: Min
               <TabsContent value="import" className="mt-6">
                 <ImportJsonSection form={form} />
               </TabsContent>
-
             </Tabs>
           </CardContent>
         </Card>

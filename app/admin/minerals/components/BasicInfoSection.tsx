@@ -49,20 +49,51 @@ export function BasicInfoSection({ form }: BasicInfoSectionProps) {
           name="main_image_url"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Главное изображение (URL) *</FormLabel>
+              <FormLabel>Главное изображение (hero) *</FormLabel>
               <FormControl>
                 <Input 
-                  placeholder="https://cdn.samotsvety.com/images/malachite/hero.jpg" 
+                  placeholder="https://storage.yandexcloud.net/samotsvety-cdn/malachite/hero.webp" 
                   {...field} 
                 />
               </FormControl>
-              <FormMessage />
+              <p className="text-xs text-slate-500 mt-1">
+                Пример: <code>https://storage.yandexcloud.net/samotsvety-cdn/[slug]/hero.webp</code>
+              </p>
               {field.value && (
                 <div className="mt-3">
                   <img 
                     src={field.value} 
                     alt="Preview" 
                     className="max-h-48 rounded-md border border-slate-700 object-contain bg-slate-950" 
+                  />
+                </div>
+              )}
+            </FormItem>
+          )}
+        />
+
+        {/* Thumbnail */}
+        <FormField
+          control={form.control}
+          name="thumbnail_url"   // ← новое поле
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Thumbnail (превью)</FormLabel>
+              <FormControl>
+                <Input 
+                  placeholder="https://storage.yandexcloud.net/samotsvety-cdn/malachite/thumbnail.webp" 
+                  {...field} 
+                />
+              </FormControl>
+              <p className="text-xs text-slate-500 mt-1">
+                Пример: <code>https://storage.yandexcloud.net/samotsvety-cdn/[slug]/thumbnail.webp</code>
+              </p>
+              {field.value && (
+                <div className="mt-2">
+                  <img 
+                    src={field.value} 
+                    alt="Thumbnail" 
+                    className="max-h-32 rounded-md border border-slate-700 object-contain bg-slate-950" 
                   />
                 </div>
               )}

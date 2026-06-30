@@ -43,18 +43,18 @@ export const I18nContentSchema = z.object({
 });
 
 export const LocalitySchema = z.object({
-  country: z.string().min(1),
-  region: z.string().min(1),
-  locality: z.string().min(1),
-  is_russian: z.boolean(),
-  famous: z.boolean().optional(),
+  country: z.string().min(1, 'Страна обязательна'),
+  region: z.string().min(1, 'Регион / область обязателен'),
+  locality: z.string().optional(),                    // ← стало опциональным
+  is_russian: z.boolean().default(false),
+  famous: z.boolean().default(false).optional(),
   description_ru: z.string().optional(),
   description_en: z.string().optional(),
 });
 
 export const GalleryImageSchema = z.object({
   url: z.string().url('Некорректный URL'),
-  type: z.enum(['specimen', 'polished', 'jewelry', 'micro']),
+  type: z.enum(['specimen', 'polished', 'jewelry', 'micro']).optional(),   // ← стало опциональным
   description_ru: z.string().optional(),
   description_en: z.string().optional(),
 });
