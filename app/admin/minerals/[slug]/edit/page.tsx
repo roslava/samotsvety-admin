@@ -43,10 +43,10 @@ export default function EditMineralPage() {
     i18n: mineral.i18n,
     localities: mineral.localities,
     main_image_url: mineral.main_image_url,
-    thumbnail_url: mineral.thumbnail_url,
-    gallery: mineral.gallery,
-    safety_notes: mineral.safety_notes,
-    related_minerals: mineral.related_minerals,
+    thumbnail_url: mineral.thumbnail_url || '',
+    gallery: mineral.gallery || [],
+    safety_notes: mineral.safety_notes || '',
+    related_minerals: mineral.related_minerals || [],
   };
 
   return (
@@ -58,11 +58,13 @@ export default function EditMineralPage() {
 
       <h1 className="text-4xl font-bold mb-8">Редактировать минерал: {mineral.i18n.ru.name}</h1>
 
-      <MineralForm 
-        defaultValues={formData} 
-        isEdit={true}
-        slug={slug}
-      />
+      {!loading && mineral && (
+        <MineralForm 
+          defaultValues={formData} 
+          isEdit={true}
+          slug={slug}
+        />
+      )}
     </div>
   );
 }
