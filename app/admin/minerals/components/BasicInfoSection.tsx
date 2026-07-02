@@ -12,6 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface BasicInfoSectionProps {
   form: UseFormReturn<MineralFormData>;
@@ -24,6 +25,31 @@ export function BasicInfoSection({ form }: BasicInfoSectionProps) {
         <CardTitle>Основная информация</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Type */}
+        <FormField
+          control={form.control}
+          name="type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Тип сущности *</FormLabel>
+              <FormControl>
+                <Select onValueChange={field.onChange} defaultValue={field.value || 'mineral'}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите тип" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="mineral">Минерал</SelectItem>
+                    <SelectItem value="rock">Горная порода / агрегат</SelectItem>
+                    <SelectItem value="gem_variety">Разновидность минерала</SelectItem>
+                    <SelectItem value="organic">Органический материал</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         {/* Slug */}
         <FormField
           control={form.control}
@@ -75,7 +101,7 @@ export function BasicInfoSection({ form }: BasicInfoSectionProps) {
         {/* Thumbnail */}
         <FormField
           control={form.control}
-          name="thumbnail_url"   // ← новое поле
+          name="thumbnail_url"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Thumbnail (превью)</FormLabel>

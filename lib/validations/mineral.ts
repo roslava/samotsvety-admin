@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export const ScientificSchema = z.object({
-  chemical_formula: z.string().min(1, 'Химическая формула обязательна'),
-  mineral_group: z.string().min(1, 'Группа минерала обязательна'),
-  crystal_system: z.string().min(1, 'Кристаллическая система обязательна'),
+  chemical_formula: z.string().optional(), // для пород
+  mineral_group: z.string().min(1, 'Группа / тип обязательна'),
+  crystal_system: z.string().optional(),
   crystal_habit: z.string().optional(),
   hardness: z.object({
     min: z.number().min(1).max(10),
@@ -19,9 +19,13 @@ export const ScientificSchema = z.object({
   transparency: z.string().min(1),
   cleavage: z.string().optional(),
   fracture: z.string().optional(),
+  tenacity: z.string().optional(),
   rarity: z.enum(['common', 'uncommon', 'rare', 'very_rare']),
   ima_status: z.string().optional(),
   identification_tips: z.string().optional(),
+  composition: z.string().optional(),
+  rock_type: z.string().optional(),
+  phenomena: z.array(z.string()).optional(),
 });
 
 export const EsotericSchema = z.object({
@@ -44,8 +48,8 @@ export const I18nContentSchema = z.object({
 
 export const LocalitySchema = z.object({
   country: z.string().min(1, 'Страна обязательна'),
-  region: z.string().min(1, 'Регион / область обязателен'),
-  locality: z.string().optional(),                    // ← стало опциональным
+  region: z.string().optional(),
+  locality: z.string().optional(),
   is_russian: z.boolean().default(false),
   famous: z.boolean().default(false).optional(),
   description_ru: z.string().optional(),
@@ -54,7 +58,7 @@ export const LocalitySchema = z.object({
 
 export const GalleryImageSchema = z.object({
   url: z.string().url('Некорректный URL'),
-  type: z.enum(['specimen', 'polished', 'jewelry', 'micro']).optional(),   // ← стало опциональным
+  type: z.enum(['specimen', 'polished', 'jewelry', 'micro']).optional(),
   description_ru: z.string().optional(),
   description_en: z.string().optional(),
 });
@@ -63,6 +67,8 @@ export const MineralSchema = z.object({
   slug: z.string()
     .min(3)
     .regex(/^[a-z0-9-]+$/, 'Slug может содержать только строчные буквы, цифры и дефис'),
+  
+  type: z.enum(['mineral', 'rock', 'gem_variety', 'organic']).default('mineral'),
   
   scientific: ScientificSchema,
   
@@ -73,6 +79,7 @@ export const MineralSchema = z.object({
   
   localities: z.array(LocalitySchema).min(1, 'Добавьте хотя бы одно месторождение'),
   main_image_url: z.string().url('Главное изображение обязательно'),
+  thumbnail_url: z.string().url().optional(),
   gallery: z.array(GalleryImageSchema),
   
   safety_notes: z.string().optional(),

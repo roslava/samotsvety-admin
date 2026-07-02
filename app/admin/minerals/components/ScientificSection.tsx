@@ -25,13 +25,12 @@ export function ScientificSection({ form }: ScientificSectionProps) {
         <CardTitle>Научные свойства</CardTitle>
       </CardHeader>
       <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Основные поля */}
         <FormField
           control={form.control}
           name="scientific.chemical_formula"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Химическая формула *</FormLabel>
+              <FormLabel>Химическая формула</FormLabel>
               <FormControl>
                 <Input placeholder="Cu₂CO₃(OH)₂" {...field} />
               </FormControl>
@@ -45,7 +44,7 @@ export function ScientificSection({ form }: ScientificSectionProps) {
           name="scientific.mineral_group"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Группа минерала *</FormLabel>
+              <FormLabel>Группа минерала / тип породы *</FormLabel>
               <FormControl>
                 <Input placeholder="карбонаты" {...field} />
               </FormControl>
@@ -59,7 +58,7 @@ export function ScientificSection({ form }: ScientificSectionProps) {
           name="scientific.crystal_system"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Кристаллическая система *</FormLabel>
+              <FormLabel>Кристаллическая система</FormLabel>
               <FormControl>
                 <Input placeholder="моноклинная" {...field} />
               </FormControl>
@@ -75,8 +74,45 @@ export function ScientificSection({ form }: ScientificSectionProps) {
             <FormItem>
               <FormLabel>Габитус кристаллов</FormLabel>
               <FormControl>
-                <Input placeholder="призматический, волокнистый..." {...field} />
+                <Input placeholder="призматический, волокнистый, почковидный" {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="scientific.composition"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Преобладающий состав</FormLabel>
+              <FormControl>
+                <Input placeholder="Cu + CO3 + OH" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="scientific.rock_type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Тип породы</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите тип" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="metamorphic">Метаморфическая</SelectItem>
+                  <SelectItem value="igneous">Магматическая</SelectItem>
+                  <SelectItem value="sedimentary">Осадочная</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
@@ -89,7 +125,7 @@ export function ScientificSection({ form }: ScientificSectionProps) {
             name="scientific.hardness.min"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Твёрдость (min) *</FormLabel>
+                <FormLabel>Твёрдость min *</FormLabel>
                 <FormControl>
                   <Input type="number" step="0.1" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
                 </FormControl>
@@ -102,7 +138,7 @@ export function ScientificSection({ form }: ScientificSectionProps) {
             name="scientific.hardness.max"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Твёрдость (max) *</FormLabel>
+                <FormLabel>Твёрдость max *</FormLabel>
                 <FormControl>
                   <Input type="number" step="0.1" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
                 </FormControl>
@@ -119,7 +155,7 @@ export function ScientificSection({ form }: ScientificSectionProps) {
             name="scientific.specific_gravity.min"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Уд. вес (min) *</FormLabel>
+                <FormLabel>Уд. вес min *</FormLabel>
                 <FormControl>
                   <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
                 </FormControl>
@@ -132,7 +168,7 @@ export function ScientificSection({ form }: ScientificSectionProps) {
             name="scientific.specific_gravity.max"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Уд. вес (max) *</FormLabel>
+                <FormLabel>Уд. вес max *</FormLabel>
                 <FormControl>
                   <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
                 </FormControl>
@@ -193,7 +229,7 @@ export function ScientificSection({ form }: ScientificSectionProps) {
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Выберите редкость" />
+                    <SelectValue placeholder="Выберите" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -243,7 +279,25 @@ export function ScientificSection({ form }: ScientificSectionProps) {
             <FormItem className="md:col-span-2">
               <FormLabel>Советы по идентификации</FormLabel>
               <FormControl>
-                <Textarea {...field} />
+                <Textarea placeholder="Отличительные признаки..." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="scientific.phenomena"
+          render={({ field }) => (
+            <FormItem className="md:col-span-2">
+              <FormLabel>Оптические явления (через запятую)</FormLabel>
+              <FormControl>
+                <Input 
+                  placeholder="chatoyancy, asterism, iridescence" 
+                  value={field.value?.join(', ') || ''}
+                  onChange={(e) => field.onChange(e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

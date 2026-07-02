@@ -16,6 +16,7 @@ interface ImportJsonSectionProps {
 
 const JSON_TEMPLATE = `{
   "slug": "malachite",
+  "type": "mineral",
   "scientific": {
     "chemical_formula": "Cu₂CO₃(OH)₂",
     "mineral_group": "карбонаты",
@@ -30,7 +31,10 @@ const JSON_TEMPLATE = `{
     "fracture": "неровный, раковистый",
     "rarity": "common",
     "ima_status": "approved",
-    "identification_tips": "Отличительные признаки от похожих минералов..."
+    "identification_tips": "Отличительные признаки от похожих минералов...",
+    "composition": "",
+    "rock_type": "",
+    "phenomena": []
   },
   "i18n": {
     "ru": {
@@ -77,9 +81,10 @@ const JSON_TEMPLATE = `{
 
 const PROMPT_TEMPLATE = `Ты — эксперт-минералог и геммолог высшего уровня.
 
-Собери **полную, точную и детализированную информацию** по минералу «[НАЗВАНИЕ_МИНЕРАЛА]» согласно структуре проекта Samotsvety.
+Собери **полную, точную и детализированную информацию** по камню «[НАЗВАНИЕ_КАМНЯ]» согласно структуре проекта Samotsvety.
 
 **Обязательные правила:**
+- Укажи "type": "mineral", "rock" или "gem_variety".
 - Научные данные — максимально точные и фактологические.
 - Особенно подробно опиши российские (уральские и сибирские) месторождения.
 - Lore — увлекательный историко-культурный текст.
@@ -142,7 +147,7 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
           <TabsContent value="template" className="space-y-6">
             <div>
               <div className="flex justify-between items-center mb-2">
-                <h4 className="font-medium">Шаблон JSON</h4>
+                <h4 className="font-medium">Шаблон JSON (актуальный)</h4>
                 <Button variant="outline" size="sm" onClick={copyTemplate}>
                   <Copy className="h-4 w-4 mr-2" /> Скопировать
                 </Button>

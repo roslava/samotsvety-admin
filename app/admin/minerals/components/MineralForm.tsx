@@ -21,7 +21,7 @@ import { ImportJsonSection } from './ImportJsonSection';
 interface MineralFormProps {
   defaultValues?: Partial<MineralFormData>;
   isEdit?: boolean;
-  slug?: string; // slug для режима редактирования
+  slug?: string;
 }
 
 export default function MineralForm({ defaultValues, isEdit = false, slug: editSlug }: MineralFormProps) {
@@ -38,7 +38,6 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
     mode: 'onBlur',
   });
 
-  // Следим за slug в реальном времени
   const currentSlug = useWatch({
     control: form.control,
     name: 'slug',

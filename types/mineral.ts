@@ -1,7 +1,7 @@
 export interface Scientific {
-  chemical_formula: string;
+  chemical_formula?: string;           // опционально для пород
   mineral_group: string;
-  crystal_system: string;
+  crystal_system?: string;             // опционально
   crystal_habit?: string;
   hardness: {
     min: number;
@@ -17,9 +17,13 @@ export interface Scientific {
   transparency: string;
   cleavage?: string;
   fracture?: string;
+  tenacity?: string;
   rarity: 'common' | 'uncommon' | 'rare' | 'very_rare';
   ima_status?: string;
   identification_tips?: string;
+  composition?: string;                // новое
+  rock_type?: string;                  // новое
+  phenomena?: string[];                // новое
 }
 
 export interface Esoteric {
@@ -42,8 +46,8 @@ export interface I18nContent {
 
 export interface Locality {
   country: string;
-  region: string;
-  locality: string;
+  region?: string;
+  locality?: string;
   is_russian: boolean;
   famous?: boolean;
   description_ru?: string;
@@ -57,8 +61,11 @@ export interface GalleryImage {
   description_en?: string;
 }
 
+export type EntityType = 'mineral' | 'rock' | 'gem_variety' | 'organic';
+
 export interface Mineral {
   slug: string;
+  type: EntityType;                    // ← новое обязательное
   scientific: Scientific;
   i18n: {
     ru: I18nContent;
@@ -66,7 +73,7 @@ export interface Mineral {
   };
   localities: Locality[];
   main_image_url: string;
-  thumbnail_url?: string;           // ← Добавили
+  thumbnail_url?: string;
   gallery: GalleryImage[];
   safety_notes?: string;
   related_minerals?: string[];
