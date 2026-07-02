@@ -17,10 +17,21 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, Eye } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function MineralsPage() {
   const [minerals, setMinerals] = useState<Mineral[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const loadMinerals = useCallback(async () => {
     try {
@@ -38,6 +49,26 @@ export default function MineralsPage() {
   useEffect(() => {
     loadMinerals();
   }, [loadMinerals]);
+
+  const handleDelete = async (slug: string) => {
+    const apiKey = localStorage.getItem('admin_api_key');
+    if (!apiKey) {
+      toast.error('API Key не найден');
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      await api.deleteMineral(slug, apiKey);
+      setMinerals(minerals.filter(m => m.slug !== slug));
+      toast.success('Минерал удалён');
+      setDeleteConfirm(null);
+    } catch (error: any) {
+      toast.error(error.message || 'Ошибка удаления');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <div className="p-8 space-y-8">
@@ -103,7 +134,8 @@ export default function MineralsPage() {
                         variant="ghost" 
                         size="sm"
                         className="text-red-400 hover:text-red-500"
-                        onClick={() => toast.info('Удаление пока в разработке')}
+                        onClick={() => setDeleteConfirm(mineral.slug)}
+                        disabled={deleting}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -115,6 +147,27 @@ export default function MineralsPage() {
           )}
         </CardContent>
       </Card>
+
+      <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить минерал?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Минерал "{minerals.find(m => m.slug === deleteConfirm)?.i18n.ru.name}" будет удалён безвозвратно.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-3 justify-end">
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteConfirm && handleDelete(deleteConfirm)}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleting ? 'Удаляю...' : 'Удалить'}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
