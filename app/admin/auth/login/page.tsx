@@ -15,18 +15,41 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!apiKey.trim()) {
       toast.error('Введите API Key');
       return;
     }
 
     setIsLoading(true);
-    
-    localStorage.setItem('admin_api_key', apiKey);
-    
-    toast.success('Успешный вход!');
-    router.push('/admin/minerals');
-    setIsLoading(false);
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      
+      // Проверяем ключ на бэкенде
+      const res = await fetch(`${apiUrl}/api/v1/minerals`, {
+        method: 'GET',
+        headers: {
+          'X-API-Key': apiKey,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error('Неверный API Key');
+      }
+
+      // Если дошли сюда — ключ валидный
+      localStorage.setItem('admin_api_key', apiKey);
+      toast.success('Успешный вход!');
+      router.push('/admin/minerals');
+      
+    } catch (error) {
+      console.error(error);
+      toast.error('Неверный API Key или проблема с сервером');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -63,7 +86,7 @@ export default function LoginPage() {
               </div>
               
               <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
-                {isLoading ? 'Вход...' : 'Войти'}
+                {isLoading ? 'Проверка...' : 'Войти'}
               </Button>
             </form>
           </CardContent>
