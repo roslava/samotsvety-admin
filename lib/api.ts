@@ -37,8 +37,12 @@ export const api = {
     return Array.isArray(result) ? result : (result.data || []);
   },
 
-  async getMineral(slug: string, lang: 'ru' | 'en' = 'ru', view: 'normal' | 'esoteric' = 'normal') {
-    const res = await fetch(`${API_BASE}/api/v1/minerals/${slug}?lang=${lang}&view=${view}`);
+  async getMineral(slug: string, lang: 'ru' | 'en' = 'ru', view?: 'normal' | 'esoteric') {
+    const params = new URLSearchParams();
+    params.append('lang', lang);
+    if (view) params.append('view', view);
+    
+    const res = await fetch(`${API_BASE}/api/v1/minerals/${slug}?${params}`);
     if (!res.ok) throw new Error('Mineral not found');
     return res.json();
   },
