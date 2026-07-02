@@ -56,7 +56,7 @@ export default function RegisterPage() {
       
       toast.success('Регистрация успешна! Переходим на вход...');
       setTimeout(() => {
-        router.push('/admin/login');
+        router.push('/admin/auth/login');
       }, 1500);
     } catch (error: any) {
       toast.error(error.message || 'Ошибка при регистрации');
@@ -66,10 +66,10 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-950 to-slate-900 p-4">
+    <>
       {/* Header with Login Link */}
       <div className="flex justify-end pt-6 px-8">
-        <Link href="/admin/login">
+        <Link href="/admin/auth/login">
           <Button variant="outline" className="border-slate-700 text-slate-300 hover:text-slate-100">
             Вход
           </Button>
@@ -77,7 +77,7 @@ export default function RegisterPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold">Samotsvety</CardTitle>
@@ -130,6 +130,11 @@ export default function RegisterPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+
+      {/* Footer */}
+      <div className="py-6 px-4 text-center border-t border-slate-800">
+        <p className="text-sm text-slate-500">© 2026 artnen gems. Все права защищены.</p>
+      </div>
+    </>
   );
 }

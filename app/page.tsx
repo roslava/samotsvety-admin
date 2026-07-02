@@ -11,7 +11,7 @@ export default function Home() {
     if (apiKey) {
       router.push('/admin/minerals');
     } else {
-      router.push('/admin/login');
+      router.push('/admin/auth/login');
     }
   }, [router]);
 

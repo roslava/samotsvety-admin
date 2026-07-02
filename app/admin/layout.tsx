@@ -18,14 +18,14 @@ export default function AdminLayout({
     const key = localStorage.getItem('admin_api_key');
     const authenticated = !!key;
 
-    if (!authenticated && pathname !== '/admin/login') {
-      router.push('/admin/login');
+    if (!authenticated && !pathname.startsWith('/admin/auth')) {
+      router.push('/admin/auth/login');
     }
   }, [router, pathname]);
 
   const handleLogout = () => {
     localStorage.removeItem('admin_api_key');
-    router.push('/admin/login');
+    router.push('/admin/auth/login');
   };
 
   const navItems = [
