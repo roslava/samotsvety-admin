@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -13,15 +13,19 @@ export default function AdminLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const [isAuth, setIsAuth] = useState(false);
+
+  const isAuthPage = pathname.startsWith('/admin/auth');
 
   useEffect(() => {
     const key = localStorage.getItem('admin_api_key');
     const authenticated = !!key;
+    setIsAuth(authenticated);
 
-    if (!authenticated && !pathname.startsWith('/admin/auth')) {
+    if (!authenticated && !isAuthPage) {
       router.push('/admin/auth/login');
     }
-  }, [router, pathname]);
+  }, [router, isAuthPage]);
 
   const handleLogout = () => {
     localStorage.removeItem('admin_api_key');
@@ -32,6 +36,11 @@ export default function AdminLayout({
     { href: '/admin/minerals', label: 'Все минералы', icon: List },
     { href: '/admin/minerals/new', label: 'Добавить новый', icon: PlusCircle },
   ];
+
+  // Для auth-страниц просто выводим контент без sidebar
+  if (isAuthPage) {
+    return children;
+  }
 
   return (
     <div className="flex h-screen bg-slate-950 text-slate-100">
