@@ -82,4 +82,41 @@ export const api = {
     if (!res.ok) throw new Error('Search failed');
     return res.json();
   },
+
+    // === Посты ===
+  async createPost(data: Record<string, unknown>, apiKey: string) {
+    const res = await fetch(`${API_BASE}/api/v1/posts`, {
+      method: 'POST',
+      headers: getHeaders(apiKey),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.message || 'Failed to create post');
+    }
+    return res.json();
+  },
+
+  async updatePost(slug: string, data: Record<string, unknown>, apiKey: string) {
+    const res = await fetch(`${API_BASE}/api/v1/posts/${slug}`, {
+      method: 'PUT',
+      headers: getHeaders(apiKey),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.message || 'Failed to update post');
+    }
+    return res.json();
+  },
+
+  async deletePost(slug: string, apiKey: string) {
+    const res = await fetch(`${API_BASE}/api/v1/posts/${slug}`, {
+      method: 'DELETE',
+      headers: getHeaders(apiKey),
+    });
+    if (!res.ok) throw new Error('Failed to delete post');
+    return res.ok;
+  },
 };
+

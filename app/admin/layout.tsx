@@ -32,10 +32,28 @@ export default function AdminLayout({
     router.push('/admin/auth/login');
   };
 
-  const navItems = [
-    { href: '/admin/minerals', label: 'Все минералы', icon: List },
-    { href: '/admin/minerals/new', label: 'Добавить новый', icon: PlusCircle },
-  ];
+const navItems = [
+  { 
+    href: '/admin/minerals', 
+    label: 'Минералы', 
+    icon: Gem 
+  },
+  { 
+    href: '/admin/minerals/new', 
+    label: 'Добавить минерал', 
+    icon: PlusCircle 
+  },
+  { 
+    href: '/admin/posts', 
+    label: 'Статьи', 
+    icon: List 
+  },
+  { 
+    href: '/admin/posts/new', 
+    label: 'Новая статья', 
+    icon: PlusCircle 
+  },
+];
 
   // Для auth-страниц просто выводим контент без sidebar
   if (isAuthPage) {

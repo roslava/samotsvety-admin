@@ -13,7 +13,7 @@ export default function PostsPage() {
 
   const fetchPosts = async () => {
     try {
-      const res = await fetch('/api/posts'); // или твой endpoint
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/posts`);
       const data = await res.json();
       setPosts(data.data || []);
     } catch (error) {
