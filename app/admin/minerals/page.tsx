@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { api } from '@/lib/api';
 import { Mineral } from '@/types/mineral';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -14,7 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Eye } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Search, X } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import {
@@ -32,12 +33,22 @@ export default function MineralsPage() {
   const [loading, setLoading] = useState(true);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [query, setQuery] = useState('');
 
+  // Загружаем весь список постранично (API отдаёт максимум 100 за раз),
+  // чтобы поиск ниже работал по всей базе, а не только по первой сотне.
   const loadMinerals = useCallback(async () => {
     try {
       setLoading(true);
-      const list = await api.getMinerals({ limit: 100 });
-      setMinerals(list);
+      let page = 1;
+      let all: Mineral[] = [];
+      while (true) {
+        const batch = await api.getMinerals({ limit: 100, page });
+        all = all.concat(batch);
+        if (batch.length < 100 || page > 20) break;
+        page++;
+      }
+      setMinerals(all);
     } catch (error) {
       console.error(error);
       toast.error('Не удалось загрузить список минералов');
@@ -49,6 +60,27 @@ export default function MineralsPage() {
   useEffect(() => {
     loadMinerals();
   }, [loadMinerals]);
+
+  const filteredMinerals = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return minerals;
+
+    return minerals.filter((m) => {
+      const haystack = [
+        m.slug,
+        m.i18n?.ru?.name,
+        m.i18n?.en?.name,
+        m.scientific?.mineral_group,
+        ...(m.i18n?.ru?.synonyms || []),
+        ...(m.i18n?.en?.synonyms || []),
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
+      return haystack.includes(q);
+    });
+  }, [minerals, query]);
 
   const handleDelete = async (slug: string) => {
     const apiKey = localStorage.getItem('admin_api_key');
@@ -87,8 +119,32 @@ export default function MineralsPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Всего: {minerals.length} минералов</CardTitle>
+        <CardHeader className="space-y-4">
+          <CardTitle>
+            {query.trim()
+              ? `Найдено: ${filteredMinerals.length} из ${minerals.length}`
+              : `Всего: ${minerals.length} минералов`}
+          </CardTitle>
+
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Поиск по названию, slug, группе, синонимам..."
+              className="pl-9 pr-9"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                aria-label="Очистить поиск"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -96,6 +152,10 @@ export default function MineralsPage() {
           ) : minerals.length === 0 ? (
             <div className="py-12 text-center text-slate-400">
               Пока нет минералов. Добавьте первый!
+            </div>
+          ) : filteredMinerals.length === 0 ? (
+            <div className="py-12 text-center text-slate-400">
+              Ничего не найдено по запросу «{query}»
             </div>
           ) : (
             <Table>
@@ -109,7 +169,7 @@ export default function MineralsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {minerals.map((mineral) => (
+                {filteredMinerals.map((mineral) => (
                   <TableRow key={mineral.slug}>
                     <TableCell className="font-mono text-sm">{mineral.slug}</TableCell>
                     <TableCell className="font-medium">{mineral.i18n.ru.name}</TableCell>
