@@ -1,6 +1,6 @@
 'use client';
 
-import { useForm, FormProvider, useWatch } from 'react-hook-form';
+import { useForm, FormProvider, useWatch, type FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { MineralSchema, type MineralFormData } from '@/lib/validations/mineral';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,44 @@ interface MineralFormProps {
   defaultValues?: Partial<MineralFormData>;
   isEdit?: boolean;
   slug?: string;
+}
+
+// Определяет, к какой вкладке формы относится путь невалидного поля,
+// чтобы можно было показать пользователю, где именно искать ошибку.
+function getTabLabel(path: string): string {
+  if (path.includes('.esoteric')) return 'Эзотерика';
+  if (path.startsWith('i18n')) return 'Названия + Lore';
+  if (path.startsWith('scientific')) return 'Научные';
+  if (path.startsWith('localities')) return 'Месторождения';
+  if (path.startsWith('gallery')) return 'Галерея';
+  return 'Основное';
+}
+
+// Рекурсивно собирает плоский список сообщений об ошибках из вложенного
+// объекта errors react-hook-form вместе с меткой вкладки, где искать поле.
+function collectFieldErrors(
+  errors: FieldErrors<MineralFormData>,
+  prefix = ''
+): { path: string; message: string }[] {
+  const results: { path: string; message: string }[] = [];
+
+  for (const key of Object.keys(errors)) {
+    const value = (errors as Record<string, unknown>)[key];
+    if (!value || typeof value !== 'object') continue;
+
+    const path = prefix ? `${prefix}.${key}` : key;
+    const maybeMessage = (value as { message?: unknown }).message;
+
+    if (typeof maybeMessage === 'string' && maybeMessage.length > 0) {
+      results.push({ path, message: maybeMessage });
+    } else {
+      results.push(
+        ...collectFieldErrors(value as FieldErrors<MineralFormData>, path)
+      );
+    }
+  }
+
+  return results;
 }
 
 export default function MineralForm({ defaultValues, isEdit = false, slug: editSlug }: MineralFormProps) {
@@ -111,9 +149,27 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
     }
   };
 
+  // Вызывается react-hook-form, когда форма НЕ проходит валидацию —
+  // до этого сохранение просто молча не срабатывало, без единой подсказки.
+  const onError = (errors: FieldErrors<MineralFormData>) => {
+    const fieldErrors = collectFieldErrors(errors);
+    if (fieldErrors.length === 0) {
+      toast.error('Форма невалидна, но конкретную причину определить не удалось');
+      return;
+    }
+
+    const tabs = Array.from(new Set(fieldErrors.map((e) => getTabLabel(e.path))));
+    const firstFew = fieldErrors.slice(0, 3).map((e) => e.message).join('; ');
+
+    toast.error(
+      `Не сохранено: проверьте вкладк${tabs.length > 1 ? 'и' : 'у'} «${tabs.join('», «')}». ${firstFew}`,
+      { duration: 8000 }
+    );
+  };
+
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-8">
         <Card>
           <CardContent className="pt-6">
             <Tabs defaultValue="basic" className="w-full">
