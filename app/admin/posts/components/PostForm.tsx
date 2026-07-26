@@ -26,12 +26,10 @@ export default function PostForm({ defaultValues, isEdit = false, slug: editSlug
   const completeDefaults: PostFormData = {
     slug: '',
     type: 'blog',
-    title_ru: '',
-    title_en: '',
-    excerpt_ru: '',
-    excerpt_en: '',
-    content_ru: '',
-    content_en: '',
+    i18n: {
+      ru: { title: '', excerpt: '', content: '' },
+      en: { title: '', excerpt: '', content: '' },
+    },
     cover_image: '',
     gem_slugs: [],
     tags: [],
@@ -95,8 +93,8 @@ export default function PostForm({ defaultValues, isEdit = false, slug: editSlug
         </Card>
 
         <Button type="submit" size="lg" className="w-full" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting 
-            ? 'Сохранение...' 
+          {form.formState.isSubmitting
+            ? 'Сохранение...'
             : isEdit ? 'Обновить статью' : 'Создать статью'
           }
         </Button>

@@ -19,22 +19,9 @@ const JSON_TEMPLATE = `{
   "type": "mineral",
   "scientific": {
     "chemical_formula": "Cu₂CO₃(OH)₂",
-    "mineral_group": "карбонаты",
-    "crystal_system": "моноклинная",
-    "crystal_habit": "призматический, волокнистый, почковидный, радиально-лучистый",
-    "hardness": { "min": 3.5, "max": 4.0, "note": "по шкале Мооса" },
+    "hardness": { "min": 3.5, "max": 4.0 },
     "specific_gravity": { "min": 3.6, "max": 4.05 },
-    "streak": "зелёная",
-    "luster": "стеклянный, шелковистый, матовый",
-    "transparency": "непрозрачный",
-    "cleavage": "совершенная по одному направлению",
-    "fracture": "неровный, раковистый",
-    "rarity": "common",
-    "ima_status": "approved",
-    "identification_tips": "Отличительные признаки от похожих минералов...",
-    "composition": "",
-    "rock_type": "",
-    "phenomena": []
+    "rarity": "common"
   },
   "i18n": {
     "ru": {
@@ -43,6 +30,21 @@ const JSON_TEMPLATE = `{
       "color": ["ярко-зелёный", "тёмно-зелёный", "изумрудно-зелёный"],
       "color_description": "Характерный насыщенный зелёный цвет с полосчатым и концентрическим рисунком",
       "lore": "История добычи на Урале, использование в камнерезном искусстве, легенды и культурное значение...",
+      "mineral_group": "карбонаты",
+      "crystal_system": "моноклинная",
+      "crystal_habit": "призматический, волокнистый, почковидный, радиально-лучистый",
+      "hardness_note": "по шкале Мооса",
+      "streak": "зелёная",
+      "luster": "стеклянный, шелковистый, матовый",
+      "transparency": "непрозрачный",
+      "cleavage": "совершенная по одному направлению",
+      "fracture": "неровный, раковистый",
+      "ima_status": "approved",
+      "identification_tips": "Отличительные признаки от похожих минералов...",
+      "composition": "",
+      "rock_type": "",
+      "phenomena": [],
+      "safety_notes": "Содержит медь. Не рекомендуется длительный контакт с кожей...",
       "esoteric": {
         "metaphysical_properties": ["защита", "эмоциональное исцеление", "гармония"],
         "chakras": ["сердечная чакра (Анахата)"],
@@ -58,14 +60,32 @@ const JSON_TEMPLATE = `{
       "color": ["bright green", "dark green", "emerald green"],
       "color_description": "Characteristic rich green color with banded patterns",
       "lore": "History of mining in the Urals...",
-      "esoteric": { ... }
+      "mineral_group": "carbonates",
+      "crystal_system": "monoclinic",
+      "crystal_habit": "prismatic, fibrous, botryoidal, radial-fanning",
+      "hardness_note": "Mohs scale",
+      "streak": "green",
+      "luster": "vitreous, silky, dull",
+      "transparency": "opaque",
+      "cleavage": "perfect in one direction",
+      "fracture": "uneven, conchoidal",
+      "ima_status": "approved",
+      "identification_tips": "Distinguishing features from similar minerals...",
+      "composition": "",
+      "rock_type": "",
+      "phenomena": [],
+      "safety_notes": "Contains copper. Prolonged skin contact is not recommended...",
+      "esoteric": { "...": "..." }
     }
   },
   "localities": [
     {
-      "country": "Россия",
-      "region": "Свердловская область",
-      "locality": "Меднорудянское месторождение (Нижний Тагил)",
+      "country_ru": "Россия",
+      "country_en": "Russia",
+      "region_ru": "Свердловская область",
+      "region_en": "Sverdlovsk Oblast",
+      "locality_ru": "Меднорудянское месторождение (Нижний Тагил)",
+      "locality_en": "Mednorudyanskoye deposit (Nizhny Tagil)",
       "is_russian": true,
       "famous": true,
       "description_ru": "Классическое уральское месторождение...",
@@ -75,7 +95,6 @@ const JSON_TEMPLATE = `{
   "main_image_url": "https://storage.yandexcloud.net/samotsvety-cdn/malachite/hero.webp",
   "thumbnail_url": "https://storage.yandexcloud.net/samotsvety-cdn/malachite/thumbnail.webp",
   "gallery": [],
-  "safety_notes": "Содержит медь...",
   "related_minerals": ["azurite", "chrysocolla"]
 }`;
 
@@ -85,9 +104,16 @@ const PROMPT_TEMPLATE = `Ты — эксперт-минералог и гемм�
 
 **Обязательные правила:**
 - Укажи "type": "mineral", "rock" или "gem_variety".
-- Научные данные — максимально точные и фактологические.
+- ВАЖНО: структура i18n изменилась — mineral_group, crystal_system, crystal_habit, streak,
+  luster, transparency, cleavage, fracture, tenacity, ima_status, identification_tips,
+  composition, rock_type, phenomena, safety_notes и hardness_note теперь находятся ВНУТРИ
+  i18n.ru и i18n.en (а не в scientific) — заполняй их на обоих языках отдельно, с реальным
+  переводом, а не заглушками.
+- В scientific остаются только: chemical_formula, hardness{min,max}, specific_gravity{min,max}, rarity.
+- Localities: country/region/locality теперь country_ru+country_en, region_ru+region_en,
+  locality_ru+locality_en — заполняй оба языка.
 - Особенно подробно опиши российские (уральские и сибирские) месторождения.
-- Lore — увлекательный историко-культурный текст.
+- Lore — увлекательный историко-культурный текст, на обоих языках.
 - Эзотерика — мягкая формулировка («в традиции считается», «многие практики отмечают»).
 - Изображения уже загружены в Yandex Cloud (samotsvety-cdn):
   - hero.webp, thumbnail.webp

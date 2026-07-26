@@ -62,60 +62,57 @@ function collectFieldErrors(
   return results;
 }
 
+// Пустой языковой блок — используется как дефолт для i18n.ru / i18n.en,
+// чтобы избежать controlled/uncontrolled input warning.
+const emptyLangData = {
+  name: '',
+  synonyms: [],
+  color: [],
+  color_description: '',
+  lore: '',
+  esoteric: undefined,
+  mineral_group: '',
+  crystal_system: '',
+  crystal_habit: '',
+  hardness_note: '',
+  streak: '',
+  luster: '',
+  transparency: '',
+  cleavage: '',
+  fracture: '',
+  tenacity: '',
+  ima_status: '',
+  identification_tips: '',
+  composition: '',
+  rock_type: '',
+  phenomena: [],
+  safety_notes: '',
+};
+
 export default function MineralForm({ defaultValues, isEdit = false, slug: editSlug }: MineralFormProps) {
   const router = useRouter();
-  
-  // Provide complete defaults to avoid controlled/uncontrolled input warning
+
   const completeDefaults: MineralFormData = {
     slug: '',
     type: 'mineral',
     scientific: {
       chemical_formula: '',
-      mineral_group: '',
-      crystal_system: '',
-      crystal_habit: '',
-      hardness: { min: 1, max: 1, note: '' },
+      hardness: { min: 1, max: 1 },
       specific_gravity: { min: 1, max: 1 },
-      streak: '',
-      luster: '',
-      transparency: '',
-      cleavage: '',
-      fracture: '',
-      tenacity: '',
       rarity: 'common',
-      ima_status: '',
-      identification_tips: '',
-      composition: '',
-      rock_type: '',
-      phenomena: [],
     },
     i18n: {
-      ru: {
-        name: '',
-        synonyms: [],
-        color: [],
-        color_description: '',
-        lore: '',
-        esoteric: undefined,
-      },
-      en: {
-        name: '',
-        synonyms: [],
-        color: [],
-        color_description: '',
-        lore: '',
-        esoteric: undefined,
-      },
+      ru: { ...emptyLangData },
+      en: { ...emptyLangData },
     },
     localities: [],
     main_image_url: '',
     thumbnail_url: '',
     gallery: [],
-    safety_notes: '',
     related_minerals: [],
     ...defaultValues,
   };
-  
+
   const form = useForm<MineralFormData>({
     resolver: zodResolver(MineralSchema),
     defaultValues: completeDefaults,
@@ -215,8 +212,8 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
         </Card>
 
         <Button type="submit" size="lg" className="w-full" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting 
-            ? 'Сохранение...' 
+          {form.formState.isSubmitting
+            ? 'Сохранение...'
             : isEdit ? 'Обновить минерал' : 'Создать минерал'
           }
         </Button>

@@ -70,7 +70,8 @@ export default function MineralsPage() {
         m.slug,
         m.i18n?.ru?.name,
         m.i18n?.en?.name,
-        m.scientific?.mineral_group,
+        m.i18n?.ru?.mineral_group,
+        m.i18n?.en?.mineral_group,
         ...(m.i18n?.ru?.synonyms || []),
         ...(m.i18n?.en?.synonyms || []),
       ]
@@ -173,7 +174,7 @@ export default function MineralsPage() {
                   <TableRow key={mineral.slug}>
                     <TableCell className="font-mono text-sm">{mineral.slug}</TableCell>
                     <TableCell className="font-medium">{mineral.i18n.ru.name}</TableCell>
-                    <TableCell>{mineral.scientific.mineral_group}</TableCell>
+                    <TableCell>{mineral.i18n.ru.mineral_group}</TableCell>
                     <TableCell>
                       <Badge variant="secondary">
                         {mineral.scientific.rarity}
@@ -190,8 +191,8 @@ export default function MineralsPage() {
                           <Edit className="h-4 w-4" />
                         </Button>
                       </Link>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="sm"
                         className="text-red-400 hover:text-red-500"
                         onClick={() => setDeleteConfirm(mineral.slug)}

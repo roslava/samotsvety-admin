@@ -54,10 +54,10 @@ export function BasicInfoSection({ form }: BasicInfoSectionProps) {
 
       <FormField
         control={form.control}
-        name="title_ru"
+        name="i18n.ru.title"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Заголовок (Русский)</FormLabel>
+            <FormLabel>Заголовок (Русский) *</FormLabel>
             <FormControl>
               <Input placeholder="Малахит Урала..." {...field} />
             </FormControl>
@@ -68,12 +68,40 @@ export function BasicInfoSection({ form }: BasicInfoSectionProps) {
 
       <FormField
         control={form.control}
-        name="title_en"
+        name="i18n.en.title"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Заголовок (English)</FormLabel>
             <FormControl>
               <Input placeholder="Ural Malachite..." {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="i18n.ru.excerpt"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Краткое описание (Русский)</FormLabel>
+            <FormControl>
+              <Input placeholder="Короткий анонс для карточки статьи..." {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="i18n.en.excerpt"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Excerpt (English)</FormLabel>
+            <FormControl>
+              <Input placeholder="Short teaser for the article card..." {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>

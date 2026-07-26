@@ -1,15 +1,22 @@
 export type PostType = 'blog' | 'guide' | 'history' | 'esoteric' | 'review';
 
+// PostLangData — контент статьи на одном языке.
+// Раньше title_ru/title_en/content_ru/content_en были плоскими полями прямо
+// на Post — теперь, как и у минералов, всё языкозависимое лежит в i18n.ru/en.
+export interface PostLangData {
+  title: string;
+  excerpt?: string;
+  content: string;
+}
+
 export interface Post {
   id: string;
   slug: string;
   type: PostType;
-  title_ru: string;
-  title_en: string;
-  excerpt_ru?: string;
-  excerpt_en?: string;
-  content_ru: string;
-  content_en: string;
+  i18n: {
+    ru: PostLangData;
+    en: PostLangData;
+  };
   cover_image?: string;
   gem_slugs: string[];
   tags: string[];

@@ -39,7 +39,7 @@ export default function PostsPage() {
           {posts.map((post) => (
             <div key={post.id} className="border p-4 rounded-lg flex justify-between items-center">
               <div>
-                <h3 className="font-semibold">{post.title_ru}</h3>
+                <h3 className="font-semibold">{post.i18n.ru.title}</h3>
                 <p className="text-sm text-gray-500">{post.slug}</p>
                 <span className={`text-xs px-2 py-1 rounded ${post.is_published ? 'bg-green-100 text-green-800' : 'bg-gray-100'}`}>
                   {post.is_published ? 'Опубликовано' : 'Черновик'}

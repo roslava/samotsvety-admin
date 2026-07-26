@@ -11,18 +11,21 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ScientificSectionProps {
   form: UseFormReturn<MineralFormData>;
 }
 
+// Здесь остались только по-настоящему языконезависимые данные: формула,
+// числа твёрдости/плотности, редкость. Всё текстовое (группа, система,
+// блеск, спайность и т.д.) переехало в I18nSection — на вкладки RU/EN,
+// потому что раньше эти поля были одноязычными по факту схемы БД.
 export function ScientificSection({ form }: ScientificSectionProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Научные свойства</CardTitle>
+        <CardTitle>Научные свойства (язык-независимые)</CardTitle>
       </CardHeader>
       <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <FormField
@@ -41,76 +44,21 @@ export function ScientificSection({ form }: ScientificSectionProps) {
 
         <FormField
           control={form.control}
-          name="scientific.mineral_group"
+          name="scientific.rarity"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Группа минерала / тип породы *</FormLabel>
-              <FormControl>
-                <Input placeholder="карбонаты" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="scientific.crystal_system"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Кристаллическая система</FormLabel>
-              <FormControl>
-                <Input placeholder="моноклинная" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="scientific.crystal_habit"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Габитус кристаллов</FormLabel>
-              <FormControl>
-                <Input placeholder="призматический, волокнистый, почковидный" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="scientific.composition"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Преобладающий состав</FormLabel>
-              <FormControl>
-                <Input placeholder="Cu + CO3 + OH" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="scientific.rock_type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Тип породы</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <FormLabel>Редкость *</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Выберите тип" />
+                    <SelectValue placeholder="Выберите" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="metamorphic">Метаморфическая</SelectItem>
-                  <SelectItem value="igneous">Магматическая</SelectItem>
-                  <SelectItem value="sedimentary">Осадочная</SelectItem>
+                  <SelectItem value="common">Common</SelectItem>
+                  <SelectItem value="uncommon">Uncommon</SelectItem>
+                  <SelectItem value="rare">Rare</SelectItem>
+                  <SelectItem value="very_rare">Very Rare</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -178,131 +126,12 @@ export function ScientificSection({ form }: ScientificSectionProps) {
           />
         </div>
 
-        <FormField
-          control={form.control}
-          name="scientific.streak"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Цвет черты *</FormLabel>
-              <FormControl>
-                <Input placeholder="зелёная" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="scientific.luster"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Блеск *</FormLabel>
-              <FormControl>
-                <Input placeholder="стеклянный, шелковистый" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="scientific.transparency"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Прозрачность *</FormLabel>
-              <FormControl>
-                <Input placeholder="непрозрачный" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="scientific.rarity"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Редкость *</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Выберите" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="common">Common</SelectItem>
-                  <SelectItem value="uncommon">Uncommon</SelectItem>
-                  <SelectItem value="rare">Rare</SelectItem>
-                  <SelectItem value="very_rare">Very Rare</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="scientific.cleavage"
-          render={({ field }) => (
-            <FormItem className="md:col-span-2">
-              <FormLabel>Спайность</FormLabel>
-              <FormControl>
-                <Textarea placeholder="совершенная по одному направлению" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="scientific.fracture"
-          render={({ field }) => (
-            <FormItem className="md:col-span-2">
-              <FormLabel>Излом</FormLabel>
-              <FormControl>
-                <Textarea placeholder="неровный, раковистый" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="scientific.identification_tips"
-          render={({ field }) => (
-            <FormItem className="md:col-span-2">
-              <FormLabel>Советы по идентификации</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Отличительные признаки..." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="scientific.phenomena"
-          render={({ field }) => (
-            <FormItem className="md:col-span-2">
-              <FormLabel>Оптические явления (через запятую)</FormLabel>
-              <FormControl>
-                <Input 
-                  placeholder="chatoyancy, asterism, iridescence" 
-                  value={field.value?.join(', ') || ''}
-                  onChange={(e) => field.onChange(e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <p className="md:col-span-2 text-sm text-slate-500">
+          Группа минерала, кристаллическая система, блеск, спайность, состав и другие
+          текстовые описания теперь заполняются на вкладке «Названия + Lore» — отдельно
+          для русского и английского, потому что раньше эти поля физически не могли иметь
+          перевод.
+        </p>
       </CardContent>
     </Card>
   );

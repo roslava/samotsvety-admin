@@ -14,10 +14,10 @@ export function ContentSection({ form }: ContentSectionProps) {
     <div className="space-y-6">
       <FormField
         control={form.control}
-        name="content_ru"
+        name="i18n.ru.content"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Содержимое (Русский)</FormLabel>
+            <FormLabel>Содержимое (Русский) *</FormLabel>
             <FormControl>
               <Textarea rows={15} {...field} />
             </FormControl>
@@ -28,7 +28,7 @@ export function ContentSection({ form }: ContentSectionProps) {
 
       <FormField
         control={form.control}
-        name="content_en"
+        name="i18n.en.content"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Содержимое (English)</FormLabel>

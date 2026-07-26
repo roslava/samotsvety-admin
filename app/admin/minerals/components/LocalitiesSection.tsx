@@ -30,28 +30,33 @@ export function LocalitiesSection({ form }: LocalitiesSectionProps) {
     <Card>
       <CardHeader>
         <div className="flex justify-between items-center">
-          <CardTitle>Месторождения</CardTitle>
+          <CardTitle>РњРµСЃС‚РѕСЂРѕР¶РґРµРЅРёСЏ</CardTitle>
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={() => append({
-              country: '',
-              region: '',
-              locality: '',
+              country_ru: '',
+              country_en: '',
+              region_ru: '',
+              region_en: '',
+              locality_ru: '',
+              locality_en: '',
               is_russian: false,
               famous: false,
+              description_ru: '',
+              description_en: '',
             })}
           >
             <Plus className="mr-2 h-4 w-4" />
-            Добавить месторождение
+            Р”РѕР±Р°РІРёС‚СЊ РјРµСЃС‚РѕСЂРѕР¶РґРµРЅРёРµ
           </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
         {fields.length === 0 && (
           <p className="text-slate-500 text-center py-8">
-            Добавьте хотя бы одно месторождение
+            Р”РѕР±Р°РІСЊС‚Рµ С…РѕС‚СЏ Р±С‹ РѕРґРЅРѕ РјРµСЃС‚РѕСЂРѕР¶РґРµРЅРёРµ
           </p>
         )}
 
@@ -67,63 +72,141 @@ export function LocalitiesSection({ form }: LocalitiesSectionProps) {
               <Trash2 className="h-4 w-4" />
             </Button>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <h4 className="text-sm text-slate-400 uppercase tracking-wide mb-3">рџ‡·рџ‡є Р СѓСЃСЃРєРёР№</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name={`localities.${index}.country_ru`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>РЎС‚СЂР°РЅР° *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Р РѕСЃСЃРёСЏ" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name={`localities.${index}.region_ru`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Р РµРіРёРѕРЅ / РћР±Р»Р°СЃС‚СЊ</FormLabel>
+                      <FormControl>
+                        <Input placeholder="РЎРІРµСЂРґР»РѕРІСЃРєР°СЏ РѕР±Р»Р°СЃС‚СЊ" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name={`localities.${index}.locality_ru`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>РљРѕРЅРєСЂРµС‚РЅРѕРµ РјРµСЃС‚РѕСЂРѕР¶РґРµРЅРёРµ</FormLabel>
+                      <FormControl>
+                        <Input placeholder="РњРµРґРЅРѕСЂСѓРґСЏРЅСЃРєРѕРµ (РќРёР¶РЅРёР№ РўР°РіРёР»)" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <FormField
                 control={form.control}
-                name={`localities.${index}.country`}
+                name={`localities.${index}.description_ru`}
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Страна *</FormLabel>
+                  <FormItem className="mt-4">
+                    <FormLabel>РћРїРёСЃР°РЅРёРµ (Р СѓСЃСЃРєРёР№)</FormLabel>
                     <FormControl>
-                      <Input placeholder="Россия" {...field} />
+                      <Textarea rows={2} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+            </div>
+
+            <div className="border-t border-slate-700 pt-4">
+              <h4 className="text-sm text-slate-400 uppercase tracking-wide mb-3">рџ‡¬рџ‡§ English</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name={`localities.${index}.country_en`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Country</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Russia" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name={`localities.${index}.region_en`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Region</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Sverdlovsk Oblast" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name={`localities.${index}.locality_en`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Specific locality</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Mednorudyanskoye (Nizhny Tagil)" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <FormField
                 control={form.control}
-                name={`localities.${index}.region`}
+                name={`localities.${index}.description_en`}
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Регион / Область *</FormLabel>
+                  <FormItem className="mt-4">
+                    <FormLabel>Description (English)</FormLabel>
                     <FormControl>
-                      <Input placeholder="Свердловская область" {...field} />
+                      <Textarea rows={2} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+            </div>
 
-              <FormField
-                control={form.control}
-                name={`localities.${index}.locality`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Конкретное месторождение</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Меднорудянское (Нижний Тагил)" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>   {/* ← Закрыли grid */}
-
-            <div className="flex gap-6">
+            <div className="flex gap-6 pt-2">
               <FormField
                 control={form.control}
                 name={`localities.${index}.is_russian`}
                 render={({ field }) => (
                   <FormItem className="flex items-center gap-3">
                     <FormControl>
-                      <Switch 
-                        checked={field.value} 
+                      <Switch
+                        checked={field.value}
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
-                    <FormLabel className="cursor-pointer">Российское месторождение</FormLabel>
+                    <FormLabel className="cursor-pointer">Р РѕСЃСЃРёР№СЃРєРѕРµ РјРµСЃС‚РѕСЂРѕР¶РґРµРЅРёРµ</FormLabel>
                   </FormItem>
                 )}
               />
@@ -134,30 +217,16 @@ export function LocalitiesSection({ form }: LocalitiesSectionProps) {
                 render={({ field }) => (
                   <FormItem className="flex items-center gap-3">
                     <FormControl>
-                      <Switch 
-                        checked={field.value} 
+                      <Switch
+                        checked={field.value}
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
-                    <FormLabel className="cursor-pointer">Знаменитое</FormLabel>
+                    <FormLabel className="cursor-pointer">Р—РЅР°РјРµРЅРёС‚РѕРµ</FormLabel>
                   </FormItem>
                 )}
               />
             </div>
-
-            <FormField
-              control={form.control}
-              name={`localities.${index}.description_ru`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Описание (Русский)</FormLabel>
-                  <FormControl>
-                    <Textarea rows={2} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </div>
         ))}
       </CardContent>
