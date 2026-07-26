@@ -42,12 +42,14 @@ export function GallerySection({ form, slug = '' }: GallerySectionProps) {
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => append({
-              url: '',
-              type: undefined,        // ← не заполняем по умолчанию
-              description_ru: '',
-              description_en: '',
-            })}
+            onClick={() =>
+              append({
+                url: '',
+                type: undefined,
+                description_ru: '',
+                description_en: '',
+              })
+            }
           >
             <Plus className="mr-2 h-4 w-4" />
             Добавить
@@ -82,11 +84,11 @@ export function GallerySection({ form, slug = '' }: GallerySectionProps) {
                     <FormControl>
                       <Input {...field} placeholder="https://storage.yandexcloud.net/..." />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Выбор типа — опциональный */}
               <FormField
                 control={form.control}
                 name={`gallery.${index}.type`}
@@ -100,24 +102,26 @@ export function GallerySection({ form, slug = '' }: GallerySectionProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {IMAGE_TYPES.map(t => (
-                          <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                        {IMAGE_TYPES.map((t) => (
+                          <SelectItem key={t.value} value={t.value}>
+                            {t.label}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Предпросмотр */}
               {currentUrl && (
                 <div className="mt-3">
                   <p className="text-xs text-slate-500 mb-1">Предпросмотр:</p>
-                  <img 
+                  <img
                     key={currentUrl}
-                    src={currentUrl} 
-                    alt="Preview" 
-                    className="max-h-48 rounded-md border border-slate-700 object-contain bg-slate-950" 
+                    src={currentUrl}
+                    alt="Preview"
+                    className="max-h-48 rounded-md border border-slate-700 object-contain bg-slate-950"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.opacity = '0.4';
                     }}
@@ -125,18 +129,35 @@ export function GallerySection({ form, slug = '' }: GallerySectionProps) {
                 </div>
               )}
 
-              <FormField
-                control={form.control}
-                name={`gallery.${index}.description_ru`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Описание (Русский)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Описание этого изображения" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name={`gallery.${index}.description_ru`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Описание (Русский)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Натуральный образец" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name={`gallery.${index}.description_en`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description (English)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Natural specimen" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
           );
         })}

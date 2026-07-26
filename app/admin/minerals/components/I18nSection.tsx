@@ -60,7 +60,11 @@ interface LangLabels {
   safetyNotesPlaceholder: string;
 }
 
-function LangFields(props: { form: UseFormReturn<MineralFormData>; lang: 'ru' | 'en'; labels: LangLabels }) {
+function LangFields(props: {
+  form: UseFormReturn<MineralFormData>;
+  lang: 'ru' | 'en';
+  labels: LangLabels;
+}) {
   const { form, lang, labels } = props;
   const base = 'i18n.' + lang + '.';
 
@@ -118,7 +122,9 @@ function LangFields(props: { form: UseFormReturn<MineralFormData>; lang: 'ru' | 
             name={(base + 'mineral_group') as any}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{labels.mineralGroup} {lang === 'ru' ? '*' : ''}</FormLabel>
+                <FormLabel>
+                  {labels.mineralGroup} {lang === 'ru' ? '*' : ''}
+                </FormLabel>
                 <FormControl>
                   <Input placeholder={labels.mineralGroupPlaceholder} {...field} />
                 </FormControl>
@@ -160,7 +166,9 @@ function LangFields(props: { form: UseFormReturn<MineralFormData>; lang: 'ru' | 
             name={(base + 'streak') as any}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{labels.streak} {lang === 'ru' ? '*' : ''}</FormLabel>
+                <FormLabel>
+                  {labels.streak} {lang === 'ru' ? '*' : ''}
+                </FormLabel>
                 <FormControl>
                   <Input placeholder={labels.streakPlaceholder} {...field} />
                 </FormControl>
@@ -174,7 +182,9 @@ function LangFields(props: { form: UseFormReturn<MineralFormData>; lang: 'ru' | 
             name={(base + 'luster') as any}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{labels.luster} {lang === 'ru' ? '*' : ''}</FormLabel>
+                <FormLabel>
+                  {labels.luster} {lang === 'ru' ? '*' : ''}
+                </FormLabel>
                 <FormControl>
                   <Input placeholder={labels.lusterPlaceholder} {...field} />
                 </FormControl>
@@ -188,7 +198,9 @@ function LangFields(props: { form: UseFormReturn<MineralFormData>; lang: 'ru' | 
             name={(base + 'transparency') as any}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{labels.transparency} {lang === 'ru' ? '*' : ''}</FormLabel>
+                <FormLabel>
+                  {labels.transparency} {lang === 'ru' ? '*' : ''}
+                </FormLabel>
                 <FormControl>
                   <Input placeholder={labels.transparencyPlaceholder} {...field} />
                 </FormControl>
@@ -302,7 +314,11 @@ function LangFields(props: { form: UseFormReturn<MineralFormData>; lang: 'ru' | 
               <FormItem className="md:col-span-2">
                 <FormLabel>{labels.identificationTips}</FormLabel>
                 <FormControl>
-                  <Textarea rows={3} placeholder={labels.identificationTipsPlaceholder} {...field} />
+                  <Textarea
+                    rows={3}
+                    placeholder={labels.identificationTipsPlaceholder}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -319,7 +335,14 @@ function LangFields(props: { form: UseFormReturn<MineralFormData>; lang: 'ru' | 
                   <Input
                     placeholder={labels.phenomenaPlaceholder}
                     value={field.value?.join(', ') || ''}
-                    onChange={(e) => field.onChange(e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean))}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value
+                          .split(',')
+                          .map((s: string) => s.trim())
+                          .filter(Boolean)
+                      )
+                    }
                   />
                 </FormControl>
                 <FormMessage />
@@ -347,45 +370,45 @@ function LangFields(props: { form: UseFormReturn<MineralFormData>; lang: 'ru' | 
 }
 
 const RU_LABELS: LangLabels = {
-  name: 'РќР°Р·РІР°РЅРёРµ (Р СѓСЃСЃРєРёР№)',
-  namePlaceholder: 'РњР°Р»Р°С…РёС‚',
-  lore: 'Lore / РСЃС‚РѕСЂРёРєРѕ-РєСѓР»СЊС‚СѓСЂРЅС‹Р№ РєРѕРЅС‚РµРєСЃС‚',
-  lorePlaceholder: 'РСЃС‚РѕСЂРёСЏ РґРѕР±С‹С‡Рё РЅР° РЈСЂР°Р»Рµ, РёСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ РІ РєР°РјРЅРµСЂРµР·РЅРѕРј РёСЃРєСѓСЃСЃС‚РІРµ...',
-  colorDescription: 'РћРїРёСЃР°РЅРёРµ С†РІРµС‚Р°',
-  colorPlaceholder: 'РҐР°СЂР°РєС‚РµСЂРЅС‹Р№ РЅР°СЃС‹С‰РµРЅРЅС‹Р№ Р·РµР»С‘РЅС‹Р№ С†РІРµС‚ СЃ РїРѕР»РѕСЃС‡Р°С‚С‹Рј СЂРёСЃСѓРЅРєРѕРј...',
-  sectionTitle: 'РќР°СѓС‡РЅС‹Рµ СЃРІРѕР№СЃС‚РІР° (С‚РµРєСЃС‚РѕРІС‹Рµ, RU)',
-  mineralGroup: 'Р“СЂСѓРїРїР° РјРёРЅРµСЂР°Р»Р° / С‚РёРї РїРѕСЂРѕРґС‹',
-  mineralGroupPlaceholder: 'РєР°СЂР±РѕРЅР°С‚С‹',
-  crystalSystem: 'РљСЂРёСЃС‚Р°Р»Р»РёС‡РµСЃРєР°СЏ СЃРёСЃС‚РµРјР°',
-  crystalSystemPlaceholder: 'РјРѕРЅРѕРєР»РёРЅРЅР°СЏ',
-  crystalHabit: 'Р“Р°Р±РёС‚СѓСЃ РєСЂРёСЃС‚Р°Р»Р»РѕРІ',
-  crystalHabitPlaceholder: 'РїСЂРёР·РјР°С‚РёС‡РµСЃРєРёР№, РІРѕР»РѕРєРЅРёСЃС‚С‹Р№, РїРѕС‡РєРѕРІРёРґРЅС‹Р№',
-  streak: 'Р¦РІРµС‚ С‡РµСЂС‚С‹',
-  streakPlaceholder: 'Р·РµР»С‘РЅР°СЏ',
-  luster: 'Р‘Р»РµСЃРє',
-  lusterPlaceholder: 'СЃС‚РµРєР»СЏРЅРЅС‹Р№, С€РµР»РєРѕРІРёСЃС‚С‹Р№',
-  transparency: 'РџСЂРѕР·СЂР°С‡РЅРѕСЃС‚СЊ',
-  transparencyPlaceholder: 'РЅРµРїСЂРѕР·СЂР°С‡РЅС‹Р№',
-  cleavage: 'РЎРїР°Р№РЅРѕСЃС‚СЊ',
-  cleavagePlaceholder: 'СЃРѕРІРµСЂС€РµРЅРЅР°СЏ РїРѕ РѕРґРЅРѕРјСѓ РЅР°РїСЂР°РІР»РµРЅРёСЋ',
-  fracture: 'РР·Р»РѕРј',
-  fracturePlaceholder: 'РЅРµСЂРѕРІРЅС‹Р№, СЂР°РєРѕРІРёСЃС‚С‹Р№',
-  tenacity: 'Р’СЏР·РєРѕСЃС‚СЊ',
-  tenacityPlaceholder: 'С…СЂСѓРїРєРёР№',
-  hardnessNote: 'РџСЂРёРјРµС‡Р°РЅРёРµ Рє С‚РІС‘СЂРґРѕСЃС‚Рё',
-  hardnessNotePlaceholder: 'РїРѕ С€РєР°Р»Рµ РњРѕРѕСЃР°',
-  imaStatus: 'РЎС‚Р°С‚СѓСЃ IMA',
+  name: 'Название (Русский)',
+  namePlaceholder: 'Малахит',
+  lore: 'Lore / Историко-культурный контекст',
+  lorePlaceholder: 'История добычи на Урале, использование в камнерезном искусстве...',
+  colorDescription: 'Описание цвета',
+  colorPlaceholder: 'Характерный насыщенный зелёный цвет с полосчатым рисунком...',
+  sectionTitle: 'Научные свойства (текстовые, RU)',
+  mineralGroup: 'Группа минерала / тип породы',
+  mineralGroupPlaceholder: 'карбонаты',
+  crystalSystem: 'Кристаллическая система',
+  crystalSystemPlaceholder: 'моноклинная',
+  crystalHabit: 'Габитус кристаллов',
+  crystalHabitPlaceholder: 'призматический, волокнистый, почковидный',
+  streak: 'Цвет черты',
+  streakPlaceholder: 'зелёная',
+  luster: 'Блеск',
+  lusterPlaceholder: 'стеклянный, шелковистый',
+  transparency: 'Прозрачность',
+  transparencyPlaceholder: 'непрозрачный',
+  cleavage: 'Спайность',
+  cleavagePlaceholder: 'совершенная по одному направлению',
+  fracture: 'Излом',
+  fracturePlaceholder: 'неровный, раковистый',
+  tenacity: 'Вязкость',
+  tenacityPlaceholder: 'хрупкий',
+  hardnessNote: 'Примечание к твёрдости',
+  hardnessNotePlaceholder: 'по шкале Мооса',
+  imaStatus: 'Статус IMA',
   imaStatusPlaceholder: 'approved / trade name / not a distinct species',
-  rockType: 'РўРёРї РїРѕСЂРѕРґС‹',
-  rockTypePlaceholder: 'РјРµС‚Р°РјРѕСЂС„РёС‡РµСЃРєР°СЏ / РјР°РіРјР°С‚РёС‡РµСЃРєР°СЏ / РѕСЃР°РґРѕС‡РЅР°СЏ',
-  composition: 'РџСЂРµРѕР±Р»Р°РґР°СЋС‰РёР№ СЃРѕСЃС‚Р°РІ',
+  rockType: 'Тип породы',
+  rockTypePlaceholder: 'метаморфическая / магматическая / осадочная',
+  composition: 'Преобладающий состав',
   compositionPlaceholder: 'Cu + CO3 + OH',
-  identificationTips: 'РЎРѕРІРµС‚С‹ РїРѕ РёРґРµРЅС‚РёС„РёРєР°С†РёРё',
-  identificationTipsPlaceholder: 'РћС‚Р»РёС‡РёС‚РµР»СЊРЅС‹Рµ РїСЂРёР·РЅР°РєРё...',
-  phenomena: 'РћРїС‚РёС‡РµСЃРєРёРµ СЏРІР»РµРЅРёСЏ (С‡РµСЂРµР· Р·Р°РїСЏС‚СѓСЋ)',
-  phenomenaPlaceholder: 'РёСЂРёР·Р°С†РёСЏ, Р°СЃС‚РµСЂРёР·Рј, РєРѕС€Р°С‡РёР№ РіР»Р°Р·',
-  safetyNotes: 'РџСЂРµРґСѓРїСЂРµР¶РґРµРЅРёСЏ РїРѕ Р±РµР·РѕРїР°СЃРЅРѕСЃС‚Рё',
-  safetyNotesPlaceholder: 'РЎРѕРґРµСЂР¶РёС‚ РјРµРґСЊ. РќРµ СЂРµРєРѕРјРµРЅРґСѓРµС‚СЃСЏ РґР»РёС‚РµР»СЊРЅС‹Р№ РєРѕРЅС‚Р°РєС‚ СЃ РєРѕР¶РµР№...',
+  identificationTips: 'Советы по идентификации',
+  identificationTipsPlaceholder: 'Отличительные признаки...',
+  phenomena: 'Оптические явления (через запятую)',
+  phenomenaPlaceholder: 'иризация, астеризм, кошачий глаз',
+  safetyNotes: 'Предупреждения по безопасности',
+  safetyNotesPlaceholder: 'Содержит медь. Не рекомендуется длительный контакт с кожей...',
 };
 
 const EN_LABELS: LangLabels = {
@@ -434,13 +457,13 @@ export function I18nSection({ form }: I18nSectionProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>РќР°Р·РІР°РЅРёСЏ, Lore Рё РЅР°СѓС‡РЅС‹Рµ РѕРїРёСЃР°РЅРёСЏ (Р СѓСЃСЃРєРёР№ + English)</CardTitle>
+        <CardTitle>Названия, Lore и научные описания (Русский + English)</CardTitle>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="ru" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="ru">рџ‡·рџ‡є Р СѓСЃСЃРєРёР№</TabsTrigger>
-            <TabsTrigger value="en">рџ‡¬рџ‡§ English</TabsTrigger>
+            <TabsTrigger value="ru">🇷🇺 Русский</TabsTrigger>
+            <TabsTrigger value="en">🇬🇧 English</TabsTrigger>
           </TabsList>
 
           <TabsContent value="ru" className="mt-6">
