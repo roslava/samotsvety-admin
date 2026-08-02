@@ -83,7 +83,13 @@ export const api = {
     return res.json();
   },
 
-    // === Посты ===
+  // === Посты ===
+  async getPost(slug: string) {
+    const res = await fetch(`${API_BASE}/api/v1/posts/${slug}`);
+    if (!res.ok) throw new Error('Post not found');
+    return res.json();
+  },
+
   async createPost(data: Record<string, unknown>, apiKey: string) {
     const res = await fetch(`${API_BASE}/api/v1/posts`, {
       method: 'POST',
@@ -117,6 +123,24 @@ export const api = {
     });
     if (!res.ok) throw new Error('Failed to delete post');
     return res.ok;
+  },
+
+  // === Медиа (иллюстрации для content_blocks) ===
+  async uploadMedia(file: File, apiKey: string): Promise<{ url: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await fetch(`${API_BASE}/api/v1/media`, {
+      method: 'POST',
+      headers: { 'X-API-Key': apiKey }, // без Content-Type — браузер сам проставит multipart boundary
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.message || 'Не удалось загрузить файл');
+    }
+    return res.json();
   },
 };
 

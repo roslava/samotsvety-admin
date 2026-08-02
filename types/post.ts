@@ -6,7 +6,37 @@ export type PostType = 'blog' | 'guide' | 'history' | 'esoteric' | 'review';
 export interface PostLangData {
   title: string;
   excerpt?: string;
-  content: string;
+  content?: string; // Markdown — устаревшее поле, для статей до перехода на content_blocks
+}
+
+// BlockType — тип блока композиции статьи (см. domain.BlockType в API)
+export type BlockType = 'heading' | 'paragraph' | 'image' | 'image_pair' | 'quote';
+
+// ImageLayout — вариант вёрстки одиночной картинки
+export type ImageLayout = 'full' | 'inset';
+
+// BlockLangData — языкозависимый текст внутри блока.
+// Какие поля используются, зависит от типа блока:
+//   heading / paragraph / quote — text (quote — ещё и attribution)
+//   image                       — caption
+//   image_pair                  — captions[0], captions[1]
+export interface BlockLangData {
+  text?: string;
+  attribution?: string;
+  caption?: string;
+  captions?: string[];
+}
+
+export interface ContentBlock {
+  id: string;
+  type: BlockType;
+  layout?: ImageLayout; // только для type === 'image'
+  image_url?: string; // для type === 'image'
+  image_urls?: string[]; // для type === 'image_pair', ровно 2 элемента
+  i18n: {
+    ru: BlockLangData;
+    en: BlockLangData;
+  };
 }
 
 export interface Post {
@@ -18,6 +48,7 @@ export interface Post {
     en: PostLangData;
   };
   cover_image?: string;
+  content_blocks?: ContentBlock[];
   gem_slugs: string[];
   tags: string[];
   published_at?: string;

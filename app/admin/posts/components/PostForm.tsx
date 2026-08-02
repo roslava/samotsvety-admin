@@ -31,6 +31,7 @@ export default function PostForm({ defaultValues, isEdit = false, slug: editSlug
       en: { title: '', excerpt: '', content: '' },
     },
     cover_image: '',
+    content_blocks: [],
     gem_slugs: [],
     tags: [],
     is_published: false,
