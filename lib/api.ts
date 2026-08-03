@@ -84,6 +84,18 @@ export const api = {
   },
 
   // === Посты ===
+  async getPosts(params: { limit?: number; page?: number } = {}) {
+    const query = new URLSearchParams();
+    if (params.limit) query.append('limit', params.limit.toString());
+    if (params.page) query.append('page', params.page.toString());
+
+    const res = await fetch(`${API_BASE}/api/v1/posts?${query}`);
+    if (!res.ok) throw new Error('Failed to fetch posts');
+
+    const result = await res.json();
+    return Array.isArray(result) ? result : (result.data || []);
+  },
+
   async getPost(slug: string) {
     const res = await fetch(`${API_BASE}/api/v1/posts/${slug}`);
     if (!res.ok) throw new Error('Post not found');

@@ -18,13 +18,16 @@ export type ImageLayout = 'full' | 'inset';
 // BlockLangData — языкозависимый текст внутри блока.
 // Какие поля используются, зависит от типа блока:
 //   heading / paragraph / quote — text (quote — ещё и attribution)
-//   image                       — caption
-//   image_pair                  — captions[0], captions[1]
+//   image                       — caption, и опционально image_url
+//                                  (override общей картинки — для схем со встроенным текстом)
+//   image_pair                  — captions[0], captions[1], и опционально image_urls (override пары)
 export interface BlockLangData {
   text?: string;
   attribution?: string;
   caption?: string;
   captions?: string[];
+  image_url?: string;
+  image_urls?: string[];
 }
 
 export interface ContentBlock {

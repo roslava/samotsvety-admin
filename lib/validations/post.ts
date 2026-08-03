@@ -21,6 +21,8 @@ export const BlockLangDataSchema = z.object({
   attribution: z.string().optional(),
   caption: z.string().optional(),
   captions: z.array(z.string()).optional(),
+  image_url: z.string().optional(),
+  image_urls: z.array(z.string()).optional(),
 });
 
 export const ContentBlockSchema = z.object({
