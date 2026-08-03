@@ -44,6 +44,9 @@ function makeBlock(type: BlockType): ContentBlockFormData {
     i18n: { ru: { ...emptyLang }, en: { ...emptyLang } },
   };
 
+  if (type === 'heading') {
+    return { ...base, level: 'section' };
+  }
   if (type === 'image') {
     return { ...base, layout: 'inset' };
   }
@@ -104,14 +107,33 @@ function BlockCard({ form, index, type, total, onMove, onRemove }: BlockCardProp
 
       <CardContent className="space-y-4">
         {(type === 'heading' || type === 'paragraph') && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-sm text-muted-foreground">Текст (Русский)</label>
-              <Textarea rows={type === 'heading' ? 1 : 4} {...form.register(`content_blocks.${index}.i18n.ru.text`)} />
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm text-muted-foreground">Text (English)</label>
-              <Textarea rows={type === 'heading' ? 1 : 4} {...form.register(`content_blocks.${index}.i18n.en.text`)} />
+          <div className="space-y-4">
+            {type === 'heading' && (
+              <div className="space-y-1 max-w-xs">
+                <label className="text-sm text-muted-foreground">Уровень</label>
+                <Select
+                  value={form.watch(`content_blocks.${index}.level`) || 'section'}
+                  onValueChange={(v) => form.setValue(`content_blocks.${index}.level`, v as 'section' | 'subheading')}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="section">Заголовок раздела</SelectItem>
+                    <SelectItem value="subheading">Подзаголовок (помельче)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-sm text-muted-foreground">Текст (Русский)</label>
+                <Textarea rows={type === 'heading' ? 1 : 4} {...form.register(`content_blocks.${index}.i18n.ru.text`)} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm text-muted-foreground">Text (English)</label>
+                <Textarea rows={type === 'heading' ? 1 : 4} {...form.register(`content_blocks.${index}.i18n.en.text`)} />
+              </div>
             </div>
           </div>
         )}

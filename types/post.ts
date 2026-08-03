@@ -15,6 +15,9 @@ export type BlockType = 'heading' | 'paragraph' | 'image' | 'image_pair' | 'quot
 // ImageLayout — вариант вёрстки одиночной картинки
 export type ImageLayout = 'full' | 'inset';
 
+// HeadingLevel — уровень заголовка: раздел статьи (крупный) или подзаголовок внутри раздела (помельче)
+export type HeadingLevel = 'section' | 'subheading';
+
 // BlockLangData — языкозависимый текст внутри блока.
 // Какие поля используются, зависит от типа блока:
 //   heading / paragraph / quote — text (quote — ещё и attribution)
@@ -33,6 +36,7 @@ export interface BlockLangData {
 export interface ContentBlock {
   id: string;
   type: BlockType;
+  level?: HeadingLevel; // только для type === 'heading'
   layout?: ImageLayout; // только для type === 'image'
   image_url?: string; // для type === 'image'
   image_urls?: string[]; // для type === 'image_pair', ровно 2 элемента

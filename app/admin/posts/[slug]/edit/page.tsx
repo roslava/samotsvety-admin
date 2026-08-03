@@ -54,6 +54,7 @@ export default function EditPostPage() {
     content_blocks: (post.content_blocks || []).map((b) => ({
       id: b.id,
       type: b.type,
+      level: b.level,
       layout: b.layout,
       image_url: b.image_url || '',
       image_urls: b.image_urls && b.image_urls.length ? b.image_urls : ['', ''],

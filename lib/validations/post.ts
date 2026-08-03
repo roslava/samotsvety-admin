@@ -15,6 +15,7 @@ export const PostLangDataEnSchema = z.object({
 
 export const BlockTypeSchema = z.enum(['heading', 'paragraph', 'image', 'image_pair', 'quote']);
 export const ImageLayoutSchema = z.enum(['full', 'inset']);
+export const HeadingLevelSchema = z.enum(['section', 'subheading']);
 
 export const BlockLangDataSchema = z.object({
   text: z.string().optional(),
@@ -28,6 +29,7 @@ export const BlockLangDataSchema = z.object({
 export const ContentBlockSchema = z.object({
   id: z.string(),
   type: BlockTypeSchema,
+  level: HeadingLevelSchema.optional(),
   layout: ImageLayoutSchema.optional(),
   image_url: z.string().optional(),
   image_urls: z.array(z.string()).optional(),
