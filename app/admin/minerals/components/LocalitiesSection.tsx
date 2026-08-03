@@ -30,7 +30,7 @@ export function LocalitiesSection({ form }: LocalitiesSectionProps) {
     <Card>
       <CardHeader>
         <div className="flex justify-between items-center">
-          <CardTitle>РњРµСЃС‚РѕСЂРѕР¶РґРµРЅРёСЏ</CardTitle>
+          <CardTitle>Месторождения</CardTitle>
           <Button
             type="button"
             variant="outline"
@@ -49,14 +49,14 @@ export function LocalitiesSection({ form }: LocalitiesSectionProps) {
             })}
           >
             <Plus className="mr-2 h-4 w-4" />
-            Р”РѕР±Р°РІРёС‚СЊ РјРµСЃС‚РѕСЂРѕР¶РґРµРЅРёРµ
+            Добавить месторождение
           </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
         {fields.length === 0 && (
           <p className="text-slate-500 text-center py-8">
-            Р”РѕР±Р°РІСЊС‚Рµ С…РѕС‚СЏ Р±С‹ РѕРґРЅРѕ РјРµСЃС‚РѕСЂРѕР¶РґРµРЅРёРµ
+            Добавьте хотя бы одно месторождение
           </p>
         )}
 
@@ -80,9 +80,9 @@ export function LocalitiesSection({ form }: LocalitiesSectionProps) {
                   name={`localities.${index}.country_ru`}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>РЎС‚СЂР°РЅР° *</FormLabel>
+                      <FormLabel>Страна *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Р РѕСЃСЃРёСЏ" {...field} />
+                        <Input placeholder="Россия" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -94,9 +94,9 @@ export function LocalitiesSection({ form }: LocalitiesSectionProps) {
                   name={`localities.${index}.region_ru`}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Р РµРіРёРѕРЅ / РћР±Р»Р°СЃС‚СЊ</FormLabel>
+                      <FormLabel>Регион / Область</FormLabel>
                       <FormControl>
-                        <Input placeholder="РЎРІРµСЂРґР»РѕРІСЃРєР°СЏ РѕР±Р»Р°СЃС‚СЊ" {...field} />
+                        <Input placeholder="Свердловская область" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -108,9 +108,9 @@ export function LocalitiesSection({ form }: LocalitiesSectionProps) {
                   name={`localities.${index}.locality_ru`}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>РљРѕРЅРєСЂРµС‚РЅРѕРµ РјРµСЃС‚РѕСЂРѕР¶РґРµРЅРёРµ</FormLabel>
+                      <FormLabel>Конкретное месторождение</FormLabel>
                       <FormControl>
-                        <Input placeholder="РњРµРґРЅРѕСЂСѓРґСЏРЅСЃРєРѕРµ (РќРёР¶РЅРёР№ РўР°РіРёР»)" {...field} />
+                        <Input placeholder="Меднорудянское (Нижний Тагил)" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -123,7 +123,7 @@ export function LocalitiesSection({ form }: LocalitiesSectionProps) {
                 name={`localities.${index}.description_ru`}
                 render={({ field }) => (
                   <FormItem className="mt-4">
-                    <FormLabel>РћРїРёСЃР°РЅРёРµ (Р СѓСЃСЃРєРёР№)</FormLabel>
+                    <FormLabel>Описание (Русский)</FormLabel>
                     <FormControl>
                       <Textarea rows={2} {...field} />
                     </FormControl>
@@ -206,7 +206,7 @@ export function LocalitiesSection({ form }: LocalitiesSectionProps) {
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
-                    <FormLabel className="cursor-pointer">Р РѕСЃСЃРёР№СЃРєРѕРµ РјРµСЃС‚РѕСЂРѕР¶РґРµРЅРёРµ</FormLabel>
+                    <FormLabel className="cursor-pointer">Российское месторождение</FormLabel>
                   </FormItem>
                 )}
               />
@@ -222,7 +222,7 @@ export function LocalitiesSection({ form }: LocalitiesSectionProps) {
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
-                    <FormLabel className="cursor-pointer">Р—РЅР°РјРµРЅРёС‚РѕРµ</FormLabel>
+                    <FormLabel className="cursor-pointer">Знаменитое</FormLabel>
                   </FormItem>
                 )}
               />

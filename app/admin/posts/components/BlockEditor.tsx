@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { ImageUploadField } from '@/components/ImageUploadField';
 import { ArrowDown, ArrowUp, GripVertical, ImageIcon, Images, Languages, Plus, Quote, Trash2, Type } from 'lucide-react';
 import type { BlockType } from '@/types/post';
@@ -181,11 +182,35 @@ function BlockCard({ form, index, type, total, onMove, onRemove }: BlockCardProp
               </Select>
             </div>
 
-            <ImageUploadField
-              label={perLanguageImage ? 'Картинка по умолчанию (если для языка не задана своя)' : 'Изображение'}
-              value={form.watch(`content_blocks.${index}.image_url`)}
-              onChange={(url) => form.setValue(`content_blocks.${index}.image_url`, url)}
-            />
+            <div className="flex items-center gap-3 rounded-md border p-3 bg-muted/30">
+              <Switch checked={perLanguageImage} onCheckedChange={setPerLanguageImage} id={`per-lang-image-${index}`} />
+              <label htmlFor={`per-lang-image-${index}`} className="text-sm cursor-pointer flex items-center gap-1.5">
+                <Languages className="h-3.5 w-3.5 text-muted-foreground" />
+                Разные картинки для RU и EN
+                <span className="text-muted-foreground">— если это схема/диаграмма с текстом внутри изображения</span>
+              </label>
+            </div>
+
+            {!perLanguageImage ? (
+              <ImageUploadField
+                label="Изображение (общее для RU и EN)"
+                value={form.watch(`content_blocks.${index}.image_url`)}
+                onChange={(url) => form.setValue(`content_blocks.${index}.image_url`, url)}
+              />
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <ImageUploadField
+                  label="Изображение — Русский"
+                  value={form.watch(`content_blocks.${index}.i18n.ru.image_url`)}
+                  onChange={(url) => form.setValue(`content_blocks.${index}.i18n.ru.image_url`, url)}
+                />
+                <ImageUploadField
+                  label="Image — English"
+                  value={form.watch(`content_blocks.${index}.i18n.en.image_url`)}
+                  onChange={(url) => form.setValue(`content_blocks.${index}.i18n.en.image_url`, url)}
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
@@ -197,72 +222,39 @@ function BlockCard({ form, index, type, total, onMove, onRemove }: BlockCardProp
                 <Input {...form.register(`content_blocks.${index}.i18n.en.caption`)} placeholder="optional" />
               </div>
             </div>
-
-            <button
-              type="button"
-              onClick={() => setPerLanguageImage((v) => !v)}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-            >
-              <Languages className="h-3.5 w-3.5" />
-              {perLanguageImage ? 'Использовать одну картинку для RU и EN' : 'Разные картинки для RU/EN (для схем с текстом на изображении)'}
-            </button>
-
-            {perLanguageImage && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t">
-                <ImageUploadField
-                  label="Картинка — Русский (если пусто, берётся картинка по умолчанию выше)"
-                  value={form.watch(`content_blocks.${index}.i18n.ru.image_url`)}
-                  onChange={(url) => form.setValue(`content_blocks.${index}.i18n.ru.image_url`, url)}
-                />
-                <ImageUploadField
-                  label="Image — English (falls back to default image above if empty)"
-                  value={form.watch(`content_blocks.${index}.i18n.en.image_url`)}
-                  onChange={(url) => form.setValue(`content_blocks.${index}.i18n.en.image_url`, url)}
-                />
-              </div>
-            )}
           </div>
         )}
 
         {type === 'image_pair' && (
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[0, 1].map((i) => (
-                <div key={i} className="space-y-3">
+            <div className="flex items-center gap-3 rounded-md border p-3 bg-muted/30">
+              <Switch checked={perLanguageImage} onCheckedChange={setPerLanguageImage} id={`per-lang-pair-${index}`} />
+              <label htmlFor={`per-lang-pair-${index}`} className="text-sm cursor-pointer flex items-center gap-1.5">
+                <Languages className="h-3.5 w-3.5 text-muted-foreground" />
+                Разные картинки для RU и EN
+                <span className="text-muted-foreground">— если это схема/диаграмма с текстом внутри изображения</span>
+              </label>
+            </div>
+
+            {!perLanguageImage ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[0, 1].map((i) => (
                   <ImageUploadField
-                    label={`Изображение ${i + 1}${perLanguageImage ? ' (по умолчанию)' : ''}`}
+                    key={i}
+                    label={`Изображение ${i + 1} (общее для RU и EN)`}
                     value={form.watch(`content_blocks.${index}.image_urls.${i}`)}
                     onChange={(url) => form.setValue(`content_blocks.${index}.image_urls.${i}`, url)}
                   />
-                  <div className="space-y-1">
-                    <label className="text-sm text-muted-foreground">Подпись RU</label>
-                    <Input {...form.register(`content_blocks.${index}.i18n.ru.captions.${i}`)} placeholder="необязательно" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-sm text-muted-foreground">Caption EN</label>
-                    <Input {...form.register(`content_blocks.${index}.i18n.en.captions.${i}`)} placeholder="optional" />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setPerLanguageImage((v) => !v)}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-            >
-              <Languages className="h-3.5 w-3.5" />
-              {perLanguageImage ? 'Использовать одни картинки для RU и EN' : 'Разные картинки для RU/EN (для схем с текстом на изображении)'}
-            </button>
-
-            {perLanguageImage && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t">
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-3">
                   <p className="text-xs font-medium text-muted-foreground">Русский</p>
                   {[0, 1].map((i) => (
                     <ImageUploadField
                       key={i}
-                      label={`Картинка ${i + 1} — RU`}
+                      label={`Изображение ${i + 1} — RU`}
                       value={form.watch(`content_blocks.${index}.i18n.ru.image_urls.${i}`)}
                       onChange={(url) => form.setValue(`content_blocks.${index}.i18n.ru.image_urls.${i}`, url)}
                     />
@@ -281,6 +273,18 @@ function BlockCard({ form, index, type, total, onMove, onRemove }: BlockCardProp
                 </div>
               </div>
             )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[0, 1].map((i) => (
+                <div key={i} className="space-y-1">
+                  <label className="text-sm text-muted-foreground">Подпись {i + 1} — RU / EN</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input {...form.register(`content_blocks.${index}.i18n.ru.captions.${i}`)} placeholder="RU, необязательно" />
+                    <Input {...form.register(`content_blocks.${index}.i18n.en.captions.${i}`)} placeholder="EN, optional" />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </CardContent>
