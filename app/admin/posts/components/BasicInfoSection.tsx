@@ -4,7 +4,6 @@ import { UseFormReturn } from 'react-hook-form';
 import { PostFormData } from '@/lib/validations/post';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface BasicInfoSectionProps {
   form: UseFormReturn<PostFormData>;
@@ -22,31 +21,6 @@ export function BasicInfoSection({ form }: BasicInfoSectionProps) {
             <FormControl>
               <Input placeholder="malachite-ural" {...field} />
             </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="type"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Тип статьи</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Выберите тип" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="blog">Блог</SelectItem>
-                <SelectItem value="guide">Гайд</SelectItem>
-                <SelectItem value="history">История</SelectItem>
-                <SelectItem value="esoteric">Эзотерика</SelectItem>
-                <SelectItem value="review">Обзор</SelectItem>
-              </SelectContent>
-            </Select>
             <FormMessage />
           </FormItem>
         )}
