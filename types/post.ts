@@ -7,6 +7,7 @@ export interface PostLangData {
   title: string;
   excerpt?: string;
   content?: string; // Markdown — устаревшее поле, для статей до перехода на content_blocks
+  cover_image?: string; // override общей обложки для этого языка
 }
 
 // BlockType — тип блока композиции статьи (см. domain.BlockType в API)

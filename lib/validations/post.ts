@@ -4,6 +4,7 @@ export const PostLangDataSchema = z.object({
   title: z.string().min(1, 'Заголовок обязателен'),
   excerpt: z.string().optional(),
   content: z.string().optional(), // legacy markdown, теперь необязательное — основной контент в content_blocks
+  cover_image: z.string().optional(), // override общей обложки для этого языка
 });
 
 // Английская версия менее строгая — можно сохранить черновик, пока перевод не готов
@@ -11,6 +12,7 @@ export const PostLangDataEnSchema = z.object({
   title: z.string().optional(),
   excerpt: z.string().optional(),
   content: z.string().optional(),
+  cover_image: z.string().optional(),
 });
 
 export const BlockTypeSchema = z.enum(['heading', 'paragraph', 'image', 'image_pair', 'quote']);

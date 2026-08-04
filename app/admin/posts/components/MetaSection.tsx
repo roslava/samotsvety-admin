@@ -1,17 +1,23 @@
 'use client';
 
+import { useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { PostFormData } from '@/lib/validations/post';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { FormField, FormItem, FormControl } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { ImageUploadField } from '@/components/ImageUploadField';
+import { Languages } from 'lucide-react';
 
 interface MetaSectionProps {
   form: UseFormReturn<PostFormData>;
 }
 
 export function MetaSection({ form }: MetaSectionProps) {
+  const [perLanguageCover, setPerLanguageCover] = useState(
+    Boolean(form.watch('i18n.ru.cover_image') || form.watch('i18n.en.cover_image'))
+  );
+
   return (
     <div className="space-y-6">
       <FormField
@@ -27,19 +33,39 @@ export function MetaSection({ form }: MetaSectionProps) {
         )}
       />
 
-      <FormField
-        control={form.control}
-        name="cover_image"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Обложка (URL)</FormLabel>
-            <FormControl>
-              <Input placeholder="https://..." {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
+      <div className="space-y-3">
+        <Label>Обложка статьи</Label>
+
+        <div className="flex items-center gap-3 rounded-md border p-3 bg-muted/30">
+          <Switch checked={perLanguageCover} onCheckedChange={setPerLanguageCover} id="per-lang-cover" />
+          <label htmlFor="per-lang-cover" className="text-sm cursor-pointer flex items-center gap-1.5">
+            <Languages className="h-3.5 w-3.5 text-muted-foreground" />
+            Разные обложки для RU и EN
+            <span className="text-muted-foreground">— если на обложке есть текст</span>
+          </label>
+        </div>
+
+        {!perLanguageCover ? (
+          <ImageUploadField
+            label="Обложка (общая для RU и EN)"
+            value={form.watch('cover_image')}
+            onChange={(url) => form.setValue('cover_image', url)}
+          />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ImageUploadField
+              label="Обложка — Русский"
+              value={form.watch('i18n.ru.cover_image')}
+              onChange={(url) => form.setValue('i18n.ru.cover_image', url)}
+            />
+            <ImageUploadField
+              label="Cover — English"
+              value={form.watch('i18n.en.cover_image')}
+              onChange={(url) => form.setValue('i18n.en.cover_image', url)}
+            />
+          </div>
         )}
-      />
+      </div>
     </div>
   );
 }

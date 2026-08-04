@@ -27,8 +27,8 @@ export default function PostForm({ defaultValues, isEdit = false, slug: editSlug
     slug: '',
     type: 'blog',
     i18n: {
-      ru: { title: '', excerpt: '', content: '' },
-      en: { title: '', excerpt: '', content: '' },
+      ru: { title: '', excerpt: '', content: '', cover_image: '' },
+      en: { title: '', excerpt: '', content: '', cover_image: '' },
     },
     cover_image: '',
     content_blocks: [],

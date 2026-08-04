@@ -43,11 +43,13 @@ export default function EditPostPage() {
         title: post.i18n.ru.title,
         excerpt: post.i18n.ru.excerpt || '',
         content: post.i18n.ru.content || '',
+        cover_image: post.i18n.ru.cover_image || '',
       },
       en: {
         title: post.i18n.en.title || '',
         excerpt: post.i18n.en.excerpt || '',
         content: post.i18n.en.content || '',
+        cover_image: post.i18n.en.cover_image || '',
       },
     },
     cover_image: post.cover_image || '',
