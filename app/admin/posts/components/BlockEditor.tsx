@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { ImageUploadField } from '@/components/ImageUploadField';
+import { MarkdownTextarea } from '@/components/MarkdownTextarea';
 import { ArrowDown, ArrowUp, GripVertical, ImageIcon, Images, Languages, Plus, Quote, Trash2, Type } from 'lucide-react';
 import type { BlockType } from '@/types/post';
 
@@ -129,13 +130,34 @@ function BlockCard({ form, index, type, total, onMove, onRemove }: BlockCardProp
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <label className="text-sm text-muted-foreground">Текст (Русский)</label>
-                <Textarea rows={type === 'heading' ? 1 : 4} {...form.register(`content_blocks.${index}.i18n.ru.text`)} />
+                {type === 'paragraph' ? (
+                  <MarkdownTextarea
+                    rows={4}
+                    value={form.watch(`content_blocks.${index}.i18n.ru.text`) || ''}
+                    onChange={(v) => form.setValue(`content_blocks.${index}.i18n.ru.text`, v)}
+                  />
+                ) : (
+                  <Textarea rows={1} {...form.register(`content_blocks.${index}.i18n.ru.text`)} />
+                )}
               </div>
               <div className="space-y-1">
                 <label className="text-sm text-muted-foreground">Text (English)</label>
-                <Textarea rows={type === 'heading' ? 1 : 4} {...form.register(`content_blocks.${index}.i18n.en.text`)} />
+                {type === 'paragraph' ? (
+                  <MarkdownTextarea
+                    rows={4}
+                    value={form.watch(`content_blocks.${index}.i18n.en.text`) || ''}
+                    onChange={(v) => form.setValue(`content_blocks.${index}.i18n.en.text`, v)}
+                  />
+                ) : (
+                  <Textarea rows={1} {...form.register(`content_blocks.${index}.i18n.en.text`)} />
+                )}
               </div>
             </div>
+            {type === 'paragraph' && (
+              <p className="text-xs text-muted-foreground">
+                Поддерживается **полужирный** и списки — кнопки на панели вставляют разметку, либо пишите её сами.
+              </p>
+            )}
           </div>
         )}
 
