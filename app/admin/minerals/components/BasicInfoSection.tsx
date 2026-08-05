@@ -10,6 +10,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { ImageUploadField } from '@/components/ImageUploadField';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -76,23 +77,9 @@ export function BasicInfoSection({ form }: BasicInfoSectionProps) {
             <FormItem>
               <FormLabel>Главное изображение (hero) *</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="https://storage.yandexcloud.net/samotsvety-cdn/malachite/hero.webp"
-                  {...field}
-                />
+                <ImageUploadField value={field.value} onChange={field.onChange} />
               </FormControl>
-              <p className="text-xs text-slate-500 mt-1">
-                Пример: <code>https://storage.yandexcloud.net/samotsvety-cdn/[slug]/hero.webp</code>
-              </p>
-              {field.value && (
-                <div className="mt-3">
-                  <img
-                    src={field.value}
-                    alt="Preview"
-                    className="max-h-48 rounded-md border border-slate-700 object-contain bg-slate-950"
-                  />
-                </div>
-              )}
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -105,23 +92,9 @@ export function BasicInfoSection({ form }: BasicInfoSectionProps) {
             <FormItem>
               <FormLabel>Thumbnail (превью)</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="https://storage.yandexcloud.net/samotsvety-cdn/malachite/thumbnail.webp"
-                  {...field}
-                />
+                <ImageUploadField value={field.value} onChange={field.onChange} />
               </FormControl>
-              <p className="text-xs text-slate-500 mt-1">
-                Пример: <code>https://storage.yandexcloud.net/samotsvety-cdn/[slug]/thumbnail.webp</code>
-              </p>
-              {field.value && (
-                <div className="mt-2">
-                  <img
-                    src={field.value}
-                    alt="Thumbnail"
-                    className="max-h-32 rounded-md border border-slate-700 object-contain bg-slate-950"
-                  />
-                </div>
-              )}
+              <FormMessage />
             </FormItem>
           )}
         />

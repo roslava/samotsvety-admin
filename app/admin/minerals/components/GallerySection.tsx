@@ -10,6 +10,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { ImageUploadField } from '@/components/ImageUploadField';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -64,8 +65,6 @@ export function GallerySection({ form, slug = '' }: GallerySectionProps) {
         )}
 
         {fields.map((field, index) => {
-          const currentUrl = form.watch(`gallery.${index}.url`);
-
           return (
             <div key={field.id} className="border border-slate-700 rounded-lg p-5 space-y-4">
               <div className="flex justify-between">
@@ -80,9 +79,9 @@ export function GallerySection({ form, slug = '' }: GallerySectionProps) {
                 name={`gallery.${index}.url`}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>URL изображения</FormLabel>
+                    <FormLabel>Изображение</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="https://storage.yandexcloud.net/..." />
+                      <ImageUploadField value={field.value} onChange={field.onChange} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -113,21 +112,6 @@ export function GallerySection({ form, slug = '' }: GallerySectionProps) {
                   </FormItem>
                 )}
               />
-
-              {currentUrl && (
-                <div className="mt-3">
-                  <p className="text-xs text-slate-500 mb-1">Предпросмотр:</p>
-                  <img
-                    key={currentUrl}
-                    src={currentUrl}
-                    alt="Preview"
-                    className="max-h-48 rounded-md border border-slate-700 object-contain bg-slate-950"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.opacity = '0.4';
-                    }}
-                  />
-                </div>
-              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
