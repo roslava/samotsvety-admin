@@ -137,16 +137,25 @@ export const api = {
     return res.ok;
   },
 
-  // === Медиа (иллюстрации для content_blocks) ===
+  // === Медиа (иллюстрации минералов и статей) ===
   async uploadMedia(
     file: File,
     apiKey: string,
-    options?: { kind?: 'article' | 'hero' | 'thumbnail' | 'gallery'; slug?: string }
+    options?: {
+      kind?: 'hero' | 'thumbnail' | 'gallery' | 'cover' | 'block_image' | 'block_pair';
+      slug?: string;
+      blockIndex?: number;
+      pairIndex?: 1 | 2;
+      lang?: 'ru' | 'en';
+    }
   ): Promise<{ url: string }> {
     const formData = new FormData();
     formData.append('file', file);
     if (options?.kind) formData.append('kind', options.kind);
     if (options?.slug) formData.append('slug', options.slug);
+    if (options?.blockIndex !== undefined) formData.append('block_index', String(options.blockIndex));
+    if (options?.pairIndex !== undefined) formData.append('pair_index', String(options.pairIndex));
+    if (options?.lang) formData.append('lang', options.lang);
 
     const res = await fetch(`${API_BASE}/api/v1/media`, {
       method: 'POST',

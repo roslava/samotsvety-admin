@@ -14,6 +14,7 @@ interface MetaSectionProps {
 }
 
 export function MetaSection({ form }: MetaSectionProps) {
+  const slug = form.watch('slug');
   const [perLanguageCover, setPerLanguageCover] = useState(
     Boolean(form.watch('i18n.ru.cover_image') || form.watch('i18n.en.cover_image'))
   );
@@ -50,6 +51,8 @@ export function MetaSection({ form }: MetaSectionProps) {
             label="Обложка (общая для RU и EN)"
             value={form.watch('cover_image')}
             onChange={(url) => form.setValue('cover_image', url)}
+            kind="cover"
+            slug={slug}
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -57,11 +60,17 @@ export function MetaSection({ form }: MetaSectionProps) {
               label="Обложка — Русский"
               value={form.watch('i18n.ru.cover_image')}
               onChange={(url) => form.setValue('i18n.ru.cover_image', url)}
+              kind="cover"
+              slug={slug}
+              lang="ru"
             />
             <ImageUploadField
               label="Cover — English"
               value={form.watch('i18n.en.cover_image')}
               onChange={(url) => form.setValue('i18n.en.cover_image', url)}
+              kind="cover"
+              slug={slug}
+              lang="en"
             />
           </div>
         )}

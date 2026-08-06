@@ -69,6 +69,8 @@ interface BlockCardProps {
 
 function BlockCard({ form, index, type, total, onMove, onRemove }: BlockCardProps) {
   const Icon = BLOCK_ICONS[type];
+  const slug = form.watch('slug');
+  const blockIndex = index + 1;
 
   // Есть ли уже заданный override картинки под конкретный язык (например, статью
   // открыли на редактирование, а override был выставлен раньше) — если да, сразу
@@ -218,6 +220,9 @@ function BlockCard({ form, index, type, total, onMove, onRemove }: BlockCardProp
                 label="Изображение (общее для RU и EN)"
                 value={form.watch(`content_blocks.${index}.image_url`)}
                 onChange={(url) => form.setValue(`content_blocks.${index}.image_url`, url)}
+                kind="block_image"
+                slug={slug}
+                blockIndex={blockIndex}
               />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -225,11 +230,19 @@ function BlockCard({ form, index, type, total, onMove, onRemove }: BlockCardProp
                   label="Изображение — Русский"
                   value={form.watch(`content_blocks.${index}.i18n.ru.image_url`)}
                   onChange={(url) => form.setValue(`content_blocks.${index}.i18n.ru.image_url`, url)}
+                  kind="block_image"
+                  slug={slug}
+                  blockIndex={blockIndex}
+                  lang="ru"
                 />
                 <ImageUploadField
                   label="Image — English"
                   value={form.watch(`content_blocks.${index}.i18n.en.image_url`)}
                   onChange={(url) => form.setValue(`content_blocks.${index}.i18n.en.image_url`, url)}
+                  kind="block_image"
+                  slug={slug}
+                  blockIndex={blockIndex}
+                  lang="en"
                 />
               </div>
             )}
@@ -266,6 +279,10 @@ function BlockCard({ form, index, type, total, onMove, onRemove }: BlockCardProp
                     label={`Изображение ${i + 1} (общее для RU и EN)`}
                     value={form.watch(`content_blocks.${index}.image_urls.${i}`)}
                     onChange={(url) => form.setValue(`content_blocks.${index}.image_urls.${i}`, url)}
+                    kind="block_pair"
+                    slug={slug}
+                    blockIndex={blockIndex}
+                    pairIndex={(i + 1) as 1 | 2}
                   />
                 ))}
               </div>
@@ -279,6 +296,11 @@ function BlockCard({ form, index, type, total, onMove, onRemove }: BlockCardProp
                       label={`Изображение ${i + 1} — RU`}
                       value={form.watch(`content_blocks.${index}.i18n.ru.image_urls.${i}`)}
                       onChange={(url) => form.setValue(`content_blocks.${index}.i18n.ru.image_urls.${i}`, url)}
+                      kind="block_pair"
+                      slug={slug}
+                      blockIndex={blockIndex}
+                      pairIndex={(i + 1) as 1 | 2}
+                      lang="ru"
                     />
                   ))}
                 </div>
@@ -290,6 +312,11 @@ function BlockCard({ form, index, type, total, onMove, onRemove }: BlockCardProp
                       label={`Image ${i + 1} — EN`}
                       value={form.watch(`content_blocks.${index}.i18n.en.image_urls.${i}`)}
                       onChange={(url) => form.setValue(`content_blocks.${index}.i18n.en.image_urls.${i}`, url)}
+                      kind="block_pair"
+                      slug={slug}
+                      blockIndex={blockIndex}
+                      pairIndex={(i + 1) as 1 | 2}
+                      lang="en"
                     />
                   ))}
                 </div>
