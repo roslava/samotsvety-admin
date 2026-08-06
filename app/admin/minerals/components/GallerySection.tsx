@@ -81,7 +81,7 @@ export function GallerySection({ form, slug = '' }: GallerySectionProps) {
                   <FormItem>
                     <FormLabel>Изображение</FormLabel>
                     <FormControl>
-                      <ImageUploadField value={field.value} onChange={field.onChange} />
+                      <ImageUploadField value={field.value} onChange={field.onChange} kind="gallery" slug={slug} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

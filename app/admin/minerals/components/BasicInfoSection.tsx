@@ -16,9 +16,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 interface BasicInfoSectionProps {
   form: UseFormReturn<MineralFormData>;
+  slug?: string;
 }
 
-export function BasicInfoSection({ form }: BasicInfoSectionProps) {
+export function BasicInfoSection({ form, slug = '' }: BasicInfoSectionProps) {
   return (
     <Card>
       <CardHeader>
@@ -77,7 +78,7 @@ export function BasicInfoSection({ form }: BasicInfoSectionProps) {
             <FormItem>
               <FormLabel>Главное изображение (hero) *</FormLabel>
               <FormControl>
-                <ImageUploadField value={field.value} onChange={field.onChange} />
+                <ImageUploadField value={field.value} onChange={field.onChange} kind="hero" slug={slug} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -92,7 +93,7 @@ export function BasicInfoSection({ form }: BasicInfoSectionProps) {
             <FormItem>
               <FormLabel>Thumbnail (превью)</FormLabel>
               <FormControl>
-                <ImageUploadField value={field.value} onChange={field.onChange} />
+                <ImageUploadField value={field.value} onChange={field.onChange} kind="thumbnail" slug={slug} />
               </FormControl>
               <FormMessage />
             </FormItem>

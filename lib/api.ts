@@ -138,9 +138,15 @@ export const api = {
   },
 
   // === Медиа (иллюстрации для content_blocks) ===
-  async uploadMedia(file: File, apiKey: string): Promise<{ url: string }> {
+  async uploadMedia(
+    file: File,
+    apiKey: string,
+    options?: { kind?: 'article' | 'hero' | 'thumbnail' | 'gallery'; slug?: string }
+  ): Promise<{ url: string }> {
     const formData = new FormData();
     formData.append('file', file);
+    if (options?.kind) formData.append('kind', options.kind);
+    if (options?.slug) formData.append('slug', options.slug);
 
     const res = await fetch(`${API_BASE}/api/v1/media`, {
       method: 'POST',

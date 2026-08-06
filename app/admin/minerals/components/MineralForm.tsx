@@ -181,7 +181,7 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
               </TabsList>
 
               <TabsContent value="basic" className="mt-6">
-                <BasicInfoSection form={form} />
+                <BasicInfoSection form={form} slug={currentSlug} />
               </TabsContent>
 
               <TabsContent value="scientific" className="mt-6">
