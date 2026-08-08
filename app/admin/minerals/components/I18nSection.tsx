@@ -84,6 +84,31 @@ const CRYSTAL_SYSTEM_OPTIONS: Record<'ru' | 'en', { value: string; label: string
   ],
 };
 
+// Цвет черты — тоже закрытый список (как в стандартных минералогических
+// справочниках), значения хранятся отдельно по языкам как и сингония выше.
+const STREAK_OPTIONS: Record<'ru' | 'en', { value: string; label: string }[]> = {
+  ru: [
+    { value: 'Чёрная', label: 'Чёрная' },
+    { value: 'Белая или бесцветная', label: 'Белая или бесцветная' },
+    { value: 'Серая', label: 'Серая' },
+    { value: 'Зелёная', label: 'Зелёная' },
+    { value: 'Синяя', label: 'Синяя' },
+    { value: 'Коричневая', label: 'Коричневая' },
+    { value: 'От розовой до красной', label: 'От розовой до красной' },
+    { value: 'От жёлтой до оранжевой', label: 'От жёлтой до оранжевой' },
+  ],
+  en: [
+    { value: 'Black', label: 'Black' },
+    { value: 'White or colourless', label: 'White or colourless' },
+    { value: 'Grey', label: 'Grey' },
+    { value: 'Green', label: 'Green' },
+    { value: 'Blue', label: 'Blue' },
+    { value: 'Brown', label: 'Brown' },
+    { value: 'Pink to Red', label: 'Pink to Red' },
+    { value: 'Yellow to Orange', label: 'Yellow to Orange' },
+  ],
+};
+
 function LangFields(props: {
   form: UseFormReturn<MineralFormData>;
   lang: 'ru' | 'en';
@@ -92,6 +117,7 @@ function LangFields(props: {
   const { form, lang, labels } = props;
   const base = 'i18n.' + lang + '.';
   const crystalSystemOptions = CRYSTAL_SYSTEM_OPTIONS[lang];
+  const streakOptions = STREAK_OPTIONS[lang];
   const noneLabel = lang === 'ru' ? 'Не указано' : 'Not specified';
 
   return (
@@ -210,9 +236,24 @@ function LangFields(props: {
                 <FormLabel>
                   {labels.streak} {lang === 'ru' ? '*' : ''}
                 </FormLabel>
-                <FormControl>
-                  <Input placeholder={labels.streakPlaceholder} {...field} />
-                </FormControl>
+                <Select
+                  onValueChange={(value) => field.onChange(value === 'none' ? '' : value)}
+                  value={field.value || 'none'}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder={labels.streakPlaceholder} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="none">{noneLabel}</SelectItem>
+                    {streakOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
