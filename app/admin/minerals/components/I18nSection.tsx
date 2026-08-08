@@ -233,9 +233,7 @@ function LangFields(props: {
             name={(base + 'streak') as any}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
-                  {labels.streak} {lang === 'ru' ? '*' : ''}
-                </FormLabel>
+                <FormLabel>{labels.streak}</FormLabel>
                 <Select
                   onValueChange={(value) => field.onChange(value === 'none' ? '' : value)}
                   value={field.value || 'none'}
@@ -264,9 +262,7 @@ function LangFields(props: {
             name={(base + 'luster') as any}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
-                  {labels.luster} {lang === 'ru' ? '*' : ''}
-                </FormLabel>
+                <FormLabel>{labels.luster}</FormLabel>
                 <FormControl>
                   <Input placeholder={labels.lusterPlaceholder} {...field} />
                 </FormControl>
@@ -280,9 +276,7 @@ function LangFields(props: {
             name={(base + 'transparency') as any}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
-                  {labels.transparency} {lang === 'ru' ? '*' : ''}
-                </FormLabel>
+                <FormLabel>{labels.transparency}</FormLabel>
                 <FormControl>
                   <Input placeholder={labels.transparencyPlaceholder} {...field} />
                 </FormControl>

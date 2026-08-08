@@ -52,12 +52,11 @@ export const I18nContentSchema = z.object({
   safety_notes: z.string().optional(),
 });
 
-// Для русской версии некоторые поля остаются обязательными (это основной язык сайта)
+// Для русской версии некоторые поля остаются обязательными (это основной язык сайта).
+// streak/luster/transparency сделаны необязательными — не для всех минералов
+// (напр. аморфных или без чёткой черты) есть смысл заполнять эти поля.
 export const I18nContentRuSchema = I18nContentSchema.extend({
   mineral_group: z.string().min(1, 'Группа / тип обязательна (RU)'),
-  streak: z.string().min(1, 'Цвет черты обязателен (RU)'),
-  luster: z.string().min(1, 'Блеск обязателен (RU)'),
-  transparency: z.string().min(1, 'Прозрачность обязательна (RU)'),
 });
 
 export const LocalitySchema = z.object({
