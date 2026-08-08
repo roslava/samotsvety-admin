@@ -109,6 +109,26 @@ const STREAK_OPTIONS: Record<'ru' | 'en', { value: string; label: string }[]> = 
   ],
 };
 
+// Излом — тоже закрытый список стандартных минералогических терминов.
+const FRACTURE_OPTIONS: Record<'ru' | 'en', { value: string; label: string }[]> = {
+  ru: [
+    { value: 'Раковистый', label: 'Раковистый' },
+    { value: 'Неровный', label: 'Неровный' },
+    { value: 'Занозистый', label: 'Занозистый' },
+    { value: 'Крючковатый', label: 'Крючковатый' },
+    { value: 'Землистый', label: 'Землистый' },
+    { value: 'Волокнистый', label: 'Волокнистый' },
+  ],
+  en: [
+    { value: 'Conchoidal', label: 'Conchoidal' },
+    { value: 'Uneven', label: 'Uneven' },
+    { value: 'Splintery', label: 'Splintery' },
+    { value: 'Hackly', label: 'Hackly' },
+    { value: 'Earthy', label: 'Earthy' },
+    { value: 'Fibrous', label: 'Fibrous' },
+  ],
+};
+
 function LangFields(props: {
   form: UseFormReturn<MineralFormData>;
   lang: 'ru' | 'en';
@@ -118,6 +138,7 @@ function LangFields(props: {
   const base = 'i18n.' + lang + '.';
   const crystalSystemOptions = CRYSTAL_SYSTEM_OPTIONS[lang];
   const streakOptions = STREAK_OPTIONS[lang];
+  const fractureOptions = FRACTURE_OPTIONS[lang];
   const noneLabel = lang === 'ru' ? 'Не указано' : 'Not specified';
 
   return (
@@ -305,9 +326,24 @@ function LangFields(props: {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{labels.fracture}</FormLabel>
-                <FormControl>
-                  <Input placeholder={labels.fracturePlaceholder} {...field} />
-                </FormControl>
+                <Select
+                  onValueChange={(value) => field.onChange(value === 'none' ? '' : value)}
+                  value={field.value || 'none'}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder={labels.fracturePlaceholder} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="none">{noneLabel}</SelectItem>
+                    {fractureOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
