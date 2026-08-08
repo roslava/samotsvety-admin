@@ -61,6 +61,29 @@ interface LangLabels {
   safetyNotesPlaceholder: string;
 }
 
+// Значения сингоний хранятся отдельно для каждого языка (i18n.ru / i18n.en),
+// поэтому и value, и подпись пункта должны быть на языке соответствующей вкладки.
+const CRYSTAL_SYSTEM_OPTIONS: Record<'ru' | 'en', { value: string; label: string }[]> = {
+  ru: [
+    { value: 'Моноклинная', label: 'Моноклинная' },
+    { value: 'Ромбическая', label: 'Ромбическая' },
+    { value: 'Гексагональная', label: 'Гексагональная' },
+    { value: 'Кубическая', label: 'Кубическая' },
+    { value: 'Триклинная', label: 'Триклинная' },
+    { value: 'Тетрагональная', label: 'Тетрагональная' },
+    { value: 'Аморфная', label: 'Аморфная' },
+  ],
+  en: [
+    { value: 'Monoclinic', label: 'Monoclinic' },
+    { value: 'Orthorhombic', label: 'Orthorhombic' },
+    { value: 'Hexagonal', label: 'Hexagonal' },
+    { value: 'Isometric', label: 'Isometric' },
+    { value: 'Triclinic', label: 'Triclinic' },
+    { value: 'Tetragonal', label: 'Tetragonal' },
+    { value: 'Amorphous', label: 'Amorphous' },
+  ],
+};
+
 function LangFields(props: {
   form: UseFormReturn<MineralFormData>;
   lang: 'ru' | 'en';
@@ -68,6 +91,8 @@ function LangFields(props: {
 }) {
   const { form, lang, labels } = props;
   const base = 'i18n.' + lang + '.';
+  const crystalSystemOptions = CRYSTAL_SYSTEM_OPTIONS[lang];
+  const noneLabel = lang === 'ru' ? 'Не указано' : 'Not specified';
 
   return (
     <div className="space-y-6">
@@ -150,14 +175,12 @@ function LangFields(props: {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="none">Не указано</SelectItem>
-                    <SelectItem value="Monoclinic">Monoclinic</SelectItem>
-                    <SelectItem value="Orthorhombic">Orthorhombic</SelectItem>
-                    <SelectItem value="Hexagonal">Hexagonal</SelectItem>
-                    <SelectItem value="Isometric">Isometric</SelectItem>
-                    <SelectItem value="Triclinic">Triclinic</SelectItem>
-                    <SelectItem value="Tetragonal">Tetragonal</SelectItem>
-                    <SelectItem value="Amorphous">Amorphous</SelectItem>
+                    <SelectItem value="none">{noneLabel}</SelectItem>
+                    {crystalSystemOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
