@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -139,9 +140,26 @@ function LangFields(props: {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{labels.crystalSystem}</FormLabel>
-                <FormControl>
-                  <Input placeholder={labels.crystalSystemPlaceholder} {...field} />
-                </FormControl>
+                <Select
+                  onValueChange={(value) => field.onChange(value === 'none' ? '' : value)}
+                  value={field.value || 'none'}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder={labels.crystalSystemPlaceholder} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="none">Не указано</SelectItem>
+                    <SelectItem value="Monoclinic">Monoclinic</SelectItem>
+                    <SelectItem value="Orthorhombic">Orthorhombic</SelectItem>
+                    <SelectItem value="Hexagonal">Hexagonal</SelectItem>
+                    <SelectItem value="Isometric">Isometric</SelectItem>
+                    <SelectItem value="Triclinic">Triclinic</SelectItem>
+                    <SelectItem value="Tetragonal">Tetragonal</SelectItem>
+                    <SelectItem value="Amorphous">Amorphous</SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
