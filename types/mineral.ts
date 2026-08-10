@@ -1,3 +1,6 @@
+// Scientific — языконезависимые данные. crystal_system/streak/fracture/
+// cleavage_* — закрытые перечисления с фиксированными кодами (не текст на
+// одном языке), поэтому живут здесь, а не в I18nContent — как rarity.
 export interface Scientific {
   chemical_formula?: string;           // опционально для пород
   hardness: {
@@ -10,6 +13,19 @@ export interface Scientific {
     max: number;
   };
   rarity: 'common' | 'uncommon' | 'rare' | 'very_rare';
+  crystal_system?:
+    | 'monoclinic' | 'orthorhombic' | 'hexagonal' | 'isometric'
+    | 'triclinic' | 'tetragonal' | 'amorphous';
+  streak?:
+    | 'black' | 'white_or_colourless' | 'grey' | 'green' | 'blue'
+    | 'brown' | 'pink_to_red' | 'yellow_to_orange';
+  fracture?: 'conchoidal' | 'uneven' | 'splintery' | 'hackly' | 'earthy' | 'fibrous';
+  // cleavage_direction/cleavage_type осмысленны только при cleavage_degree !== 'none'
+  cleavage_degree?: 'none' | 'very_poor' | 'poor' | 'good' | 'perfect';
+  cleavage_direction?: '1' | '2' | '3' | '4';
+  cleavage_type?:
+    | 'basal' | 'prismatic' | 'pinacoidal' | 'rhombohedral'
+    | 'cubic' | 'octahedral' | 'dodecahedral';
 }
 
 export interface Esoteric {
@@ -22,8 +38,9 @@ export interface Esoteric {
 }
 
 // I18nContent — весь переводимый контент минерала на одном языке.
-// mineral_group/crystal_system/streak/luster/... раньше жили в Scientific —
-// это были языкозависимые текстовые описания без английской версии вообще.
+// crystal_system/streak/fracture/cleavage_* сюда больше не входят — это
+// закрытые перечисления с языконезависимыми кодами, теперь в Scientific.
+// mineral_group/luster/... пока остаются текстом на каждом языке.
 export interface I18nContent {
   name: string;
   synonyms?: string[];
@@ -33,14 +50,10 @@ export interface I18nContent {
   esoteric?: Esoteric;
 
   mineral_group: string;
-  crystal_system?: string;
   crystal_habit?: string;
   hardness_note?: string;
-  streak: string;
   luster: string;
   transparency: string;
-  cleavage?: string;
-  fracture?: string;
   tenacity?: string;
   ima_status?: string;
   identification_tips?: string;

@@ -17,11 +17,15 @@ interface ScientificSectionProps {
   form: UseFormReturn<MineralFormData>;
 }
 
-// Здесь остались только по-настоящему языконезависимые данные: формула,
-// числа твёрдости/плотности, редкость. Всё текстовое (группа, система,
-// блеск, спайность и т.д.) переехало в I18nSection — на вкладки RU/EN,
-// потому что раньше эти поля были одноязычными по факту схемы БД.
+// Здесь языконезависимые данные: формула, числа твёрдости/плотности,
+// редкость — и, с этой ревизии, закрытые перечисления (сингония, черта,
+// излом, спайность), которые раньше по ошибке жили как свободный текст на
+// вкладках RU/EN. Группа минерала, блеск, прозрачность, состав и прочие
+// действительно свободные описания по-прежнему заполняются в I18nSection.
 export function ScientificSection({ form }: ScientificSectionProps) {
+  const cleavageDegree = form.watch('scientific.cleavage_degree');
+  const showCleavageDirection = !!cleavageDegree && cleavageDegree !== 'none';
+
   return (
     <Card>
       <CardHeader>
@@ -126,11 +130,204 @@ export function ScientificSection({ form }: ScientificSectionProps) {
           />
         </div>
 
+        <FormField
+          control={form.control}
+          name="scientific.crystal_system"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Кристаллическая система</FormLabel>
+              <Select
+                onValueChange={(value) => field.onChange(value === 'none' ? undefined : value)}
+                value={field.value || 'none'}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Не указано" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="none">Не указано</SelectItem>
+                  <SelectItem value="monoclinic">Моноклинная</SelectItem>
+                  <SelectItem value="orthorhombic">Ромбическая</SelectItem>
+                  <SelectItem value="hexagonal">Гексагональная</SelectItem>
+                  <SelectItem value="isometric">Кубическая</SelectItem>
+                  <SelectItem value="triclinic">Триклинная</SelectItem>
+                  <SelectItem value="tetragonal">Тетрагональная</SelectItem>
+                  <SelectItem value="amorphous">Аморфная</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="scientific.streak"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Цвет черты</FormLabel>
+              <Select
+                onValueChange={(value) => field.onChange(value === 'none' ? undefined : value)}
+                value={field.value || 'none'}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Не указано" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="none">Не указано</SelectItem>
+                  <SelectItem value="black">Чёрная</SelectItem>
+                  <SelectItem value="white_or_colourless">Белая или бесцветная</SelectItem>
+                  <SelectItem value="grey">Серая</SelectItem>
+                  <SelectItem value="green">Зелёная</SelectItem>
+                  <SelectItem value="blue">Синяя</SelectItem>
+                  <SelectItem value="brown">Коричневая</SelectItem>
+                  <SelectItem value="pink_to_red">От розовой до красной</SelectItem>
+                  <SelectItem value="yellow_to_orange">От жёлтой до оранжевой</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="scientific.fracture"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Излом</FormLabel>
+              <Select
+                onValueChange={(value) => field.onChange(value === 'none' ? undefined : value)}
+                value={field.value || 'none'}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Не указано" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="none">Не указано</SelectItem>
+                  <SelectItem value="conchoidal">Раковистый</SelectItem>
+                  <SelectItem value="uneven">Неровный</SelectItem>
+                  <SelectItem value="splintery">Занозистый</SelectItem>
+                  <SelectItem value="hackly">Крючковатый</SelectItem>
+                  <SelectItem value="earthy">Землистый</SelectItem>
+                  <SelectItem value="fibrous">Волокнистый</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Спайность — три поля вместо одного текстового: степень (закрытый список),
+            направление (видно только когда степень задана и не 'none' — при none
+            количество направлений неприменимо по определению) и необязательный
+            геометрический тип. */}
+        <FormField
+          control={form.control}
+          name="scientific.cleavage_degree"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Спайность — степень</FormLabel>
+              <Select
+                onValueChange={(value) => {
+                  field.onChange(value === 'unset' ? undefined : value);
+                  if (value === 'none' || value === 'unset') {
+                    form.setValue('scientific.cleavage_direction', undefined);
+                  }
+                }}
+                value={field.value || 'unset'}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Не указано" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="unset">Не указано</SelectItem>
+                  <SelectItem value="none">Нет</SelectItem>
+                  <SelectItem value="very_poor">Очень несовершенная</SelectItem>
+                  <SelectItem value="poor">Несовершенная</SelectItem>
+                  <SelectItem value="good">Хорошая</SelectItem>
+                  <SelectItem value="perfect">Совершенная</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {showCleavageDirection && (
+          <FormField
+            control={form.control}
+            name="scientific.cleavage_direction"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Спайность — направления</FormLabel>
+                <Select
+                  onValueChange={(value) => field.onChange(value === 'none' ? undefined : value)}
+                  value={field.value || 'none'}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Не указано" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="none">Не указано</SelectItem>
+                    <SelectItem value="1">1 направление</SelectItem>
+                    <SelectItem value="2">2 направления</SelectItem>
+                    <SelectItem value="3">3 направления</SelectItem>
+                    <SelectItem value="4">4 направления</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        <FormField
+          control={form.control}
+          name="scientific.cleavage_type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Спайность — тип (геометрия)</FormLabel>
+              <Select
+                onValueChange={(value) => field.onChange(value === 'none' ? undefined : value)}
+                value={field.value || 'none'}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Не определён" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="none">Не определён</SelectItem>
+                  <SelectItem value="basal">Базальная</SelectItem>
+                  <SelectItem value="prismatic">Призматическая</SelectItem>
+                  <SelectItem value="pinacoidal">Пинакоидальная</SelectItem>
+                  <SelectItem value="rhombohedral">Ромбоэдрическая</SelectItem>
+                  <SelectItem value="cubic">Кубическая</SelectItem>
+                  <SelectItem value="octahedral">Октаэдрическая</SelectItem>
+                  <SelectItem value="dodecahedral">Додекаэдрическая</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <p className="md:col-span-2 text-sm text-slate-500">
-          Группа минерала, кристаллическая система, блеск, спайность, состав и другие
-          текстовые описания теперь заполняются на вкладке «Названия + Lore» — отдельно
-          для русского и английского, потому что раньше эти поля физически не могли иметь
-          перевод.
+          Группа минерала, блеск, прозрачность, состав и другие свободные текстовые
+          описания заполняются на вкладке «Названия + Lore» — отдельно для русского
+          и английского. Поля выше (сингония, черта, излом, спайность) — закрытые
+          перечисления, языконезависимые: значение одно на весь минерал, а подпись
+          переводится словарём при отображении на сайте.
         </p>
       </CardContent>
     </Card>

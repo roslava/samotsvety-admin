@@ -21,7 +21,13 @@ const JSON_TEMPLATE = `{
     "chemical_formula": "Cu₂CO₃(OH)₂",
     "hardness": { "min": 3.5, "max": 4.0 },
     "specific_gravity": { "min": 3.6, "max": 4.05 },
-    "rarity": "common"
+    "rarity": "common",
+    "crystal_system": "monoclinic",
+    "streak": "green",
+    "fracture": "uneven",
+    "cleavage_degree": "perfect",
+    "cleavage_direction": "1",
+    "cleavage_type": "pinacoidal"
   },
   "i18n": {
     "ru": {
@@ -31,14 +37,10 @@ const JSON_TEMPLATE = `{
       "color_description": "Характерный насыщенный зелёный цвет с полосчатым и концентрическим рисунком",
       "lore": "История добычи на Урале, использование в камнерезном искусстве, легенды и культурное значение...",
       "mineral_group": "карбонаты",
-      "crystal_system": "моноклинная",
       "crystal_habit": "призматический, волокнистый, почковидный, радиально-лучистый",
       "hardness_note": "по шкале Мооса",
-      "streak": "зелёная",
       "luster": "стеклянный, шелковистый, матовый",
       "transparency": "непрозрачный",
-      "cleavage": "совершенная по одному направлению",
-      "fracture": "неровный, раковистый",
       "ima_status": "approved",
       "identification_tips": "Отличительные признаки от похожих минералов...",
       "composition": "",
@@ -61,14 +63,10 @@ const JSON_TEMPLATE = `{
       "color_description": "Characteristic rich green color with banded patterns",
       "lore": "History of mining in the Urals...",
       "mineral_group": "carbonates",
-      "crystal_system": "monoclinic",
       "crystal_habit": "prismatic, fibrous, botryoidal, radial-fanning",
       "hardness_note": "Mohs scale",
-      "streak": "green",
       "luster": "vitreous, silky, dull",
       "transparency": "opaque",
-      "cleavage": "perfect in one direction",
-      "fracture": "uneven, conchoidal",
       "ima_status": "approved",
       "identification_tips": "Distinguishing features from similar minerals...",
       "composition": "",
@@ -104,12 +102,21 @@ const PROMPT_TEMPLATE = `Ты — эксперт-минералог и гемм�
 
 **Обязательные правила:**
 - Укажи "type": "mineral", "rock" или "gem_variety".
-- ВАЖНО: структура i18n изменилась — mineral_group, crystal_system, crystal_habit, streak,
-  luster, transparency, cleavage, fracture, tenacity, ima_status, identification_tips,
-  composition, rock_type, phenomena, safety_notes и hardness_note теперь находятся ВНУТРИ
-  i18n.ru и i18n.en (а не в scientific) — заполняй их на обоих языках отдельно, с реальным
+- ВАЖНО: crystal_system, streak, fracture и cleavage_degree/cleavage_direction/cleavage_type
+  находятся ВНУТРИ scientific (не в i18n!) — это закрытые перечисления с фиксированными
+  кодами, ОДНО значение на весь минерал (не переводится и не дублируется по языкам):
+  - crystal_system: monoclinic | orthorhombic | hexagonal | isometric | triclinic | tetragonal | amorphous
+  - streak: black | white_or_colourless | grey | green | blue | brown | pink_to_red | yellow_to_orange
+  - fracture: conchoidal | uneven | splintery | hackly | earthy | fibrous
+  - cleavage_degree: none | very_poor | poor | good | perfect
+  - cleavage_direction: "1" | "2" | "3" | "4" (указывай, только если cleavage_degree != none)
+  - cleavage_type (необязательно): basal | prismatic | pinacoidal | rhombohedral | cubic | octahedral | dodecahedral
+  Если для минерала какое-то из этих полей не определено или не подходит под перечисление — просто не указывай его.
+- mineral_group, crystal_habit, luster, transparency, tenacity, ima_status, identification_tips,
+  composition, rock_type, phenomena, safety_notes и hardness_note — это свободный текст,
+  находятся ВНУТРИ i18n.ru и i18n.en — заполняй их на обоих языках отдельно, с реальным
   переводом, а не заглушками.
-- В scientific остаются только: chemical_formula, hardness{min,max}, specific_gravity{min,max}, rarity.
+- В scientific помимо перечислений выше: chemical_formula, hardness{min,max}, specific_gravity{min,max}, rarity.
 - Localities: country/region/locality теперь country_ru+country_en, region_ru+region_en,
   locality_ru+locality_en — заполняй оба языка.
 - Особенно подробно опиши российские (уральские и сибирские) месторождения.

@@ -64,6 +64,8 @@ function collectFieldErrors(
 
 // Пустой языковой блок — используется как дефолт для i18n.ru / i18n.en,
 // чтобы избежать controlled/uncontrolled input warning.
+// crystal_system/streak/cleavage/fracture сюда больше не входят — это
+// закрытые перечисления, живут в scientific (см. completeDefaults ниже).
 const emptyLangData = {
   name: '',
   synonyms: [],
@@ -72,14 +74,10 @@ const emptyLangData = {
   lore: '',
   esoteric: undefined,
   mineral_group: '',
-  crystal_system: '',
   crystal_habit: '',
   hardness_note: '',
-  streak: '',
   luster: '',
   transparency: '',
-  cleavage: '',
-  fracture: '',
   tenacity: '',
   ima_status: '',
   identification_tips: '',

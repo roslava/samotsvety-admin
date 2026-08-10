@@ -1,5 +1,9 @@
 import { z } from 'zod';
 
+// ScientificSchema — языконезависимые данные. crystal_system/streak/fracture/
+// cleavage_* — закрытые перечисления с фиксированными кодами (не свободный
+// текст на одном языке), поэтому живут здесь, а не в I18nContentSchema —
+// как rarity. Подпись для UI берётся из словаря по коду.
 export const ScientificSchema = z.object({
   chemical_formula: z.string().optional(),
   hardness: z.object({
@@ -11,6 +15,22 @@ export const ScientificSchema = z.object({
     max: z.number().positive(),
   }),
   rarity: z.enum(['common', 'uncommon', 'rare', 'very_rare']),
+  crystal_system: z
+    .enum(['monoclinic', 'orthorhombic', 'hexagonal', 'isometric', 'triclinic', 'tetragonal', 'amorphous'])
+    .optional(),
+  streak: z
+    .enum(['black', 'white_or_colourless', 'grey', 'green', 'blue', 'brown', 'pink_to_red', 'yellow_to_orange'])
+    .optional(),
+  fracture: z
+    .enum(['conchoidal', 'uneven', 'splintery', 'hackly', 'earthy', 'fibrous'])
+    .optional(),
+  // cleavage_direction/cleavage_type осмысленны только при cleavage_degree !== 'none' —
+  // это условие в UI (ScientificSection), схема этого не форсирует.
+  cleavage_degree: z.enum(['none', 'very_poor', 'poor', 'good', 'perfect']).optional(),
+  cleavage_direction: z.enum(['1', '2', '3', '4']).optional(),
+  cleavage_type: z
+    .enum(['basal', 'prismatic', 'pinacoidal', 'rhombohedral', 'cubic', 'octahedral', 'dodecahedral'])
+    .optional(),
 });
 
 export const EsotericSchema = z.object({
@@ -23,9 +43,11 @@ export const EsotericSchema = z.object({
 });
 
 // I18nContentSchema — переводимый контент минерала на одном языке.
-// mineral_group/streak/luster/... раньше были в ScientificSchema с
-// обязательными полями; теперь required только для ru, чтобы можно было
-// сохранить минерал, пока перевод на en ещё не готов.
+// crystal_system/streak/fracture/cleavage_* сюда больше не входят — это
+// закрытые перечисления с языконезависимыми кодами, теперь в ScientificSchema.
+// mineral_group/luster/transparency пока остаются текстом на каждом языке —
+// required только для ru, чтобы можно было сохранить минерал, пока перевод
+// на en ещё не готов.
 export const I18nContentSchema = z.object({
   name: z.string().min(1, 'Название обязательно'),
   synonyms: z.array(z.string()).optional(),
@@ -35,14 +57,10 @@ export const I18nContentSchema = z.object({
   esoteric: EsotericSchema.optional(),
 
   mineral_group: z.string(),
-  crystal_system: z.string().optional(),
   crystal_habit: z.string().optional(),
   hardness_note: z.string().optional(),
-  streak: z.string(),
   luster: z.string(),
   transparency: z.string(),
-  cleavage: z.string().optional(),
-  fracture: z.string().optional(),
   tenacity: z.string().optional(),
   ima_status: z.string().optional(),
   identification_tips: z.string().optional(),
@@ -53,8 +71,8 @@ export const I18nContentSchema = z.object({
 });
 
 // Для русской версии некоторые поля остаются обязательными (это основной язык сайта).
-// streak/luster/transparency сделаны необязательными — не для всех минералов
-// (напр. аморфных или без чёткой черты) есть смысл заполнять эти поля.
+// luster/transparency сделаны необязательными — не для всех минералов
+// (напр. аморфных) есть смысл заполнять эти поля.
 export const I18nContentRuSchema = I18nContentSchema.extend({
   mineral_group: z.string().min(1, 'Группа / тип обязательна (RU)'),
 });

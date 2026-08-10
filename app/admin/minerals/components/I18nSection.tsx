@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -29,20 +28,12 @@ interface LangLabels {
   sectionTitle: string;
   mineralGroup: string;
   mineralGroupPlaceholder: string;
-  crystalSystem: string;
-  crystalSystemPlaceholder: string;
   crystalHabit: string;
   crystalHabitPlaceholder: string;
-  streak: string;
-  streakPlaceholder: string;
   luster: string;
   lusterPlaceholder: string;
   transparency: string;
   transparencyPlaceholder: string;
-  cleavage: string;
-  cleavagePlaceholder: string;
-  fracture: string;
-  fracturePlaceholder: string;
   tenacity: string;
   tenacityPlaceholder: string;
   hardnessNote: string;
@@ -61,74 +52,6 @@ interface LangLabels {
   safetyNotesPlaceholder: string;
 }
 
-// Значения сингоний хранятся отдельно для каждого языка (i18n.ru / i18n.en),
-// поэтому и value, и подпись пункта должны быть на языке соответствующей вкладки.
-const CRYSTAL_SYSTEM_OPTIONS: Record<'ru' | 'en', { value: string; label: string }[]> = {
-  ru: [
-    { value: 'Моноклинная', label: 'Моноклинная' },
-    { value: 'Ромбическая', label: 'Ромбическая' },
-    { value: 'Гексагональная', label: 'Гексагональная' },
-    { value: 'Кубическая', label: 'Кубическая' },
-    { value: 'Триклинная', label: 'Триклинная' },
-    { value: 'Тетрагональная', label: 'Тетрагональная' },
-    { value: 'Аморфная', label: 'Аморфная' },
-  ],
-  en: [
-    { value: 'Monoclinic', label: 'Monoclinic' },
-    { value: 'Orthorhombic', label: 'Orthorhombic' },
-    { value: 'Hexagonal', label: 'Hexagonal' },
-    { value: 'Isometric', label: 'Isometric' },
-    { value: 'Triclinic', label: 'Triclinic' },
-    { value: 'Tetragonal', label: 'Tetragonal' },
-    { value: 'Amorphous', label: 'Amorphous' },
-  ],
-};
-
-// Цвет черты — тоже закрытый список (как в стандартных минералогических
-// справочниках), значения хранятся отдельно по языкам как и сингония выше.
-const STREAK_OPTIONS: Record<'ru' | 'en', { value: string; label: string }[]> = {
-  ru: [
-    { value: 'Чёрная', label: 'Чёрная' },
-    { value: 'Белая или бесцветная', label: 'Белая или бесцветная' },
-    { value: 'Серая', label: 'Серая' },
-    { value: 'Зелёная', label: 'Зелёная' },
-    { value: 'Синяя', label: 'Синяя' },
-    { value: 'Коричневая', label: 'Коричневая' },
-    { value: 'От розовой до красной', label: 'От розовой до красной' },
-    { value: 'От жёлтой до оранжевой', label: 'От жёлтой до оранжевой' },
-  ],
-  en: [
-    { value: 'Black', label: 'Black' },
-    { value: 'White or colourless', label: 'White or colourless' },
-    { value: 'Grey', label: 'Grey' },
-    { value: 'Green', label: 'Green' },
-    { value: 'Blue', label: 'Blue' },
-    { value: 'Brown', label: 'Brown' },
-    { value: 'Pink to Red', label: 'Pink to Red' },
-    { value: 'Yellow to Orange', label: 'Yellow to Orange' },
-  ],
-};
-
-// Излом — тоже закрытый список стандартных минералогических терминов.
-const FRACTURE_OPTIONS: Record<'ru' | 'en', { value: string; label: string }[]> = {
-  ru: [
-    { value: 'Раковистый', label: 'Раковистый' },
-    { value: 'Неровный', label: 'Неровный' },
-    { value: 'Занозистый', label: 'Занозистый' },
-    { value: 'Крючковатый', label: 'Крючковатый' },
-    { value: 'Землистый', label: 'Землистый' },
-    { value: 'Волокнистый', label: 'Волокнистый' },
-  ],
-  en: [
-    { value: 'Conchoidal', label: 'Conchoidal' },
-    { value: 'Uneven', label: 'Uneven' },
-    { value: 'Splintery', label: 'Splintery' },
-    { value: 'Hackly', label: 'Hackly' },
-    { value: 'Earthy', label: 'Earthy' },
-    { value: 'Fibrous', label: 'Fibrous' },
-  ],
-};
-
 function LangFields(props: {
   form: UseFormReturn<MineralFormData>;
   lang: 'ru' | 'en';
@@ -136,10 +59,6 @@ function LangFields(props: {
 }) {
   const { form, lang, labels } = props;
   const base = 'i18n.' + lang + '.';
-  const crystalSystemOptions = CRYSTAL_SYSTEM_OPTIONS[lang];
-  const streakOptions = STREAK_OPTIONS[lang];
-  const fractureOptions = FRACTURE_OPTIONS[lang];
-  const noneLabel = lang === 'ru' ? 'Не указано' : 'Not specified';
 
   return (
     <div className="space-y-6">
@@ -208,35 +127,6 @@ function LangFields(props: {
 
           <FormField
             control={form.control}
-            name={(base + 'crystal_system') as any}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{labels.crystalSystem}</FormLabel>
-                <Select
-                  onValueChange={(value) => field.onChange(value === 'none' ? '' : value)}
-                  value={field.value || 'none'}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={labels.crystalSystemPlaceholder} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">{noneLabel}</SelectItem>
-                    {crystalSystemOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name={(base + 'crystal_habit') as any}
             render={({ field }) => (
               <FormItem>
@@ -244,35 +134,6 @@ function LangFields(props: {
                 <FormControl>
                   <Input placeholder={labels.crystalHabitPlaceholder} {...field} />
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name={(base + 'streak') as any}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{labels.streak}</FormLabel>
-                <Select
-                  onValueChange={(value) => field.onChange(value === 'none' ? '' : value)}
-                  value={field.value || 'none'}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={labels.streakPlaceholder} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">{noneLabel}</SelectItem>
-                    {streakOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -301,49 +162,6 @@ function LangFields(props: {
                 <FormControl>
                   <Input placeholder={labels.transparencyPlaceholder} {...field} />
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name={(base + 'cleavage') as any}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{labels.cleavage}</FormLabel>
-                <FormControl>
-                  <Input placeholder={labels.cleavagePlaceholder} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name={(base + 'fracture') as any}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{labels.fracture}</FormLabel>
-                <Select
-                  onValueChange={(value) => field.onChange(value === 'none' ? '' : value)}
-                  value={field.value || 'none'}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={labels.fracturePlaceholder} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">{noneLabel}</SelectItem>
-                    {fractureOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -491,20 +309,12 @@ const RU_LABELS: LangLabels = {
   sectionTitle: 'Научные свойства (текстовые, RU)',
   mineralGroup: 'Группа минерала / тип породы',
   mineralGroupPlaceholder: 'карбонаты',
-  crystalSystem: 'Кристаллическая система',
-  crystalSystemPlaceholder: 'моноклинная',
   crystalHabit: 'Габитус кристаллов',
   crystalHabitPlaceholder: 'призматический, волокнистый, почковидный',
-  streak: 'Цвет черты',
-  streakPlaceholder: 'зелёная',
   luster: 'Блеск',
   lusterPlaceholder: 'стеклянный, шелковистый',
   transparency: 'Прозрачность',
   transparencyPlaceholder: 'непрозрачный',
-  cleavage: 'Спайность',
-  cleavagePlaceholder: 'совершенная по одному направлению',
-  fracture: 'Излом',
-  fracturePlaceholder: 'неровный, раковистый',
   tenacity: 'Вязкость',
   tenacityPlaceholder: 'хрупкий',
   hardnessNote: 'Примечание к твёрдости',
@@ -533,20 +343,12 @@ const EN_LABELS: LangLabels = {
   sectionTitle: 'Scientific properties (descriptive, EN)',
   mineralGroup: 'Mineral group / rock type',
   mineralGroupPlaceholder: 'carbonates',
-  crystalSystem: 'Crystal system',
-  crystalSystemPlaceholder: 'monoclinic',
   crystalHabit: 'Crystal habit',
   crystalHabitPlaceholder: 'prismatic, fibrous, botryoidal',
-  streak: 'Streak',
-  streakPlaceholder: 'green',
   luster: 'Luster',
   lusterPlaceholder: 'vitreous, silky',
   transparency: 'Transparency',
   transparencyPlaceholder: 'opaque',
-  cleavage: 'Cleavage',
-  cleavagePlaceholder: 'perfect in one direction',
-  fracture: 'Fracture',
-  fracturePlaceholder: 'uneven, conchoidal',
   tenacity: 'Tenacity',
   tenacityPlaceholder: 'brittle',
   hardnessNote: 'Hardness note',

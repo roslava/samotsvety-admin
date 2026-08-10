@@ -31,7 +31,9 @@ const UI = {
     streak: 'Цвет черты',
     luster: 'Блеск',
     transparency: 'Прозрачность',
-    cleavage: 'Спайность',
+    cleavageDegree: 'Спайность (степень)',
+    cleavageDirection: 'Направления спайности',
+    cleavageType: 'Тип спайности',
     fracture: 'Излом',
     tenacity: 'Вязкость',
     rarity: 'Редкость',
@@ -79,7 +81,9 @@ const UI = {
     streak: 'Streak',
     luster: 'Luster',
     transparency: 'Transparency',
-    cleavage: 'Cleavage',
+    cleavageDegree: 'Cleavage (degree)',
+    cleavageDirection: 'Cleavage directions',
+    cleavageType: 'Cleavage type',
     fracture: 'Fracture',
     tenacity: 'Tenacity',
     rarity: 'Rarity',
@@ -109,6 +113,127 @@ const UI = {
     typeRock: 'Rock',
   },
 } as const;
+
+// scientific.crystal_system/streak/fracture/cleavage_* — языконезависимые
+// коды (как rarity), поэтому подпись для отображения берётся отсюда, а не
+// из t?.<field> — того текста в i18n для них больше нет.
+const CRYSTAL_SYSTEM_LABELS: Record<Lang, Record<string, string>> = {
+  ru: {
+    monoclinic: 'Моноклинная',
+    orthorhombic: 'Ромбическая',
+    hexagonal: 'Гексагональная',
+    isometric: 'Кубическая',
+    triclinic: 'Триклинная',
+    tetragonal: 'Тетрагональная',
+    amorphous: 'Аморфная',
+  },
+  en: {
+    monoclinic: 'Monoclinic',
+    orthorhombic: 'Orthorhombic',
+    hexagonal: 'Hexagonal',
+    isometric: 'Isometric',
+    triclinic: 'Triclinic',
+    tetragonal: 'Tetragonal',
+    amorphous: 'Amorphous',
+  },
+};
+
+const STREAK_LABELS: Record<Lang, Record<string, string>> = {
+  ru: {
+    black: 'Чёрная',
+    white_or_colourless: 'Белая или бесцветная',
+    grey: 'Серая',
+    green: 'Зелёная',
+    blue: 'Синяя',
+    brown: 'Коричневая',
+    pink_to_red: 'От розовой до красной',
+    yellow_to_orange: 'От жёлтой до оранжевой',
+  },
+  en: {
+    black: 'Black',
+    white_or_colourless: 'White or colourless',
+    grey: 'Grey',
+    green: 'Green',
+    blue: 'Blue',
+    brown: 'Brown',
+    pink_to_red: 'Pink to Red',
+    yellow_to_orange: 'Yellow to Orange',
+  },
+};
+
+const FRACTURE_LABELS: Record<Lang, Record<string, string>> = {
+  ru: {
+    conchoidal: 'Раковистый',
+    uneven: 'Неровный',
+    splintery: 'Занозистый',
+    hackly: 'Крючковатый',
+    earthy: 'Землистый',
+    fibrous: 'Волокнистый',
+  },
+  en: {
+    conchoidal: 'Conchoidal',
+    uneven: 'Uneven',
+    splintery: 'Splintery',
+    hackly: 'Hackly',
+    earthy: 'Earthy',
+    fibrous: 'Fibrous',
+  },
+};
+
+const CLEAVAGE_DEGREE_LABELS: Record<Lang, Record<string, string>> = {
+  ru: {
+    none: 'Нет',
+    very_poor: 'Очень несовершенная',
+    poor: 'Несовершенная',
+    good: 'Хорошая',
+    perfect: 'Совершенная',
+  },
+  en: {
+    none: 'None',
+    very_poor: 'Very poor',
+    poor: 'Poor',
+    good: 'Good',
+    perfect: 'Perfect',
+  },
+};
+
+// Направление показывается, только если степень спайности не 'none' —
+// при none количество направлений неприменимо по определению.
+const CLEAVAGE_DIRECTION_LABELS: Record<Lang, Record<string, string>> = {
+  ru: {
+    '1': '1 направление',
+    '2': '2 направления',
+    '3': '3 направления',
+    '4': '4 направления',
+  },
+  en: {
+    '1': '1 direction',
+    '2': '2 directions',
+    '3': '3 directions',
+    '4': '4 directions',
+  },
+};
+
+const CLEAVAGE_TYPE_LABELS: Record<Lang, Record<string, string>> = {
+  ru: {
+    basal: 'Базальная',
+    prismatic: 'Призматическая',
+    pinacoidal: 'Пинакоидальная',
+    rhombohedral: 'Ромбоэдрическая',
+    cubic: 'Кубическая',
+    octahedral: 'Октаэдрическая',
+    dodecahedral: 'Додекаэдрическая',
+  },
+  en: {
+    basal: 'Basal',
+    prismatic: 'Prismatic',
+    pinacoidal: 'Pinacoidal',
+    rhombohedral: 'Rhombohedral',
+    cubic: 'Cubic',
+    octahedral: 'Octahedral',
+    dodecahedral: 'Dodecahedral',
+  },
+};
 
 function Row({ label, value }: { label: string; value?: string | null }) {
   return (
@@ -262,15 +387,53 @@ export default function MineralViewPage() {
                 <div className="grid grid-cols-2 gap-y-4 text-sm">
                   <Row label={ui.chemicalFormula} value={scientific.chemical_formula} />
                   <Row label={ui.mineralGroup} value={t?.mineral_group} />
-                  <Row label={ui.crystalSystem} value={t?.crystal_system} />
+                  <Row
+                    label={ui.crystalSystem}
+                    value={
+                      scientific.crystal_system
+                        ? CRYSTAL_SYSTEM_LABELS[lang][scientific.crystal_system]
+                        : undefined
+                    }
+                  />
                   <Row label={ui.crystalHabit} value={t?.crystal_habit} />
                   <Row label={ui.hardness} value={hardnessText} />
                   <Row label={ui.specificGravity} value={sgText} />
-                  <Row label={ui.streak} value={t?.streak} />
+                  <Row
+                    label={ui.streak}
+                    value={scientific.streak ? STREAK_LABELS[lang][scientific.streak] : undefined}
+                  />
                   <Row label={ui.luster} value={t?.luster} />
                   <Row label={ui.transparency} value={t?.transparency} />
-                  <Row label={ui.cleavage} value={t?.cleavage} />
-                  <Row label={ui.fracture} value={t?.fracture} />
+                  <Row
+                    label={ui.cleavageDegree}
+                    value={
+                      scientific.cleavage_degree
+                        ? CLEAVAGE_DEGREE_LABELS[lang][scientific.cleavage_degree]
+                        : undefined
+                    }
+                  />
+                  {scientific.cleavage_degree && scientific.cleavage_degree !== 'none' && (
+                    <Row
+                      label={ui.cleavageDirection}
+                      value={
+                        scientific.cleavage_direction
+                          ? CLEAVAGE_DIRECTION_LABELS[lang][scientific.cleavage_direction]
+                          : undefined
+                      }
+                    />
+                  )}
+                  <Row
+                    label={ui.cleavageType}
+                    value={
+                      scientific.cleavage_type
+                        ? CLEAVAGE_TYPE_LABELS[lang][scientific.cleavage_type]
+                        : undefined
+                    }
+                  />
+                  <Row
+                    label={ui.fracture}
+                    value={scientific.fracture ? FRACTURE_LABELS[lang][scientific.fracture] : undefined}
+                  />
                   <Row label={ui.tenacity} value={t?.tenacity} />
                   <div>
                     <strong>{ui.rarity}:</strong>
