@@ -28,6 +28,24 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
+// Столбец "Группа" в таблице показывает scientific.mineral_family — это
+// языконезависимый код (коллекционная группа), не текст из i18n.mineral_group,
+// которого больше нет. Список админки на русском, как и остальной UI формы.
+const MINERAL_FAMILY_LABELS: Record<string, string> = {
+  garnet_group: 'Гранаты',
+  feldspar_group: 'Полевые шпаты',
+  quartz_group: 'Кварцы',
+  tourmaline_group: 'Турмалины',
+  mica_group: 'Слюды',
+  pyroxene_group: 'Пироксены',
+  amphibole_group: 'Амфиболы',
+  zeolite_group: 'Цеолиты',
+  beryl_group: 'Бериллы',
+  spinel_group: 'Шпинели',
+  corundum_group: 'Корунды',
+  calcite_group: 'Кальциты',
+};
+
 export default function MineralsPage() {
   const [minerals, setMinerals] = useState<Mineral[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,8 +88,7 @@ export default function MineralsPage() {
         m.slug,
         m.i18n?.ru?.name,
         m.i18n?.en?.name,
-        m.i18n?.ru?.mineral_group,
-        m.i18n?.en?.mineral_group,
+        m.scientific?.mineral_family,
         ...(m.i18n?.ru?.synonyms || []),
         ...(m.i18n?.en?.synonyms || []),
       ]
@@ -174,7 +191,11 @@ export default function MineralsPage() {
                   <TableRow key={mineral.slug}>
                     <TableCell className="font-mono text-sm">{mineral.slug}</TableCell>
                     <TableCell className="font-medium">{mineral.i18n.ru.name}</TableCell>
-                    <TableCell>{mineral.i18n.ru.mineral_group}</TableCell>
+                    <TableCell>
+                      {mineral.scientific.mineral_family
+                        ? MINERAL_FAMILY_LABELS[mineral.scientific.mineral_family] || mineral.scientific.mineral_family
+                        : '—'}
+                    </TableCell>
                     <TableCell>
                       <Badge variant="secondary">
                         {mineral.scientific.rarity}

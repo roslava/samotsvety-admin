@@ -18,6 +18,11 @@ interface I18nSectionProps {
   form: UseFormReturn<MineralFormData>;
 }
 
+// LangLabels — теперь только по-настоящему переводимый контент. Всё, что было
+// закрытым минералогическим справочником (mineral_group/class/family,
+// crystal_habit, luster, transparency, tenacity, hardness_note, ima_status,
+// rock_type, composition, phenomena), переехало в ScientificSection как
+// языконезависимые enum/multi-select поля — см. комментарий там.
 interface LangLabels {
   name: string;
   namePlaceholder: string;
@@ -25,29 +30,8 @@ interface LangLabels {
   lorePlaceholder: string;
   colorDescription: string;
   colorPlaceholder: string;
-  sectionTitle: string;
-  mineralGroup: string;
-  mineralGroupPlaceholder: string;
-  crystalHabit: string;
-  crystalHabitPlaceholder: string;
-  luster: string;
-  lusterPlaceholder: string;
-  transparency: string;
-  transparencyPlaceholder: string;
-  tenacity: string;
-  tenacityPlaceholder: string;
-  hardnessNote: string;
-  hardnessNotePlaceholder: string;
-  imaStatus: string;
-  imaStatusPlaceholder: string;
-  rockType: string;
-  rockTypePlaceholder: string;
-  composition: string;
-  compositionPlaceholder: string;
   identificationTips: string;
   identificationTipsPlaceholder: string;
-  phenomena: string;
-  phenomenaPlaceholder: string;
   safetyNotes: string;
   safetyNotesPlaceholder: string;
 }
@@ -104,197 +88,33 @@ function LangFields(props: {
         )}
       />
 
-      <div className="border-t border-slate-700 pt-6">
-        <h4 className="font-medium mb-4 text-sm text-slate-400 uppercase tracking-wide">
-          {labels.sectionTitle}
-        </h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name={(base + 'mineral_group') as any}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  {labels.mineralGroup} {lang === 'ru' ? '*' : ''}
-                </FormLabel>
-                <FormControl>
-                  <Input placeholder={labels.mineralGroupPlaceholder} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+      <FormField
+        control={form.control}
+        name={(base + 'identification_tips') as any}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>{labels.identificationTips}</FormLabel>
+            <FormControl>
+              <Textarea rows={3} placeholder={labels.identificationTipsPlaceholder} {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
-          <FormField
-            control={form.control}
-            name={(base + 'crystal_habit') as any}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{labels.crystalHabit}</FormLabel>
-                <FormControl>
-                  <Input placeholder={labels.crystalHabitPlaceholder} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name={(base + 'luster') as any}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{labels.luster}</FormLabel>
-                <FormControl>
-                  <Input placeholder={labels.lusterPlaceholder} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name={(base + 'transparency') as any}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{labels.transparency}</FormLabel>
-                <FormControl>
-                  <Input placeholder={labels.transparencyPlaceholder} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name={(base + 'tenacity') as any}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{labels.tenacity}</FormLabel>
-                <FormControl>
-                  <Input placeholder={labels.tenacityPlaceholder} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name={(base + 'hardness_note') as any}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{labels.hardnessNote}</FormLabel>
-                <FormControl>
-                  <Input placeholder={labels.hardnessNotePlaceholder} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name={(base + 'ima_status') as any}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{labels.imaStatus}</FormLabel>
-                <FormControl>
-                  <Input placeholder={labels.imaStatusPlaceholder} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name={(base + 'rock_type') as any}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{labels.rockType}</FormLabel>
-                <FormControl>
-                  <Input placeholder={labels.rockTypePlaceholder} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name={(base + 'composition') as any}
-            render={({ field }) => (
-              <FormItem className="md:col-span-2">
-                <FormLabel>{labels.composition}</FormLabel>
-                <FormControl>
-                  <Input placeholder={labels.compositionPlaceholder} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name={(base + 'identification_tips') as any}
-            render={({ field }) => (
-              <FormItem className="md:col-span-2">
-                <FormLabel>{labels.identificationTips}</FormLabel>
-                <FormControl>
-                  <Textarea
-                    rows={3}
-                    placeholder={labels.identificationTipsPlaceholder}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name={(base + 'phenomena') as any}
-            render={({ field }) => (
-              <FormItem className="md:col-span-2">
-                <FormLabel>{labels.phenomena}</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder={labels.phenomenaPlaceholder}
-                    value={field.value?.join(', ') || ''}
-                    onChange={(e) =>
-                      field.onChange(
-                        e.target.value
-                          .split(',')
-                          .map((s: string) => s.trim())
-                          .filter(Boolean)
-                      )
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name={(base + 'safety_notes') as any}
-            render={({ field }) => (
-              <FormItem className="md:col-span-2">
-                <FormLabel>{labels.safetyNotes}</FormLabel>
-                <FormControl>
-                  <Textarea rows={2} placeholder={labels.safetyNotesPlaceholder} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-      </div>
+      <FormField
+        control={form.control}
+        name={(base + 'safety_notes') as any}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>{labels.safetyNotes}</FormLabel>
+            <FormControl>
+              <Textarea rows={2} placeholder={labels.safetyNotesPlaceholder} {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </div>
   );
 }
@@ -306,29 +126,8 @@ const RU_LABELS: LangLabels = {
   lorePlaceholder: 'История добычи на Урале, использование в камнерезном искусстве...',
   colorDescription: 'Описание цвета',
   colorPlaceholder: 'Характерный насыщенный зелёный цвет с полосчатым рисунком...',
-  sectionTitle: 'Научные свойства (текстовые, RU)',
-  mineralGroup: 'Группа минерала / тип породы',
-  mineralGroupPlaceholder: 'карбонаты',
-  crystalHabit: 'Габитус кристаллов',
-  crystalHabitPlaceholder: 'призматический, волокнистый, почковидный',
-  luster: 'Блеск',
-  lusterPlaceholder: 'стеклянный, шелковистый',
-  transparency: 'Прозрачность',
-  transparencyPlaceholder: 'непрозрачный',
-  tenacity: 'Вязкость',
-  tenacityPlaceholder: 'хрупкий',
-  hardnessNote: 'Примечание к твёрдости',
-  hardnessNotePlaceholder: 'по шкале Мооса',
-  imaStatus: 'Статус IMA',
-  imaStatusPlaceholder: 'approved / trade name / not a distinct species',
-  rockType: 'Тип породы',
-  rockTypePlaceholder: 'метаморфическая / магматическая / осадочная',
-  composition: 'Преобладающий состав',
-  compositionPlaceholder: 'Cu + CO3 + OH',
   identificationTips: 'Советы по идентификации',
   identificationTipsPlaceholder: 'Отличительные признаки...',
-  phenomena: 'Оптические явления (через запятую)',
-  phenomenaPlaceholder: 'иризация, астеризм, кошачий глаз',
   safetyNotes: 'Предупреждения по безопасности',
   safetyNotesPlaceholder: 'Содержит медь. Не рекомендуется длительный контакт с кожей...',
 };
@@ -340,29 +139,8 @@ const EN_LABELS: LangLabels = {
   lorePlaceholder: 'History of mining in the Urals, use in hardstone carving...',
   colorDescription: 'Color Description',
   colorPlaceholder: 'Characteristic rich green color with banded patterns...',
-  sectionTitle: 'Scientific properties (descriptive, EN)',
-  mineralGroup: 'Mineral group / rock type',
-  mineralGroupPlaceholder: 'carbonates',
-  crystalHabit: 'Crystal habit',
-  crystalHabitPlaceholder: 'prismatic, fibrous, botryoidal',
-  luster: 'Luster',
-  lusterPlaceholder: 'vitreous, silky',
-  transparency: 'Transparency',
-  transparencyPlaceholder: 'opaque',
-  tenacity: 'Tenacity',
-  tenacityPlaceholder: 'brittle',
-  hardnessNote: 'Hardness note',
-  hardnessNotePlaceholder: 'Mohs scale',
-  imaStatus: 'IMA status',
-  imaStatusPlaceholder: 'approved / trade name / not a distinct species',
-  rockType: 'Rock type',
-  rockTypePlaceholder: 'metamorphic / igneous / sedimentary',
-  composition: 'Composition',
-  compositionPlaceholder: 'Cu + CO3 + OH',
   identificationTips: 'Identification tips',
   identificationTipsPlaceholder: 'Distinguishing features...',
-  phenomena: 'Optical phenomena (comma-separated)',
-  phenomenaPlaceholder: 'iridescence, asterism, chatoyancy',
   safetyNotes: 'Safety notes',
   safetyNotesPlaceholder: 'Contains copper. Prolonged skin contact is not recommended...',
 };
@@ -371,7 +149,7 @@ export function I18nSection({ form }: I18nSectionProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Названия, Lore и научные описания (Русский + English)</CardTitle>
+        <CardTitle>Названия и Lore (Русский + English)</CardTitle>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="ru" className="w-full">

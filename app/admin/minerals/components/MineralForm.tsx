@@ -63,9 +63,11 @@ function collectFieldErrors(
 }
 
 // Пустой языковой блок — используется как дефолт для i18n.ru / i18n.en,
-// чтобы избежать controlled/uncontrolled input warning.
-// crystal_system/streak/cleavage/fracture сюда больше не входят — это
-// закрытые перечисления, живут в scientific (см. completeDefaults ниже).
+// чтобы избежать controlled/uncontrolled input warning. Все закрытые
+// перечисления (mineral_class/family, crystal_habit, luster, transparency,
+// tenacity, ima_status, rock_type, phenomena) и связанный с ними свободный
+// текст (hardness_note, composition) сюда больше не входят — живут в
+// scientific (см. completeDefaults ниже), не переводятся.
 const emptyLangData = {
   name: '',
   synonyms: [],
@@ -73,17 +75,7 @@ const emptyLangData = {
   color_description: '',
   lore: '',
   esoteric: undefined,
-  mineral_group: '',
-  crystal_habit: '',
-  hardness_note: '',
-  luster: '',
-  transparency: '',
-  tenacity: '',
-  ima_status: '',
   identification_tips: '',
-  composition: '',
-  rock_type: '',
-  phenomena: [],
   safety_notes: '',
 };
 

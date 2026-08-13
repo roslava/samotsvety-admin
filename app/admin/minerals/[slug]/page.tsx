@@ -23,7 +23,9 @@ const UI = {
     tabGallery: 'Галерея',
     scientificTitle: 'Научные свойства',
     chemicalFormula: 'Химическая формула',
-    mineralGroup: 'Минеральная группа',
+    mineralClass: 'Химический класс',
+    silicateSubclass: 'Подкласс силикатов',
+    mineralFamily: 'Коллекционная группа',
     crystalSystem: 'Кристаллическая система',
     crystalHabit: 'Габитус',
     hardness: 'Твёрдость (Моос)',
@@ -73,7 +75,9 @@ const UI = {
     tabGallery: 'Gallery',
     scientificTitle: 'Scientific properties',
     chemicalFormula: 'Chemical formula',
-    mineralGroup: 'Mineral group',
+    mineralClass: 'Chemical class',
+    silicateSubclass: 'Silicate subclass',
+    mineralFamily: 'Collector group',
     crystalSystem: 'Crystal system',
     crystalHabit: 'Crystal habit',
     hardness: 'Hardness (Mohs)',
@@ -235,6 +239,219 @@ const CLEAVAGE_TYPE_LABELS: Record<Lang, Record<string, string>> = {
   },
 };
 
+const TRANSPARENCY_LABELS: Record<Lang, Record<string, string>> = {
+  ru: { transparent: 'Прозрачный', translucent: 'Полупрозрачный', opaque: 'Непрозрачный' },
+  en: { transparent: 'Transparent', translucent: 'Translucent', opaque: 'Opaque' },
+};
+
+// Атомарные термины — образец может иметь несколько значений сразу
+// (напр. luster: ['vitreous', 'silky']), рендерится через join.
+const LUSTER_LABELS: Record<Lang, Record<string, string>> = {
+  ru: {
+    vitreous: 'Стеклянный',
+    adamantine: 'Алмазный',
+    metallic: 'Металлический',
+    submetallic: 'Полуметаллический',
+    pearly: 'Перламутровый',
+    silky: 'Шелковистый',
+    resinous: 'Смолистый',
+    greasy: 'Жирный',
+    waxy: 'Восковой',
+    dull: 'Тусклый',
+    earthy: 'Землистый',
+  },
+  en: {
+    vitreous: 'Vitreous',
+    adamantine: 'Adamantine',
+    metallic: 'Metallic',
+    submetallic: 'Submetallic',
+    pearly: 'Pearly',
+    silky: 'Silky',
+    resinous: 'Resinous',
+    greasy: 'Greasy',
+    waxy: 'Waxy',
+    dull: 'Dull',
+    earthy: 'Earthy',
+  },
+};
+
+const TENACITY_LABELS: Record<Lang, Record<string, string>> = {
+  ru: {
+    brittle: 'Хрупкий',
+    malleable: 'Ковкий',
+    ductile: 'Тягучий',
+    sectile: 'Секущийся',
+    flexible: 'Гибкий',
+    elastic: 'Эластичный',
+  },
+  en: {
+    brittle: 'Brittle',
+    malleable: 'Malleable',
+    ductile: 'Ductile',
+    sectile: 'Sectile',
+    flexible: 'Flexible',
+    elastic: 'Elastic',
+  },
+};
+
+// Только статус вида по IMA (approved/grandfathered/questionable/discredited) —
+// формальные термины, используются как есть в обеих локалях, как rarity.
+const IMA_STATUS_LABELS: Record<Lang, Record<string, string>> = {
+  ru: { approved: 'Approved', grandfathered: 'Grandfathered', questionable: 'Questionable', discredited: 'Discredited' },
+  en: { approved: 'Approved', grandfathered: 'Grandfathered', questionable: 'Questionable', discredited: 'Discredited' },
+};
+
+const ROCK_TYPE_LABELS: Record<Lang, Record<string, string>> = {
+  ru: { igneous: 'Магматическая', sedimentary: 'Осадочная', metamorphic: 'Метаморфическая' },
+  en: { igneous: 'Igneous', sedimentary: 'Sedimentary', metamorphic: 'Metamorphic' },
+};
+
+// Иридесценция = «переливчатость» — один код. Лабрадоресценция — частный
+// случай шиллер-эффекта у лабрадорита, отдельно не дублируется.
+const PHENOMENON_LABELS: Record<Lang, Record<string, string>> = {
+  ru: {
+    asterism: 'Астеризм',
+    iridescence: 'Иридесценция',
+    aventurescence: 'Авантюресценция',
+    adularescence: 'Адуляресценция',
+    labradorescence: 'Лабрадоресценция',
+    chatoyancy: 'Кошачий глаз',
+    opalescence: 'Опалесценция',
+    color_change: 'Цветовая смена',
+  },
+  en: {
+    asterism: 'Asterism',
+    iridescence: 'Iridescence',
+    aventurescence: 'Aventurescence',
+    adularescence: 'Adularescence',
+    labradorescence: 'Labradorescence',
+    chatoyancy: 'Chatoyancy',
+    opalescence: 'Opalescence',
+    color_change: 'Color change',
+  },
+};
+
+const MINERAL_CLASS_LABELS: Record<Lang, Record<string, string>> = {
+  ru: {
+    native_elements: 'Самородные элементы',
+    sulfides_sulfosalts: 'Сульфиды и сульфосоли',
+    halides: 'Галогениды',
+    oxides_hydroxides: 'Оксиды и гидроксиды',
+    carbonates_nitrates: 'Карбонаты и нитраты',
+    borates: 'Бораты',
+    sulfates_chromates_molybdates_tungstates: 'Сульфаты, хроматы, молибдаты, вольфраматы',
+    phosphates_arsenates_vanadates: 'Фосфаты, арсенаты, ванадаты',
+    silicates: 'Силикаты',
+    organic: 'Органические минералы',
+  },
+  en: {
+    native_elements: 'Native elements',
+    sulfides_sulfosalts: 'Sulfides and sulfosalts',
+    halides: 'Halides',
+    oxides_hydroxides: 'Oxides and hydroxides',
+    carbonates_nitrates: 'Carbonates and nitrates',
+    borates: 'Borates',
+    sulfates_chromates_molybdates_tungstates: 'Sulfates, chromates, molybdates, tungstates',
+    phosphates_arsenates_vanadates: 'Phosphates, arsenates, vanadates',
+    silicates: 'Silicates',
+    organic: 'Organic minerals',
+  },
+};
+
+const SILICATE_SUBCLASS_LABELS: Record<Lang, Record<string, string>> = {
+  ru: {
+    nesosilicates: 'Несосиликаты (островные)',
+    sorosilicates: 'Соросиликаты (групповые)',
+    cyclosilicates: 'Циклосиликаты (кольцевые)',
+    inosilicates: 'Иносиликаты (цепочечные)',
+    phyllosilicates: 'Филлосиликаты (слоистые)',
+    tectosilicates: 'Тектосиликаты (каркасные)',
+  },
+  en: {
+    nesosilicates: 'Nesosilicates',
+    sorosilicates: 'Sorosilicates',
+    cyclosilicates: 'Cyclosilicates',
+    inosilicates: 'Inosilicates',
+    phyllosilicates: 'Phyllosilicates',
+    tectosilicates: 'Tectosilicates',
+  },
+};
+
+const MINERAL_FAMILY_LABELS: Record<Lang, Record<string, string>> = {
+  ru: {
+    garnet_group: 'Гранаты',
+    feldspar_group: 'Полевые шпаты',
+    quartz_group: 'Кварцы',
+    tourmaline_group: 'Турмалины',
+    mica_group: 'Слюды',
+    pyroxene_group: 'Пироксены',
+    amphibole_group: 'Амфиболы',
+    zeolite_group: 'Цеолиты',
+    beryl_group: 'Бериллы',
+    spinel_group: 'Шпинели',
+    corundum_group: 'Корунды',
+    calcite_group: 'Кальциты',
+  },
+  en: {
+    garnet_group: 'Garnet group',
+    feldspar_group: 'Feldspar group',
+    quartz_group: 'Quartz group',
+    tourmaline_group: 'Tourmaline group',
+    mica_group: 'Mica group',
+    pyroxene_group: 'Pyroxene group',
+    amphibole_group: 'Amphibole group',
+    zeolite_group: 'Zeolite group',
+    beryl_group: 'Beryl group',
+    spinel_group: 'Spinel group',
+    corundum_group: 'Corundum group',
+    calcite_group: 'Calcite group',
+  },
+};
+
+// Почти всегда комбинация нескольких форм сразу — рендерится через join.
+const CRYSTAL_HABIT_LABELS: Record<Lang, Record<string, string>> = {
+  ru: {
+    prismatic: 'Призматический',
+    acicular: 'Игольчатый',
+    tabular: 'Таблитчатый',
+    platy: 'Пластинчатый',
+    foliated: 'Листоватый',
+    fibrous: 'Волокнистый',
+    granular: 'Зернистый',
+    massive: 'Массивный',
+    druzy: 'Друзовый',
+    radiating: 'Радиально-лучистый',
+    globular: 'Шаровидный',
+    reniform: 'Почковидный',
+    botryoidal: 'Ботриоидальный',
+    columnar: 'Столбчатый',
+    cubic: 'Кубический',
+    rhombohedral: 'Ромбический',
+    dendritic: 'Дендритный',
+    earthy: 'Землистый',
+  },
+  en: {
+    prismatic: 'Prismatic',
+    acicular: 'Acicular',
+    tabular: 'Tabular',
+    platy: 'Platy',
+    foliated: 'Foliated',
+    fibrous: 'Fibrous',
+    granular: 'Granular',
+    massive: 'Massive',
+    druzy: 'Druzy',
+    radiating: 'Radiating',
+    globular: 'Globular',
+    reniform: 'Reniform',
+    botryoidal: 'Botryoidal',
+    columnar: 'Columnar',
+    cubic: 'Cubic',
+    rhombohedral: 'Rhombohedral',
+    dendritic: 'Dendritic',
+    earthy: 'Earthy',
+  },
+};
+
 function Row({ label, value }: { label: string; value?: string | null }) {
   return (
     <>
@@ -298,7 +515,7 @@ export default function MineralViewPage() {
           : mineral.type;
 
   const hardnessText = `${scientific.hardness.min} – ${scientific.hardness.max}${
-    t?.hardness_note ? ` (${t.hardness_note})` : ''
+    scientific.hardness_note ? ` (${scientific.hardness_note})` : ''
   }`;
 
   const sgText = `${scientific.specific_gravity.min} – ${scientific.specific_gravity.max}`;
@@ -386,7 +603,32 @@ export default function MineralViewPage() {
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-2 gap-y-4 text-sm">
                   <Row label={ui.chemicalFormula} value={scientific.chemical_formula} />
-                  <Row label={ui.mineralGroup} value={t?.mineral_group} />
+                  <Row
+                    label={ui.mineralClass}
+                    value={
+                      scientific.mineral_class
+                        ? MINERAL_CLASS_LABELS[lang][scientific.mineral_class]
+                        : undefined
+                    }
+                  />
+                  {scientific.mineral_class === 'silicates' && (
+                    <Row
+                      label={ui.silicateSubclass}
+                      value={
+                        scientific.silicate_subclass
+                          ? SILICATE_SUBCLASS_LABELS[lang][scientific.silicate_subclass]
+                          : undefined
+                      }
+                    />
+                  )}
+                  <Row
+                    label={ui.mineralFamily}
+                    value={
+                      scientific.mineral_family
+                        ? MINERAL_FAMILY_LABELS[lang][scientific.mineral_family]
+                        : undefined
+                    }
+                  />
                   <Row
                     label={ui.crystalSystem}
                     value={
@@ -395,15 +637,36 @@ export default function MineralViewPage() {
                         : undefined
                     }
                   />
-                  <Row label={ui.crystalHabit} value={t?.crystal_habit} />
+                  <Row
+                    label={ui.crystalHabit}
+                    value={
+                      scientific.crystal_habit && scientific.crystal_habit.length > 0
+                        ? scientific.crystal_habit.map((v) => CRYSTAL_HABIT_LABELS[lang][v]).join(', ')
+                        : undefined
+                    }
+                  />
                   <Row label={ui.hardness} value={hardnessText} />
                   <Row label={ui.specificGravity} value={sgText} />
                   <Row
                     label={ui.streak}
                     value={scientific.streak ? STREAK_LABELS[lang][scientific.streak] : undefined}
                   />
-                  <Row label={ui.luster} value={t?.luster} />
-                  <Row label={ui.transparency} value={t?.transparency} />
+                  <Row
+                    label={ui.luster}
+                    value={
+                      scientific.luster && scientific.luster.length > 0
+                        ? scientific.luster.map((v) => LUSTER_LABELS[lang][v]).join(', ')
+                        : undefined
+                    }
+                  />
+                  <Row
+                    label={ui.transparency}
+                    value={
+                      scientific.transparency
+                        ? TRANSPARENCY_LABELS[lang][scientific.transparency]
+                        : undefined
+                    }
+                  />
                   <Row
                     label={ui.cleavageDegree}
                     value={
@@ -434,15 +697,28 @@ export default function MineralViewPage() {
                     label={ui.fracture}
                     value={scientific.fracture ? FRACTURE_LABELS[lang][scientific.fracture] : undefined}
                   />
-                  <Row label={ui.tenacity} value={t?.tenacity} />
+                  <Row
+                    label={ui.tenacity}
+                    value={
+                      scientific.tenacity && scientific.tenacity.length > 0
+                        ? scientific.tenacity.map((v) => TENACITY_LABELS[lang][v]).join(', ')
+                        : undefined
+                    }
+                  />
                   <div>
                     <strong>{ui.rarity}:</strong>
                   </div>
                   <div>
                     <Badge variant="secondary">{scientific.rarity}</Badge>
                   </div>
-                  <Row label={ui.imaStatus} value={t?.ima_status} />
-                  <Row label={ui.rockType} value={t?.rock_type} />
+                  <Row
+                    label={ui.imaStatus}
+                    value={scientific.ima_status ? IMA_STATUS_LABELS[lang][scientific.ima_status] : undefined}
+                  />
+                  <Row
+                    label={ui.rockType}
+                    value={scientific.rock_type ? ROCK_TYPE_LABELS[lang][scientific.rock_type] : undefined}
+                  />
                 </div>
 
                 <div>
@@ -452,20 +728,20 @@ export default function MineralViewPage() {
 
                 <div>
                   <strong>{ui.composition}:</strong>
-                  <p className="mt-1 text-slate-300">{t?.composition || '—'}</p>
+                  <p className="mt-1 text-slate-300">{scientific.composition || '—'}</p>
                 </div>
 
                 <div>
                   <strong>{ui.phenomena}:</strong>
-                  {t?.phenomena && t.phenomena.length > 0 ? (
+                  {scientific.phenomena && scientific.phenomena.length > 0 ? (
                     <div className="flex flex-wrap gap-2 mt-3">
-                      {t.phenomena.map((phen, i) => (
+                      {scientific.phenomena.map((phen) => (
                         <Badge
-                          key={i}
+                          key={phen}
                           variant="outline"
                           className="text-amber-400 border-amber-400/30 px-3 py-1"
                         >
-                          {phen}
+                          {PHENOMENON_LABELS[lang][phen]}
                         </Badge>
                       ))}
                     </div>

@@ -20,14 +20,25 @@ const JSON_TEMPLATE = `{
   "scientific": {
     "chemical_formula": "Cu₂CO₃(OH)₂",
     "hardness": { "min": 3.5, "max": 4.0 },
+    "hardness_note": "по шкале Мооса",
     "specific_gravity": { "min": 3.6, "max": 4.05 },
     "rarity": "common",
+    "mineral_class": "carbonates_nitrates",
+    "mineral_family": null,
+    "composition": "",
     "crystal_system": "monoclinic",
+    "crystal_habit": ["botryoidal", "fibrous", "radiating"],
     "streak": "green",
+    "transparency": "opaque",
+    "luster": ["vitreous", "silky", "dull"],
     "fracture": "uneven",
     "cleavage_degree": "perfect",
     "cleavage_direction": "1",
-    "cleavage_type": "pinacoidal"
+    "cleavage_type": "pinacoidal",
+    "tenacity": ["brittle"],
+    "phenomena": [],
+    "ima_status": "approved",
+    "rock_type": null
   },
   "i18n": {
     "ru": {
@@ -36,16 +47,7 @@ const JSON_TEMPLATE = `{
       "color": ["ярко-зелёный", "тёмно-зелёный", "изумрудно-зелёный"],
       "color_description": "Характерный насыщенный зелёный цвет с полосчатым и концентрическим рисунком",
       "lore": "История добычи на Урале, использование в камнерезном искусстве, легенды и культурное значение...",
-      "mineral_group": "карбонаты",
-      "crystal_habit": "призматический, волокнистый, почковидный, радиально-лучистый",
-      "hardness_note": "по шкале Мооса",
-      "luster": "стеклянный, шелковистый, матовый",
-      "transparency": "непрозрачный",
-      "ima_status": "approved",
       "identification_tips": "Отличительные признаки от похожих минералов...",
-      "composition": "",
-      "rock_type": "",
-      "phenomena": [],
       "safety_notes": "Содержит медь. Не рекомендуется длительный контакт с кожей...",
       "esoteric": {
         "metaphysical_properties": ["защита", "эмоциональное исцеление", "гармония"],
@@ -62,16 +64,7 @@ const JSON_TEMPLATE = `{
       "color": ["bright green", "dark green", "emerald green"],
       "color_description": "Characteristic rich green color with banded patterns",
       "lore": "History of mining in the Urals...",
-      "mineral_group": "carbonates",
-      "crystal_habit": "prismatic, fibrous, botryoidal, radial-fanning",
-      "hardness_note": "Mohs scale",
-      "luster": "vitreous, silky, dull",
-      "transparency": "opaque",
-      "ima_status": "approved",
       "identification_tips": "Distinguishing features from similar minerals...",
-      "composition": "",
-      "rock_type": "",
-      "phenomena": [],
       "safety_notes": "Contains copper. Prolonged skin contact is not recommended...",
       "esoteric": { "...": "..." }
     }
@@ -102,22 +95,57 @@ const PROMPT_TEMPLATE = `Ты — эксперт-минералог и гемм�
 
 **Обязательные правила:**
 - Укажи "type": "mineral", "rock" или "gem_variety".
-- ВАЖНО: crystal_system, streak, fracture и cleavage_degree/cleavage_direction/cleavage_type
-  находятся ВНУТРИ scientific (не в i18n!) — это закрытые перечисления с фиксированными
-  кодами, ОДНО значение на весь минерал (не переводится и не дублируется по языкам):
+- ВАЖНО: почти все научные свойства находятся ВНУТРИ scientific (не в i18n!) — это закрытые
+  перечисления с фиксированными кодами, ОДНО значение на весь минерал (не переводится и не
+  дублируется по языкам). Если поле не определено или не подходит под перечисление — просто
+  не указывай его (не выдумывай значение).
+
+  Одиночные (один код):
   - crystal_system: monoclinic | orthorhombic | hexagonal | isometric | triclinic | tetragonal | amorphous
   - streak: black | white_or_colourless | grey | green | blue | brown | pink_to_red | yellow_to_orange
   - fracture: conchoidal | uneven | splintery | hackly | earthy | fibrous
   - cleavage_degree: none | very_poor | poor | good | perfect
-  - cleavage_direction: "1" | "2" | "3" | "4" (указывай, только если cleavage_degree != none)
+  - cleavage_direction: "1" | "2" | "3" | "4" (указывай, только если cleavage_degree != none;
+    это число направлений, а не граней формы — напр. кубическая спайность галита это 3
+    направления, а не 6 граней куба; октаэдрическая у флюорита — 4, а не 8 граней октаэдра)
   - cleavage_type (необязательно): basal | prismatic | pinacoidal | rhombohedral | cubic | octahedral | dodecahedral
-  Если для минерала какое-то из этих полей не определено или не подходит под перечисление — просто не указывай его.
-- mineral_group, crystal_habit, luster, transparency, tenacity, ima_status, identification_tips,
-  composition, rock_type, phenomena, safety_notes и hardness_note — это свободный текст,
-  находятся ВНУТРИ i18n.ru и i18n.en — заполняй их на обоих языках отдельно, с реальным
-  переводом, а не заглушками.
-- В scientific помимо перечислений выше: chemical_formula, hardness{min,max}, specific_gravity{min,max}, rarity.
-- Localities: country/region/locality теперь country_ru+country_en, region_ru+region_en,
+  - transparency: transparent | translucent | opaque
+  - ima_status — ТОЛЬКО формальный статус вида по IMA, не путать с торговым названием:
+    approved | grandfathered | questionable | discredited
+  - rock_type (только для type: "rock"): igneous | sedimentary | metamorphic
+  - mineral_class — химический класс по Дана/Штрунцу: native_elements | sulfides_sulfosalts |
+    halides | oxides_hydroxides | carbonates_nitrates | borates |
+    sulfates_chromates_molybdates_tungstates | phosphates_arsenates_vanadates | silicates | organic
+  - silicate_subclass (только если mineral_class == "silicates"): nesosilicates | sorosilicates |
+    cyclosilicates | inosilicates | phyllosilicates | tectosilicates
+  - mineral_family — коллекционная группа (независимая от mineral_class ось, для фильтров
+    на сайте): garnet_group | feldspar_group | quartz_group | tourmaline_group | mica_group |
+    pyroxene_group | amphibole_group | zeolite_group | beryl_group | spinel_group |
+    corundum_group | calcite_group (если минерал не входит ни в одну — не указывай)
+
+  Массивы (можно несколько значений одновременно — заполняй ТОЛЬКО тем, что реально верно
+  для этого минерала, не пытайся заполнить все варианты):
+  - luster: vitreous | adamantine | metallic | submetallic | pearly | silky | resinous | greasy | waxy | dull | earthy
+  - tenacity: brittle | malleable | ductile | sectile | flexible | elastic
+    (напр. золото: ["malleable", "ductile"]; слюда: ["flexible", "elastic"])
+  - phenomena: asterism | iridescence | aventurescence | adularescence | labradorescence |
+    chatoyancy | opalescence | color_change (iridescence уже включает то, что иногда называют
+    "переливчатостью" — не дублируй отдельным термином; labradorescence не дублируй как
+    отдельный "шиллер-эффект")
+  - crystal_habit: prismatic | acicular | tabular | platy | foliated | fibrous | granular |
+    massive | druzy | radiating | globular | reniform | botryoidal | columnar | cubic |
+    rhombohedral | dendritic | earthy
+
+  Свободный текст (тоже в scientific, ОДНО значение на минерал, не в i18n):
+  - hardness_note — короткая ремарка к твёрдости
+  - composition — для минерала обычно не нужен (дублировал бы chemical_formula); для
+    породы — содержательное петрографическое описание, напр. "Состоит преимущественно
+    из кварца и полевых шпатов, с примесью биотита"
+
+- В i18n.ru и i18n.en остаётся только по-настоящему переводимый контент: name, synonyms,
+  color, color_description, lore, identification_tips, safety_notes, esoteric — заполняй
+  их на обоих языках отдельно, с реальным переводом, а не заглушками.
+- Localities: country/region/locality — country_ru+country_en, region_ru+region_en,
   locality_ru+locality_en — заполняй оба языка.
 - Особенно подробно опиши российские (уральские и сибирские) месторождения.
 - Lore — увлекательный историко-культурный текст, на обоих языках.
