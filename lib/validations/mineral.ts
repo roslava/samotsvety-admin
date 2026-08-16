@@ -148,12 +148,23 @@ export const EsotericSchema = z.object({
 // family, crystal_habit, luster, transparency, tenacity, ima_status,
 // rock_type, phenomena) и связанный с ними свободный текст (hardness_note,
 // composition) переехали в ScientificSchema — см. комментарий там.
+//
+// Поля здесь опциональны на уровне отдельного языка: ни русский, ни
+// английский не считается "привилегированным" (это согласуется с тем, что
+// pickI18n()/pickField() на фронтенде намеренно не делают silent fallback на
+// русский — см. заметки проекта). Значит нельзя жёстко требовать заполнения
+// именно RU, иначе англоязычный редактор не сможет сохранить черновик, пока
+// не допишет русский текст, которого может не знать. Вместо requiredности на
+// уровне поля — requiredность на уровне MineralSchema.superRefine ниже:
+// если язык начат (есть name), он должен быть закончен полностью (name +
+// color + color_description + lore ≥20 символов); можно оставить весь язык
+// пустым как черновик, но нельзя оставить его "наполовину".
 export const I18nContentSchema = z.object({
-  name: z.string().min(1, 'Название обязательно'),
+  name: z.string().optional(),
   synonyms: z.array(z.string()).optional(),
-  color: z.array(z.string()).min(1),
-  color_description: z.string().min(1),
-  lore: z.string().min(20, 'Lore должен быть достаточно подробным'),
+  color: z.array(z.string()).optional(),
+  color_description: z.string().optional(),
+  lore: z.string().optional(),
   esoteric: EsotericSchema.optional(),
 
   identification_tips: z.string().optional(),
@@ -162,8 +173,12 @@ export const I18nContentSchema = z.object({
 
 export const I18nContentRuSchema = I18nContentSchema;
 
+// Страна тоже симметрична по языку теперь (было: country_ru required,
+// country_en optional) — та же логика, что и в I18nContentSchema выше:
+// requiredность "хотя бы один язык заполнен целиком" проверяется в
+// MineralSchema.superRefine, а не жёстко привязана к русскому.
 export const LocalitySchema = z.object({
-  country_ru: z.string().min(1, 'Страна (RU) обязательна'),
+  country_ru: z.string().optional(),
   country_en: z.string().optional(),
   region_ru: z.string().optional(),
   region_en: z.string().optional(),
@@ -182,26 +197,89 @@ export const GalleryImageSchema = z.object({
   description_en: z.string().optional(),
 });
 
-export const MineralSchema = z.object({
-  slug: z.string()
-    .min(3)
-    .regex(/^[a-z0-9-]+$/, 'Slug может содержать только строчные буквы, цифры и дефис'),
+export const MineralSchema = z
+  .object({
+    slug: z.string()
+      .min(3)
+      .regex(/^[a-z0-9-]+$/, 'Slug может содержать только строчные буквы, цифры и дефис'),
 
-  type: z.enum(['mineral', 'rock', 'gem_variety', 'organic']).default('mineral'),
+    type: z.enum(['mineral', 'rock', 'gem_variety', 'organic']).default('mineral'),
 
-  scientific: ScientificSchema,
+    scientific: ScientificSchema,
 
-  i18n: z.object({
-    ru: I18nContentRuSchema,
-    en: I18nContentSchema,
-  }),
+    i18n: z.object({
+      ru: I18nContentRuSchema,
+      en: I18nContentSchema,
+    }),
 
-  localities: z.array(LocalitySchema).min(1, 'Добавьте хотя бы одно месторождение'),
-  main_image_url: z.string().url('Главное изображение обязательно'),
-  thumbnail_url: z.string().url().optional(),
-  gallery: z.array(GalleryImageSchema),
+    localities: z.array(LocalitySchema).min(1, 'Добавьте хотя бы одно месторождение'),
+    main_image_url: z.string().url('Главное изображение обязательно'),
+    thumbnail_url: z.string().url().optional(),
+    gallery: z.array(GalleryImageSchema),
 
-  related_minerals: z.array(z.string()).optional(),
-});
+    related_minerals: z.array(z.string()).optional(),
+  })
+  // Requiredность content-полей, которая раньше жёстко сидела в самих схемах
+  // (I18nContentSchema.name/color/lore, LocalitySchema.country_ru), теперь
+  // здесь — как "если начал язык, доведи до конца", а не "именно этот язык
+  // обязателен". Так ни RU, ни EN не привилегирован структурно: можно
+  // сохранить минерал с полностью заполненным EN и пустым RU (или наоборот)
+  // как черновик для последующего перевода, но нельзя оставить наполовину
+  // заполненный язык (например, name есть, а lore нет).
+  .superRefine((data, ctx) => {
+    const langs: Array<'ru' | 'en'> = ['ru', 'en'];
+    let anyLangComplete = false;
+
+    for (const lang of langs) {
+      const content = data.i18n[lang];
+      const started = !!content.name?.trim();
+      if (!started) continue;
+
+      let complete = true;
+      if (!content.color || content.color.length < 1) {
+        complete = false;
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['i18n', lang, 'color'],
+          message: lang === 'ru' ? 'Укажите хотя бы один цвет' : 'Add at least one color',
+        });
+      }
+      if (!content.color_description?.trim()) {
+        complete = false;
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['i18n', lang, 'color_description'],
+          message: lang === 'ru' ? 'Описание цвета обязательно' : 'Color description is required',
+        });
+      }
+      if (!content.lore || content.lore.trim().length < 20) {
+        complete = false;
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['i18n', lang, 'lore'],
+          message: lang === 'ru' ? 'Lore должен быть достаточно подробным (от 20 символов)' : 'Lore must be at least 20 characters',
+        });
+      }
+      if (complete) anyLangComplete = true;
+    }
+
+    if (!anyLangComplete) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['i18n', 'ru', 'name'],
+        message: 'Заполните полностью хотя бы один язык (RU или EN): название, цвета, описание цвета, lore',
+      });
+    }
+
+    data.localities.forEach((loc, index) => {
+      if (!loc.country_ru?.trim() && !loc.country_en?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['localities', index, 'country_ru'],
+          message: 'Укажите страну хотя бы на одном языке (RU или EN)',
+        });
+      }
+    });
+  });
 
 export type MineralFormData = z.infer<typeof MineralSchema>;

@@ -28,8 +28,11 @@ interface LangLabels {
   namePlaceholder: string;
   lore: string;
   lorePlaceholder: string;
-  colorDescription: string;
+  color: string;
   colorPlaceholder: string;
+  colorHint: string;
+  colorDescription: string;
+  colorDescriptionPlaceholder: string;
   identificationTips: string;
   identificationTipsPlaceholder: string;
   safetyNotes: string;
@@ -74,14 +77,44 @@ function LangFields(props: {
         )}
       />
 
+      {/* color — короткий список названий цветов (тегами через запятую),
+          отдельно от color_description (связного текстового описания ниже).
+          Раньше у этого поля не было контрола вообще, из-за чего форма не
+          проходила валидацию (color required, min 1) ни при каких условиях. */}
+      <FormField
+        control={form.control}
+        name={(base + 'color') as any}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>{labels.color} *</FormLabel>
+            <FormControl>
+              <Input
+                placeholder={labels.colorPlaceholder}
+                value={field.value?.join(', ') || ''}
+                onChange={(e) =>
+                  field.onChange(
+                    e.target.value
+                      .split(',')
+                      .map((s: string) => s.trim())
+                      .filter(Boolean)
+                  )
+                }
+              />
+            </FormControl>
+            <p className="text-xs text-slate-500 mt-1">{labels.colorHint}</p>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
       <FormField
         control={form.control}
         name={(base + 'color_description') as any}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{labels.colorDescription}</FormLabel>
+            <FormLabel>{labels.colorDescription} *</FormLabel>
             <FormControl>
-              <Textarea rows={3} placeholder={labels.colorPlaceholder} {...field} />
+              <Textarea rows={3} placeholder={labels.colorDescriptionPlaceholder} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -124,8 +157,11 @@ const RU_LABELS: LangLabels = {
   namePlaceholder: 'Малахит',
   lore: 'Lore / Историко-культурный контекст',
   lorePlaceholder: 'История добычи на Урале, использование в камнерезном искусстве...',
+  color: 'Цвета (через запятую)',
+  colorPlaceholder: 'ярко-зелёный, тёмно-зелёный, изумрудно-зелёный',
+  colorHint: 'Короткие названия цветов для тегов/фильтров — не описание, а список.',
   colorDescription: 'Описание цвета',
-  colorPlaceholder: 'Характерный насыщенный зелёный цвет с полосчатым рисунком...',
+  colorDescriptionPlaceholder: 'Характерный насыщенный зелёный цвет с полосчатым рисунком...',
   identificationTips: 'Советы по идентификации',
   identificationTipsPlaceholder: 'Отличительные признаки...',
   safetyNotes: 'Предупреждения по безопасности',
@@ -137,8 +173,11 @@ const EN_LABELS: LangLabels = {
   namePlaceholder: 'Malachite',
   lore: 'Lore / Historical & Cultural Context',
   lorePlaceholder: 'History of mining in the Urals, use in hardstone carving...',
+  color: 'Colors (comma-separated)',
+  colorPlaceholder: 'bright green, dark green, emerald green',
+  colorHint: 'Short color names for tags/filters — a list, not a description.',
   colorDescription: 'Color Description',
-  colorPlaceholder: 'Characteristic rich green color with banded patterns...',
+  colorDescriptionPlaceholder: 'Characteristic rich green color with banded patterns...',
   identificationTips: 'Identification tips',
   identificationTipsPlaceholder: 'Distinguishing features...',
   safetyNotes: 'Safety notes',
@@ -150,6 +189,11 @@ export function I18nSection({ form }: I18nSectionProps) {
     <Card>
       <CardHeader>
         <CardTitle>Названия и Lore (Русский + English)</CardTitle>
+        <p className="text-sm text-slate-500 mt-1">
+          Поля со звёздочкой обязательны, только если вы вообще начали заполнять этот язык
+          (ввели название). Можно оставить целиком одну вкладку пустой как черновик — но нельзя
+          заполнить её наполовину. Хотя бы один язык (RU или EN) должен быть заполнен полностью.
+        </p>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="ru" className="w-full">

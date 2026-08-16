@@ -54,6 +54,7 @@ export function EsotericSection({ form }: EsotericSectionProps) {
                           zodiac: [],
                           healing_interpretation: '',
                           energy_notes: '',
+                          ritual_uses: '',
                         });
                       } else if (!checked) {
                         onChange(undefined);
@@ -87,6 +88,7 @@ export function EsotericSection({ form }: EsotericSectionProps) {
                           zodiac: [],
                           healing_interpretation: '',
                           energy_notes: '',
+                          ritual_uses: '',
                         });
                       } else if (!checked) {
                         onChange(undefined);
@@ -108,21 +110,63 @@ export function EsotericSection({ form }: EsotericSectionProps) {
   );
 }
 
+// Подписи полей — раньше были жёстко на русском для обеих вкладок (только
+// плейсхолдеры переключались по lang), из-за чего на вкладке English
+// человек видел русские названия полей. Теперь подписи тоже идут по словарю.
+const ESOTERIC_LABELS: Record<'ru' | 'en', {
+  metaphysicalProperties: string;
+  metaphysicalPlaceholder: string;
+  add: string;
+  chakras: string;
+  chakrasPlaceholder: string;
+  zodiac: string;
+  zodiacPlaceholder: string;
+  healingInterpretation: string;
+  energyNotes: string;
+  ritualUses: string;
+}> = {
+  ru: {
+    metaphysicalProperties: 'Метафизические свойства',
+    metaphysicalPlaceholder: 'защита, очищение...',
+    add: 'Добавить',
+    chakras: 'Чакры',
+    chakrasPlaceholder: 'сердечная чакра',
+    zodiac: 'Знаки зодиака',
+    zodiacPlaceholder: 'Телец, Весы',
+    healingInterpretation: 'Интерпретация исцеления',
+    energyNotes: 'Заметки об энергии',
+    ritualUses: 'Ритуальное использование (опционально)',
+  },
+  en: {
+    metaphysicalProperties: 'Metaphysical properties',
+    metaphysicalPlaceholder: 'protection, emotional healing...',
+    add: 'Add',
+    chakras: 'Chakras',
+    chakrasPlaceholder: 'heart chakra',
+    zodiac: 'Zodiac signs',
+    zodiacPlaceholder: 'Taurus, Libra',
+    healingInterpretation: 'Healing interpretation',
+    energyNotes: 'Energy notes',
+    ritualUses: 'Ritual uses (optional)',
+  },
+};
+
 // Вспомогательный компонент
 function EsotericFields({ form, lang }: { form: UseFormReturn<MineralFormData>; lang: 'ru' | 'en' }) {
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: `i18n.${lang}.esoteric.metaphysical_properties` as const,
   });
+  const labels = ESOTERIC_LABELS[lang];
 
   return (
     <div className="space-y-8">
       {/* Metaphysical Properties */}
       <div>
         <div className="flex justify-between mb-3">
-          <FormLabel>Метафизические свойства</FormLabel>
+          <FormLabel>{labels.metaphysicalProperties}</FormLabel>
           <Button type="button" variant="outline" size="sm" onClick={() => append('')}>
-            <Plus className="h-4 w-4 mr-1" /> Добавить
+            <Plus className="h-4 w-4 mr-1" /> {labels.add}
           </Button>
         </div>
         <div className="space-y-2">
@@ -134,7 +178,7 @@ function EsotericFields({ form, lang }: { form: UseFormReturn<MineralFormData>; 
                 render={({ field }) => (
                   <FormItem className="flex-1">
                     <FormControl>
-                      <Input placeholder={lang === 'ru' ? "защита, очищение..." : "protection, emotional healing..."} {...field} />
+                      <Input placeholder={labels.metaphysicalPlaceholder} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -154,10 +198,10 @@ function EsotericFields({ form, lang }: { form: UseFormReturn<MineralFormData>; 
           name={`i18n.${lang}.esoteric.chakras`}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Чакры</FormLabel>
+              <FormLabel>{labels.chakras}</FormLabel>
               <FormControl>
-                <Input 
-                  placeholder={lang === 'ru' ? "сердечная чакра" : "heart chakra"} 
+                <Input
+                  placeholder={labels.chakrasPlaceholder}
                   value={field.value?.join(', ') || ''}
                   onChange={(e) => field.onChange(e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
                 />
@@ -172,10 +216,10 @@ function EsotericFields({ form, lang }: { form: UseFormReturn<MineralFormData>; 
           name={`i18n.${lang}.esoteric.zodiac`}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Знаки зодиака</FormLabel>
+              <FormLabel>{labels.zodiac}</FormLabel>
               <FormControl>
-                <Input 
-                  placeholder={lang === 'ru' ? "Телец, Весы" : "Taurus, Libra"} 
+                <Input
+                  placeholder={labels.zodiacPlaceholder}
                   value={field.value?.join(', ') || ''}
                   onChange={(e) => field.onChange(e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
                 />
@@ -191,7 +235,7 @@ function EsotericFields({ form, lang }: { form: UseFormReturn<MineralFormData>; 
         name={`i18n.${lang}.esoteric.healing_interpretation`}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Интерпретация исцеления</FormLabel>
+            <FormLabel>{labels.healingInterpretation}</FormLabel>
             <FormControl>
               <Textarea rows={4} {...field} />
             </FormControl>
@@ -205,9 +249,25 @@ function EsotericFields({ form, lang }: { form: UseFormReturn<MineralFormData>; 
         name={`i18n.${lang}.esoteric.energy_notes`}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Заметки об энергии</FormLabel>
+            <FormLabel>{labels.energyNotes}</FormLabel>
             <FormControl>
               <Textarea rows={4} {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* ritual_uses — было в схеме (EsotericSchema.ritual_uses), но контрола
+          не было ни на одном языке; попасть можно было только через JSON-импорт. */}
+      <FormField
+        control={form.control}
+        name={`i18n.${lang}.esoteric.ritual_uses`}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>{labels.ritualUses}</FormLabel>
+            <FormControl>
+              <Textarea rows={2} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
