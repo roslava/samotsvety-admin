@@ -46,6 +46,15 @@ const MINERAL_FAMILY_LABELS: Record<string, string> = {
   calcite_group: 'Кальциты',
 };
 
+// Список — админка всегда на русском (нет per-language вкладки, в отличие
+// от карточки минерала), поэтому только один словарь, без ru/en.
+const RARITY_LABELS: Record<string, string> = {
+  common: 'Обычный',
+  uncommon: 'Нечастый',
+  rare: 'Редкий',
+  very_rare: 'Очень редкий',
+};
+
 export default function MineralsPage() {
   const [minerals, setMinerals] = useState<Mineral[]>([]);
   const [loading, setLoading] = useState(true);
@@ -198,7 +207,7 @@ export default function MineralsPage() {
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary">
-                        {mineral.scientific.rarity}
+                        {RARITY_LABELS[mineral.scientific.rarity] || mineral.scientific.rarity}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right space-x-2">
