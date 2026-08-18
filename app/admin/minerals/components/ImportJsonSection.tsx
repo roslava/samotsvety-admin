@@ -1,7 +1,7 @@
 'use client';
 
 import { UseFormReturn } from 'react-hook-form';
-import { MineralFormData } from '@/lib/validations/mineral';
+import { MineralFormData, MineralSchema } from '@/lib/validations/mineral';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,10 +20,11 @@ const JSON_TEMPLATE = `{
   "scientific": {
     "chemical_formula": "Cu₂CO₃(OH)₂",
     "hardness": { "min": 3.5, "max": 4.0 },
-    "hardness_note": "по шкале Мооса",
+    "hardness_note": "варьируется в зависимости от примесей",
     "specific_gravity": { "min": 3.6, "max": 4.05 },
     "rarity": "common",
     "mineral_class": "carbonates_nitrates",
+    "silicate_subclass": null,
     "mineral_family": null,
     "composition": "",
     "crystal_system": "monoclinic",
@@ -66,7 +67,14 @@ const JSON_TEMPLATE = `{
       "lore": "History of mining in the Urals...",
       "identification_tips": "Distinguishing features from similar minerals...",
       "safety_notes": "Contains copper. Prolonged skin contact is not recommended...",
-      "esoteric": { "...": "..." }
+      "esoteric": {
+        "metaphysical_properties": ["protection", "emotional healing", "harmony"],
+        "chakras": ["heart chakra (Anahata)"],
+        "zodiac": ["Taurus", "Libra", "Capricorn"],
+        "healing_interpretation": "In esoteric tradition, malachite is considered a powerful stone of emotional cleansing...",
+        "energy_notes": "Many practitioners note that the stone helps transform heavy emotions...",
+        "ritual_uses": "Used in heart chakra meditations..."
+      }
     }
   },
   "localities": [
@@ -85,7 +93,14 @@ const JSON_TEMPLATE = `{
   ],
   "main_image_url": "https://storage.yandexcloud.net/samotsvety-cdn/malachite/hero.webp",
   "thumbnail_url": "https://storage.yandexcloud.net/samotsvety-cdn/malachite/thumbnail.webp",
-  "gallery": [],
+  "gallery": [
+    {
+      "url": "https://storage.yandexcloud.net/samotsvety-cdn/malachite/gallery/specimen-01.webp",
+      "type": "specimen",
+      "description_ru": "Необработанный образец с характерным концентрическим рисунком",
+      "description_en": "Raw specimen with characteristic concentric banding"
+    }
+  ],
   "related_minerals": ["azurite", "chrysocolla"]
 }`;
 
@@ -94,7 +109,9 @@ const PROMPT_TEMPLATE = `Ты — эксперт-минералог и гемм�
 Собери **полную, точную и детализированную информацию** по камню «[НАЗВАНИЕ_КАМНЯ]» согласно структуре проекта Samotsvety.
 
 **Обязательные правила:**
-- Укажи "type": "mineral", "rock" или "gem_variety".
+- Укажи "type": "mineral", "rock", "gem_variety" или "organic" (для янтаря и подобного).
+- Необязательные поля, для которых нет данных, можно указывать как null или просто не включать
+  в JSON — оба варианта корректны.
 - ВАЖНО: почти все научные свойства находятся ВНУТРИ scientific (не в i18n!) — это закрытые
   перечисления с фиксированными кодами, ОДНО значение на весь минерал (не переводится и не
   дублируется по языкам). Если поле не определено или не подходит под перечисление — просто
@@ -153,6 +170,8 @@ const PROMPT_TEMPLATE = `Ты — эксперт-минералог и гемм�
 - Изображения уже загружены в Yandex Cloud (samotsvety-cdn):
   - hero.webp, thumbnail.webp
   - gallery/specimen-01.webp, gallery/polished-01.webp и т.д.
+  - Каждый элемент gallery — объект { url, type, description_ru, description_en }, где
+    type: "specimen" | "polished" | "jewelry" | "micro" (см. пример в шаблоне)
 
 Верни **только валидный JSON** без дополнительного текста.`;
 
@@ -161,14 +180,60 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
   const [activeTab, setActiveTab] = useState<'import' | 'template'>('import');
 
   const handleImport = () => {
+    let parsed: unknown;
     try {
-      const parsed = JSON.parse(jsonInput.trim());
-      form.reset(parsed as MineralFormData);
-      toast.success('Форма полностью обновлена из JSON');
-      setJsonInput('');
+      parsed = JSON.parse(jsonInput.trim());
     } catch (error) {
-      toast.error('Ошибка парсинга JSON');
+      toast.error('Ошибка парсинга JSON: проверьте синтаксис (запятые, кавычки, скобки)');
+      return;
     }
+
+    // Раньше `parsed as MineralFormData` был просто TS-кастом без реальной
+    // проверки — форма молча обновлялась и показывала "успех", даже если
+    // структура не совпадала со схемой (опечатка в enum-коде, не тот тип
+    // поля и т.д.); ошибки вылезали только при сабмите, без явной связи
+    // с тем, что источник — вставленный JSON. Теперь проверяем сразу.
+    const result = MineralSchema.safeParse(parsed);
+
+    if (result.success) {
+      form.reset(result.data);
+      toast.success('Форма обновлена из JSON — все поля прошли проверку');
+      setJsonInput('');
+      return;
+    }
+
+    // Отделяем структурные ошибки (неверный тип/значение enum — значит в
+    // JSON опечатка или устаревшее поле, импортировать такое небезопасно)
+    // от бизнес-правил (superRefine ниже в схеме: "язык не дописан до
+    // конца", "у месторождения нет страны") — это нормальное состояние
+    // черновика, который человек доработает в самой форме после импорта.
+    const structuralIssues = result.error.issues.filter((issue) => issue.code !== 'custom');
+    const businessIssues = result.error.issues.filter((issue) => issue.code === 'custom');
+
+    if (structuralIssues.length > 0) {
+      const preview = structuralIssues
+        .slice(0, 5)
+        .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+        .join('\n');
+      toast.error(
+        `JSON не соответствует схеме формы (${structuralIssues.length} ` +
+          `${structuralIssues.length === 1 ? 'ошибка' : 'ошибок'}), импорт отменён:\n${preview}` +
+          (structuralIssues.length > 5 ? '\n...' : ''),
+        { duration: 12000 }
+      );
+      return;
+    }
+
+    // Структура верна, не хватает только требований к заполненности —
+    // импортируем как черновик, дальше можно доработать прямо в форме.
+    form.reset(parsed as MineralFormData);
+    toast.warning(
+      `Импортировано как черновик: ${businessIssues.length} ` +
+        `${businessIssues.length === 1 ? 'пункт' : 'пункта(ов)'} нужно доработать перед сохранением ` +
+        `(см. вкладки формы)`,
+      { duration: 10000 }
+    );
+    setJsonInput('');
   };
 
   const copyTemplate = () => {

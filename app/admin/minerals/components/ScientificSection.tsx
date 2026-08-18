@@ -158,7 +158,7 @@ function MultiSelectChips({
   onChange,
   options,
 }: {
-  value: string[] | undefined;
+  value: string[] | null | undefined;
   onChange: (next: string[]) => void;
   options: { value: string; label: string }[];
 }) {

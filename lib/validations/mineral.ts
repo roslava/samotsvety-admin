@@ -104,34 +104,34 @@ export const ScientificSchema = z.object({
   }),
   rarity: z.enum(['common', 'uncommon', 'rare', 'very_rare']),
 
-  crystal_system: z.enum(CRYSTAL_SYSTEM_VALUES).optional(),
-  streak: z.enum(STREAK_VALUES).optional(),
-  fracture: z.enum(FRACTURE_VALUES).optional(),
+  crystal_system: z.enum(CRYSTAL_SYSTEM_VALUES).nullish(),
+  streak: z.enum(STREAK_VALUES).nullish(),
+  fracture: z.enum(FRACTURE_VALUES).nullish(),
   // cleavage_direction/cleavage_type осмысленны только при cleavage_degree !== 'none' —
   // это условие в UI (ScientificSection), схема этого не форсирует.
-  cleavage_degree: z.enum(CLEAVAGE_DEGREE_VALUES).optional(),
-  cleavage_direction: z.enum(CLEAVAGE_DIRECTION_VALUES).optional(),
-  cleavage_type: z.enum(CLEAVAGE_TYPE_VALUES).optional(),
+  cleavage_degree: z.enum(CLEAVAGE_DEGREE_VALUES).nullish(),
+  cleavage_direction: z.enum(CLEAVAGE_DIRECTION_VALUES).nullish(),
+  cleavage_type: z.enum(CLEAVAGE_TYPE_VALUES).nullish(),
 
-  transparency: z.enum(TRANSPARENCY_VALUES).optional(),
-  luster: z.array(z.enum(LUSTER_VALUES)).optional(),
-  tenacity: z.array(z.enum(TENACITY_VALUES)).optional(),
+  transparency: z.enum(TRANSPARENCY_VALUES).nullish(),
+  luster: z.array(z.enum(LUSTER_VALUES)).nullish(),
+  tenacity: z.array(z.enum(TENACITY_VALUES)).nullish(),
   hardness_note: z.string().optional(),
   composition: z.string().optional(),
 
-  ima_status: z.enum(IMA_STATUS_VALUES).optional(),
+  ima_status: z.enum(IMA_STATUS_VALUES).nullish(),
   // rock_type осмыслен в основном для type: 'rock', но схема этого не форсирует —
   // в БД лучше null/undefined, чем искусственное значение "не определено".
-  rock_type: z.enum(ROCK_TYPE_VALUES).optional(),
+  rock_type: z.enum(ROCK_TYPE_VALUES).nullish(),
 
-  phenomena: z.array(z.enum(PHENOMENON_VALUES)).optional(),
+  phenomena: z.array(z.enum(PHENOMENON_VALUES)).nullish(),
 
-  mineral_class: z.enum(MINERAL_CLASS_VALUES).optional(),
+  mineral_class: z.enum(MINERAL_CLASS_VALUES).nullish(),
   // silicate_subclass осмыслен только при mineral_class === 'silicates'.
-  silicate_subclass: z.enum(SILICATE_SUBCLASS_VALUES).optional(),
-  mineral_family: z.enum(MINERAL_FAMILY_VALUES).optional(),
+  silicate_subclass: z.enum(SILICATE_SUBCLASS_VALUES).nullish(),
+  mineral_family: z.enum(MINERAL_FAMILY_VALUES).nullish(),
 
-  crystal_habit: z.array(z.enum(CRYSTAL_HABIT_VALUES)).optional(),
+  crystal_habit: z.array(z.enum(CRYSTAL_HABIT_VALUES)).nullish(),
 });
 
 export const EsotericSchema = z.object({
@@ -165,7 +165,7 @@ export const I18nContentSchema = z.object({
   color: z.array(z.string()).optional(),
   color_description: z.string().optional(),
   lore: z.string().optional(),
-  esoteric: EsotericSchema.optional(),
+  esoteric: EsotericSchema.nullish(),
 
   identification_tips: z.string().optional(),
   safety_notes: z.string().optional(),
@@ -192,7 +192,7 @@ export const LocalitySchema = z.object({
 
 export const GalleryImageSchema = z.object({
   url: z.string().url('Некорректный URL'),
-  type: z.enum(['specimen', 'polished', 'jewelry', 'micro']).optional(),
+  type: z.enum(['specimen', 'polished', 'jewelry', 'micro']).nullish(),
   description_ru: z.string().optional(),
   description_en: z.string().optional(),
 });

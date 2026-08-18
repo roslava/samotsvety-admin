@@ -155,7 +155,7 @@ const ESOTERIC_LABELS: Record<'ru' | 'en', {
 function EsotericFields({ form, lang }: { form: UseFormReturn<MineralFormData>; lang: 'ru' | 'en' }) {
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: `i18n.${lang}.esoteric.metaphysical_properties` as const,
+    name: `i18n.${lang}.esoteric.metaphysical_properties` as any,
   });
   const labels = ESOTERIC_LABELS[lang];
 
