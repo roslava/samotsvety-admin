@@ -83,24 +83,34 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
   const router = useRouter();
 
   const completeDefaults: MineralFormData = {
-    slug: '',
-    type: 'mineral',
+    slug: defaultValues?.slug ?? '',
+    type: defaultValues?.type ?? 'mineral',
     scientific: {
-      chemical_formula: '',
-      hardness: { min: 1, max: 1 },
-      specific_gravity: { min: 1, max: 1 },
-      rarity: 'common',
+      chemical_formula: defaultValues?.scientific?.chemical_formula ?? '',
+      hardness: {
+        min: defaultValues?.scientific?.hardness?.min ?? 1,
+        max: defaultValues?.scientific?.hardness?.max ?? 1,
+      },
+      specific_gravity: {
+        min: defaultValues?.scientific?.specific_gravity?.min ?? 1,
+        max: defaultValues?.scientific?.specific_gravity?.max ?? 1,
+      },
+      rarity: defaultValues?.scientific?.rarity ?? 'common',
+      ...defaultValues?.scientific,
     },
     i18n: {
-      ru: { ...emptyLangData },
-      en: { ...emptyLangData },
+      ru: { ...emptyLangData, ...defaultValues?.i18n?.ru },
+      en: { ...emptyLangData, ...defaultValues?.i18n?.en },
     },
-    localities: [],
-    main_image_url: '',
-    thumbnail_url: '',
-    gallery: [],
-    related_minerals: [],
-    ...defaultValues,
+    localities: (defaultValues?.localities ?? []).map((locality) => ({
+      ...locality,
+      is_russian: locality?.is_russian ?? false,
+      famous: locality?.famous ?? false,
+    })),
+    main_image_url: defaultValues?.main_image_url ?? '',
+    thumbnail_url: defaultValues?.thumbnail_url ?? '',
+    gallery: defaultValues?.gallery ?? [],
+    related_minerals: defaultValues?.related_minerals ?? [],
   };
 
   const form = useForm<MineralFormData>({

@@ -187,7 +187,7 @@ export const MineralSchema = z.object({
     .min(3)
     .regex(/^[a-z0-9-]+$/, 'Slug может содержать только строчные буквы, цифры и дефис'),
 
-  type: z.enum(['mineral', 'rock', 'gem_variety', 'organic']).default('mineral'),
+  type: z.enum(['mineral', 'rock', 'gem_variety', 'organic']),
 
   scientific: ScientificSchema,
 

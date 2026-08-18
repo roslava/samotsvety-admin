@@ -1,12 +1,6 @@
 import type { Metadata } from 'next';
-import { Inter, Geist } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'sonner';
-import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
-
-const inter = Inter({ subsets: ['latin', 'cyrillic'] });
 
 export const metadata: Metadata = {
   title: 'Samotsvety Admin',
@@ -22,8 +16,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ru" className={cn("font-sans", geist.variable)}>
-      <body className={inter.className}>
+    <html lang="ru" className="font-sans">
+      <body className="font-sans">
         {children}
         <Toaster position="top-right" richColors closeButton />
       </body>

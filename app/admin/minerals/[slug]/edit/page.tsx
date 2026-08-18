@@ -38,14 +38,13 @@ export default function EditMineralPage() {
   // Convert Mineral to MineralFormData
   const formData: MineralFormData = {
     slug: mineral.slug,
-    type: mineral.type as any,
+    type: mineral.type,
     scientific: mineral.scientific,
     i18n: mineral.i18n,
     localities: mineral.localities,
     main_image_url: mineral.main_image_url,
     thumbnail_url: mineral.thumbnail_url || '',
     gallery: mineral.gallery || [],
-    safety_notes: mineral.safety_notes || '',
     related_minerals: mineral.related_minerals || [],
   };
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { UseFormReturn, useFieldArray } from 'react-hook-form';
+import { UseFormReturn } from 'react-hook-form';
 import { MineralFormData } from '@/lib/validations/mineral';
 import {
   FormField,
@@ -110,10 +110,19 @@ export function EsotericSection({ form }: EsotericSectionProps) {
 
 // Вспомогательный компонент
 function EsotericFields({ form, lang }: { form: UseFormReturn<MineralFormData>; lang: 'ru' | 'en' }) {
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: `i18n.${lang}.esoteric.metaphysical_properties` as const,
-  });
+  const path = `i18n.${lang}.esoteric.metaphysical_properties` as const;
+  const fields = form.watch(path) ?? [];
+
+  const appendValue = () => {
+    const current = form.getValues(path) ?? [];
+    form.setValue(path, [...current, '']);
+  };
+
+  const removeValue = (index: number) => {
+    const current = [...(form.getValues(path) ?? [])];
+    current.splice(index, 1);
+    form.setValue(path, current);
+  };
 
   return (
     <div className="space-y-8">
@@ -121,26 +130,30 @@ function EsotericFields({ form, lang }: { form: UseFormReturn<MineralFormData>; 
       <div>
         <div className="flex justify-between mb-3">
           <FormLabel>Метафизические свойства</FormLabel>
-          <Button type="button" variant="outline" size="sm" onClick={() => append('')}>
+          <Button type="button" variant="outline" size="sm" onClick={appendValue}>
             <Plus className="h-4 w-4 mr-1" /> Добавить
           </Button>
         </div>
         <div className="space-y-2">
-          {fields.map((field, index) => (
-            <div key={field.id} className="flex gap-2">
+          {fields.map((field: string, index: number) => (
+            <div key={`${path}-${index}`} className="flex gap-2">
               <FormField
                 control={form.control}
-                name={`i18n.${lang}.esoteric.metaphysical_properties.${index}`}
-                render={({ field }) => (
+                name={`${path}.${index}` as const}
+                render={({ field: itemField }) => (
                   <FormItem className="flex-1">
                     <FormControl>
-                      <Input placeholder={lang === 'ru' ? "защита, очищение..." : "protection, emotional healing..."} {...field} />
+                      <Input
+                        placeholder={lang === 'ru' ? 'защита, очищение...' : 'protection, emotional healing...'}
+                        value={itemField.value ?? ''}
+                        onChange={(e) => itemField.onChange(e.target.value)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button type="button" variant="ghost" onClick={() => remove(index)}>
+              <Button type="button" variant="ghost" onClick={() => removeValue(index)}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
