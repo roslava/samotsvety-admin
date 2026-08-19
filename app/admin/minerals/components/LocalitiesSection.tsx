@@ -52,6 +52,9 @@ export function LocalitiesSection({ form }: LocalitiesSectionProps) {
             Добавить месторождение
           </Button>
         </div>
+        <p className="text-sm text-slate-500 mt-2">
+          Страну нужно указать хотя бы на одном языке (RU или EN) для каждого месторождения.
+        </p>
       </CardHeader>
       <CardContent className="space-y-6">
         {fields.length === 0 && (
@@ -73,14 +76,14 @@ export function LocalitiesSection({ form }: LocalitiesSectionProps) {
             </Button>
 
             <div>
-              <h4 className="text-sm text-slate-400 uppercase tracking-wide mb-3">рџ‡·рџ‡є Р СѓСЃСЃРєРёР№</h4>
+              <h4 className="text-sm text-slate-400 uppercase tracking-wide mb-3">🇷🇺 Русский</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
                   name={`localities.${index}.country_ru`}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Страна *</FormLabel>
+                      <FormLabel>Страна</FormLabel>
                       <FormControl>
                         <Input placeholder="Россия" {...field} />
                       </FormControl>
@@ -134,7 +137,7 @@ export function LocalitiesSection({ form }: LocalitiesSectionProps) {
             </div>
 
             <div className="border-t border-slate-700 pt-4">
-              <h4 className="text-sm text-slate-400 uppercase tracking-wide mb-3">рџ‡¬рџ‡§ English</h4>
+              <h4 className="text-sm text-slate-400 uppercase tracking-wide mb-3">🇬🇧 English</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}

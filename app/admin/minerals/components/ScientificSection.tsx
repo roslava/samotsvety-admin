@@ -54,13 +54,15 @@ const TENACITY_OPTIONS = [
   { value: 'elastic', label: 'Эластичный' },
 ];
 
-// Только статус вида по IMA — trade name сюда намеренно не входит,
-// это другое измерение (коммерческое название, не научный статус).
+// Чисто русские подписи — как и у остальных полей этой секции
+// (crystal_system, streak, и т.д.). Официальный статус IMA как термин
+// сохраняется как код (approved/discredited/...) в данных, меняется
+// только отображаемая подпись.
 const IMA_STATUS_OPTIONS = [
-  { value: 'approved', label: 'Approved' },
-  { value: 'grandfathered', label: 'Grandfathered' },
-  { value: 'questionable', label: 'Questionable' },
-  { value: 'discredited', label: 'Discredited' },
+  { value: 'approved', label: 'Утверждён' },
+  { value: 'grandfathered', label: 'Узаконен исторически' },
+  { value: 'questionable', label: 'Под вопросом' },
+  { value: 'discredited', label: 'Дискредитирован' },
 ];
 
 const ROCK_TYPE_OPTIONS = [
@@ -156,7 +158,7 @@ function MultiSelectChips({
   onChange,
   options,
 }: {
-  value: string[] | undefined;
+  value: string[] | null | undefined;
   onChange: (next: string[]) => void;
   options: { value: string; label: string }[];
 }) {
@@ -706,10 +708,10 @@ export function ScientificSection({ form }: ScientificSectionProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="common">Common</SelectItem>
-                      <SelectItem value="uncommon">Uncommon</SelectItem>
-                      <SelectItem value="rare">Rare</SelectItem>
-                      <SelectItem value="very_rare">Very Rare</SelectItem>
+                      <SelectItem value="common">Обычный</SelectItem>
+                      <SelectItem value="uncommon">Нечастый</SelectItem>
+                      <SelectItem value="rare">Редкий</SelectItem>
+                      <SelectItem value="very_rare">Очень редкий</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

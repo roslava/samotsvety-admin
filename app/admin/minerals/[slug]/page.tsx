@@ -296,9 +296,22 @@ const TENACITY_LABELS: Record<Lang, Record<string, string>> = {
 
 // Только статус вида по IMA (approved/grandfathered/questionable/discredited) —
 // формальные термины, используются как есть в обеих локалях, как rarity.
+// Именно статус вида по IMA. Подписи теперь по-настоящему переведены на RU
+// (было: одинаковый английский текст в обеих локалях) — как и остальные
+// enum-словари на этой странице (CRYSTAL_SYSTEM_LABELS и т.д.).
 const IMA_STATUS_LABELS: Record<Lang, Record<string, string>> = {
-  ru: { approved: 'Approved', grandfathered: 'Grandfathered', questionable: 'Questionable', discredited: 'Discredited' },
+  ru: {
+    approved: 'Утверждён',
+    grandfathered: 'Узаконен исторически',
+    questionable: 'Под вопросом',
+    discredited: 'Дискредитирован',
+  },
   en: { approved: 'Approved', grandfathered: 'Grandfathered', questionable: 'Questionable', discredited: 'Discredited' },
+};
+
+const RARITY_LABELS: Record<Lang, Record<string, string>> = {
+  ru: { common: 'Обычный', uncommon: 'Нечастый', rare: 'Редкий', very_rare: 'Очень редкий' },
+  en: { common: 'Common', uncommon: 'Uncommon', rare: 'Rare', very_rare: 'Very Rare' },
 };
 
 const ROCK_TYPE_LABELS: Record<Lang, Record<string, string>> = {
@@ -709,7 +722,7 @@ export default function MineralViewPage() {
                     <strong>{ui.rarity}:</strong>
                   </div>
                   <div>
-                    <Badge variant="secondary">{scientific.rarity}</Badge>
+                    <Badge variant="secondary">{RARITY_LABELS[lang][scientific.rarity]}</Badge>
                   </div>
                   <Row
                     label={ui.imaStatus}
