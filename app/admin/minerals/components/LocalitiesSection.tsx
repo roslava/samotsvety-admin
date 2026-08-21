@@ -205,7 +205,7 @@ export function LocalitiesSection({ form }: LocalitiesSectionProps) {
                   <FormItem className="flex items-center gap-3">
                     <FormControl>
                       <Switch
-                        checked={field.value}
+                        checked={!!field.value}
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
@@ -221,7 +221,7 @@ export function LocalitiesSection({ form }: LocalitiesSectionProps) {
                   <FormItem className="flex items-center gap-3">
                     <FormControl>
                       <Switch
-                        checked={field.value}
+                        checked={!!field.value}
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>

@@ -177,6 +177,17 @@ export const I18nContentRuSchema = I18nContentSchema;
 // country_en optional) — та же логика, что и в I18nContentSchema выше:
 // requiredность "хотя бы один язык заполнен целиком" проверяется в
 // MineralSchema.superRefine, а не жёстко привязана к русскому.
+//
+// is_russian/famous — без .default(): раньше .default(false) создавал
+// расхождение между input-типом поля (boolean | undefined, до валидации)
+// и output-типом (boolean, после подстановки дефолта) — zod так работает
+// для любого поля с .default(). Из-за этого z.infer<typeof MineralSchema>
+// давал два РАЗНЫХ типа в зависимости от того, где он использовался, и
+// useForm<MineralFormData>() (один generic-параметр) не мог сопоставить
+// Resolver<Input> с Resolver<Output> — ровно то, что взрывало типы в
+// MineralForm.tsx. Раз UI (LocalitiesSection.append()) и так всегда
+// явно передаёт is_russian/famous, схемный default был чистой
+// избыточностью — не нужен ни семантически, ни для защиты от undefined.
 export const LocalitySchema = z.object({
   country_ru: z.string().optional(),
   country_en: z.string().optional(),
@@ -184,8 +195,8 @@ export const LocalitySchema = z.object({
   region_en: z.string().optional(),
   locality_ru: z.string().optional(),
   locality_en: z.string().optional(),
-  is_russian: z.boolean().default(false),
-  famous: z.boolean().default(false).optional(),
+  is_russian: z.boolean(),
+  famous: z.boolean().optional(),
   description_ru: z.string().optional(),
   description_en: z.string().optional(),
 });
@@ -203,7 +214,11 @@ export const MineralSchema = z
       .min(3)
       .regex(/^[a-z0-9-]+$/, 'Slug может содержать только строчные буквы, цифры и дефис'),
 
-    type: z.enum(['mineral', 'rock', 'gem_variety', 'organic']).default('mineral'),
+    // Без .default('mineral') — та же причина, что у is_russian/famous ниже:
+    // .default() создаёт расхождение input/output типов, которое ломало
+    // Resolver<> в MineralForm.tsx. completeDefaults там и так явно
+    // выставляет type: 'mineral' для новых минералов.
+    type: z.enum(['mineral', 'rock', 'gem_variety', 'organic']),
 
     scientific: ScientificSchema,
 
