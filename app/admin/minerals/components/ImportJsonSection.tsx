@@ -3,16 +3,19 @@
 import { UseFormReturn } from 'react-hook-form';
 import { MineralFormData, MineralSchema } from '@/lib/validations/mineral';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Copy } from 'lucide-react';
 
 interface ImportJsonSectionProps {
   form: UseFormReturn<MineralFormData>;
 }
+
+const STONE_NAME_PLACEHOLDER = '[НАЗВАНИЕ_КАМНЯ]';
 
 const JSON_TEMPLATE = `{
   "slug": "malachite",
@@ -106,12 +109,19 @@ const JSON_TEMPLATE = `{
 
 const PROMPT_TEMPLATE = `Ты — эксперт-минералог и геммолог высшего уровня.
 
-Собери **полную, точную и детализированную информацию** по камню «[НАЗВАНИЕ_КАМНЯ]» согласно структуре проекта Samotsvety.
+Собери **полную, точную и детализированную информацию** по камню «${STONE_NAME_PLACEHOLDER}» согласно структуре проекта Samotsvety.
 
 **Обязательные правила:**
+- "slug": транслитерация названия латиницей в нижнем регистре, только [a-z0-9-], слова через дефис,
+  без пробелов и без языковых окончаний (напр. «Малахит» → "malachite", «Александрит» → "alexandrite").
+  Это обязательное поле, без него JSON не пройдёт валидацию формы.
 - Укажи "type": "mineral", "rock", "gem_variety" или "organic" (для янтаря и подобного).
 - Необязательные поля, для которых нет данных, можно указывать как null или просто не включать
   в JSON — оба варианта корректны.
+- "hardness" (по шкале Мооса) и "specific_gravity" (плотность, г/см³) — ОБЯЗАТЕЛЬНЫЕ числовые поля
+  (min/max). Укажи реалистичный диапазон именно для этого вида по справочным минералогическим
+  данным (напр. кварц: hardness 7–7, specific_gravity 2.65–2.65; если у вида фиксированное
+  значение — min и max совпадают, не выдумывай разброс).
 - ВАЖНО: почти все научные свойства находятся ВНУТРИ scientific (не в i18n!) — это закрытые
   перечисления с фиксированными кодами, ОДНО значение на весь минерал (не переводится и не
   дублируется по языкам). Если поле не определено или не подходит под перечисление — просто
@@ -162,14 +172,23 @@ const PROMPT_TEMPLATE = `Ты — эксперт-минералог и гемм�
 - В i18n.ru и i18n.en остаётся только по-настоящему переводимый контент: name, synonyms,
   color, color_description, lore, identification_tips, safety_notes, esoteric — заполняй
   их на обоих языках отдельно, с реальным переводом, а не заглушками.
+- esoteric.metaphysical_properties — минимум 1 значение (список свойств, не пустой массив);
+  healing_interpretation и energy_notes — минимум 2–3 содержательных предложения каждое
+  (не одна короткая фраза), ritual_uses необязателен.
 - Localities: country/region/locality — country_ru+country_en, region_ru+region_en,
   locality_ru+locality_en — заполняй оба языка.
 - Особенно подробно опиши российские (уральские и сибирские) месторождения.
 - Lore — увлекательный историко-культурный текст, на обоих языках.
 - Эзотерика — мягкая формулировка («в традиции считается», «многие практики отмечают»).
-- Изображения уже загружены в Yandex Cloud (samotsvety-cdn):
-  - hero.webp, thumbnail.webp
-  - gallery/specimen-01.webp, gallery/polished-01.webp и т.д.
+- related_minerals — МАССИВ SLUG'ОВ (не названий!) 2–4 реально похожих или часто путаемых
+  минералов в том же формате, что и slug выше (напр. ["azurite", "chrysocolla"]). Если не
+  уверен в slug соседнего минерала — лучше не включай его.
+- Изображения (main_image_url, thumbnail_url, gallery[].url) — это ПРИМЕР-ПЛЕЙСХОЛДЕР пути
+  в Yandex Cloud (samotsvety-cdn), а не реальные файлы. Оставь структуру путей как в шаблоне
+  (hero.webp, thumbnail.webp, gallery/specimen-01.webp и т.д.) — после генерации JSON нужно
+  либо загрузить файлы с такими именами в облако, либо вручную подставить настоящие URL
+  перед сохранением формы, иначе поле пройдёт валидацию (это просто строка-URL), но картинка
+  не отобразится.
   - Каждый элемент gallery — объект { url, type, description_ru, description_en }, где
     type: "specimen" | "polished" | "jewelry" | "micro" (см. пример в шаблоне)
 
@@ -178,6 +197,16 @@ const PROMPT_TEMPLATE = `Ты — эксперт-минералог и гемм�
 export function ImportJsonSection({ form }: ImportJsonSectionProps) {
   const [jsonInput, setJsonInput] = useState('');
   const [activeTab, setActiveTab] = useState<'import' | 'template'>('import');
+  // Название камня для подстановки в промпт — предзаполняем из уже введённого
+  // на вкладке "Основное" русского названия, если оно есть, но дальше не
+  // синхронизируем принудительно: пользователь может печатать сюда что угодно
+  // (например, английское название или синоним) независимо от формы.
+  const [stoneName, setStoneName] = useState(() => form.getValues('i18n.ru.name') ?? '');
+
+  const renderedPrompt = useMemo(
+    () => PROMPT_TEMPLATE.replaceAll(STONE_NAME_PLACEHOLDER, stoneName.trim() || STONE_NAME_PLACEHOLDER),
+    [stoneName]
+  );
 
   const handleImport = () => {
     let parsed: unknown;
@@ -242,7 +271,10 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
   };
 
   const copyPrompt = () => {
-    navigator.clipboard.writeText(PROMPT_TEMPLATE);
+    if (!stoneName.trim()) {
+      toast.warning('Название камня не указано — в промпте останется плейсхолдер [НАЗВАНИЕ_КАМНЯ]');
+    }
+    navigator.clipboard.writeText(renderedPrompt);
     toast.success('Промпт скопирован');
   };
 
@@ -288,8 +320,22 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
                   <Copy className="h-4 w-4 mr-2" /> Скопировать промпт
                 </Button>
               </div>
+              <div className="mb-3 space-y-1.5">
+                <label className="text-sm font-medium" htmlFor="stone-name-input">
+                  Название камня
+                </label>
+                <Input
+                  id="stone-name-input"
+                  value={stoneName}
+                  onChange={(e) => setStoneName(e.target.value)}
+                  placeholder="Например: Малахит"
+                />
+                <p className="text-xs text-[var(--color-slate-veil)]">
+                  Подставится в промпт вместо [НАЗВАНИЕ_КАМНЯ] при копировании.
+                </p>
+              </div>
               <pre className="bg-[var(--color-inkwell-teal)] text-[var(--color-bone)] p-4 rounded-2xl text-xs overflow-auto whitespace-pre-wrap">
-                {PROMPT_TEMPLATE}
+                {renderedPrompt}
               </pre>
             </div>
           </TabsContent>
