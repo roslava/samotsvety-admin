@@ -142,20 +142,23 @@ export default function MineralsPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[28px] border border-white/10 bg-slate-950/70 p-6 shadow-[0_24px_80px_rgba(2,6,23,0.45)] backdrop-blur-sm">
+      {/* Dark teal hero band — переносит "Display Headline / Section Opener"
+          из DESIGN_v2 в рабочий контекст: те же ритм и роли (eyebrow,
+          заголовок, лавандовые акценты), только без монументальных 60px+ */}
+      <section className="rounded-[28px] bg-[var(--color-inkwell-teal)] p-6">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.24em] text-emerald-300/80">Каталог</p>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white md:text-4xl">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-[var(--color-vellum-lavender)]/80">Каталог</p>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[var(--color-bone)] md:text-4xl">
               Минералы
             </h1>
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="mt-2 text-sm text-[var(--color-bone)]/60">
               Управление базой самоцветов, группами и карточками объектов.
             </p>
           </div>
 
           <Link href="/admin/minerals/new">
-            <Button size="lg" className="rounded-xl bg-emerald-500 text-slate-950 hover:bg-emerald-400">
+            <Button size="lg" className="rounded-full bg-[var(--color-vellum-lavender)] text-[var(--color-inkwell-teal)] hover:bg-[var(--color-vellum-lavender)]/90">
               <Plus className="mr-2 h-4 w-4" />
               Новый минерал
             </Button>
@@ -163,52 +166,52 @@ export default function MineralsPage() {
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-white/10 bg-white/3 p-4">
+          <div className="rounded-2xl bg-white/[0.04] p-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm text-slate-400">Всего</p>
-              <Gem className="h-4 w-4 text-emerald-300" />
+              <p className="text-sm text-[var(--color-bone)]/60">Всего</p>
+              <Gem className="h-4 w-4 text-[var(--color-vellum-lavender)]" />
             </div>
-            <p className="mt-5 text-3xl font-semibold text-white">{stats.total}</p>
+            <p className="mt-5 text-3xl font-semibold text-[var(--color-bone)]">{stats.total}</p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/3 p-4">
+          <div className="rounded-2xl bg-white/[0.04] p-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm text-slate-400">Групп</p>
-              <Layers3 className="h-4 w-4 text-emerald-300" />
+              <p className="text-sm text-[var(--color-bone)]/60">Групп</p>
+              <Layers3 className="h-4 w-4 text-[var(--color-vellum-lavender)]" />
             </div>
-            <p className="mt-5 text-3xl font-semibold text-white">{stats.groups}</p>
+            <p className="mt-5 text-3xl font-semibold text-[var(--color-bone)]">{stats.groups}</p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/3 p-4">
+          <div className="rounded-2xl bg-white/[0.04] p-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm text-slate-400">С картинками</p>
-              <Sparkles className="h-4 w-4 text-emerald-300" />
+              <p className="text-sm text-[var(--color-bone)]/60">С картинками</p>
+              <Sparkles className="h-4 w-4 text-[var(--color-vellum-lavender)]" />
             </div>
-            <p className="mt-5 text-3xl font-semibold text-white">{stats.withImages}</p>
+            <p className="mt-5 text-3xl font-semibold text-[var(--color-bone)]">{stats.withImages}</p>
           </div>
         </div>
       </section>
 
-      <Card className="border-white/10 bg-slate-950/70 text-slate-100 shadow-[0_24px_80px_rgba(2,6,23,0.45)]">
-        <CardHeader className="space-y-4 border-b border-white/10 pb-5">
+      <Card className="border-[var(--color-sage-mist)] bg-[var(--color-paper-white)] text-[var(--color-inkwell-teal)]">
+        <CardHeader className="space-y-4 border-b border-[var(--color-sage-mist)] pb-5">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <CardTitle className="text-xl text-white">
+            <CardTitle className="text-xl text-[var(--color-inkwell-teal)]">
               {query.trim()
                 ? `Найдено: ${filteredMinerals.length} из ${minerals.length}`
                 : `Всего: ${minerals.length} минералов`}
             </CardTitle>
 
             <div className="relative w-full max-w-md">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-slate-veil)]" />
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Поиск по названию, slug, группе, синонимам..."
-                className="h-11 border-white/10 bg-slate-900/80 pl-9 pr-10 text-slate-100 placeholder:text-slate-500"
+                className="h-11 rounded-full border-[var(--color-sage-mist)] bg-[var(--color-bone)] pl-9 pr-10 text-[var(--color-inkwell-teal)] placeholder:text-[var(--color-slate-veil)]"
               />
               {query && (
                 <button
                   type="button"
                   onClick={() => setQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-slate-veil)] hover:text-[var(--color-inkwell-teal)]"
                   aria-label="Очистить поиск"
                 >
                   <X className="h-4 w-4" />
@@ -220,58 +223,59 @@ export default function MineralsPage() {
 
         <CardContent className="p-0">
           {loading ? (
-            <div className="py-16 text-center text-slate-400">Загрузка данных...</div>
+            <div className="py-16 text-center text-[var(--color-slate-veil)]">Загрузка данных...</div>
           ) : minerals.length === 0 ? (
-            <div className="py-16 text-center text-slate-400">
+            <div className="py-16 text-center text-[var(--color-slate-veil)]">
               Пока нет минералов. Добавьте первый объект.
             </div>
           ) : filteredMinerals.length === 0 ? (
-            <div className="py-16 text-center text-slate-400">
+            <div className="py-16 text-center text-[var(--color-slate-veil)]">
               Ничего не найдено по запросу «{query}».
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/10 bg-slate-900/80 hover:bg-slate-900/80">
-                    <TableHead className="pl-6 text-slate-300">Slug</TableHead>
-                    <TableHead className="text-slate-300">Название (Русский)</TableHead>
-                    <TableHead className="text-slate-300">Группа</TableHead>
-                    <TableHead className="text-slate-300">Редкость</TableHead>
-                    <TableHead className="pr-6 text-right text-slate-300">Действия</TableHead>
+                  <TableRow className="border-[var(--color-sage-mist)] bg-[var(--color-bone)] hover:bg-[var(--color-bone)]">
+                    <TableHead className="pl-6 text-[var(--color-slate-veil)]">Slug</TableHead>
+                    <TableHead className="text-[var(--color-slate-veil)]">Название (Русский)</TableHead>
+                    <TableHead className="text-[var(--color-slate-veil)]">Группа</TableHead>
+                    <TableHead className="text-[var(--color-slate-veil)]">Редкость</TableHead>
+                    <TableHead className="pr-6 text-right text-[var(--color-slate-veil)]">Действия</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredMinerals.map((mineral) => (
-                    <TableRow key={mineral.slug} className="border-white/5 hover:bg-white/3">
-                      <TableCell className="pl-6 font-mono text-xs text-slate-300">{mineral.slug}</TableCell>
-                      <TableCell className="font-medium text-white">{mineral.i18n.ru.name}</TableCell>
-                      <TableCell className="text-slate-300">
+                    <TableRow key={mineral.slug} className="border-[var(--color-driftwood)] hover:bg-[var(--color-bone)]">
+                      <TableCell className="pl-6 font-mono text-xs text-[var(--color-slate-veil)]">{mineral.slug}</TableCell>
+                      <TableCell className="font-medium text-[var(--color-inkwell-teal)]">{mineral.i18n.ru.name}</TableCell>
+                      <TableCell className="text-[var(--color-slate-veil)]">
                         {mineral.scientific.mineral_family
                           ? MINERAL_FAMILY_LABELS[mineral.scientific.mineral_family] || mineral.scientific.mineral_family
                           : '—'}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary" className="rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-200">
+                        {/* Section Badge из DESIGN_v2: pill, lavender fill, teal текст */}
+                        <Badge variant="secondary" className="rounded-full border-0 bg-[var(--color-vellum-lavender)] text-[var(--color-inkwell-teal)]">
                           {RARITY_LABELS[mineral.scientific.rarity] || mineral.scientific.rarity}
                         </Badge>
                       </TableCell>
                       <TableCell className="pr-6">
                         <div className="flex justify-end gap-2">
                           <Link href={`/admin/minerals/${mineral.slug}`}>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 rounded-xl border border-white/10 bg-slate-900 hover:bg-slate-800">
+                            <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full border border-[var(--color-sage-mist)] bg-[var(--color-bone)] hover:bg-[var(--color-driftwood)]">
                               <Eye className="h-4 w-4" />
                             </Button>
                           </Link>
                           <Link href={`/admin/minerals/${mineral.slug}/edit`}>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 rounded-xl border border-white/10 bg-slate-900 hover:bg-slate-800">
+                            <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full border border-[var(--color-sage-mist)] bg-[var(--color-bone)] hover:bg-[var(--color-driftwood)]">
                               <Edit className="h-4 w-4" />
                             </Button>
                           </Link>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 rounded-xl border border-red-500/20 bg-red-500/5 text-red-300 hover:bg-red-500/10 hover:text-red-200"
+                            className="h-8 w-8 rounded-full border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
                             onClick={() => setDeleteConfirm(mineral.slug)}
                             disabled={deleting}
                           >
@@ -301,7 +305,7 @@ export default function MineralsPage() {
             <AlertDialogAction
               onClick={() => deleteConfirm && handleDelete(deleteConfirm)}
               disabled={deleting}
-              className="bg-red-600 hover:bg-red-700"
+              className="rounded-full bg-red-600 hover:bg-red-700"
             >
               {deleting ? 'Удаляю...' : 'Удалить'}
             </AlertDialogAction>

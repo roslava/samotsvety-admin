@@ -278,7 +278,7 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
                   <Copy className="h-4 w-4 mr-2" /> Скопировать
                 </Button>
               </div>
-              <pre className="bg-slate-950 p-4 rounded-md text-xs overflow-auto max-h-[350px]">{JSON_TEMPLATE}</pre>
+              <pre className="bg-[var(--color-inkwell-teal)] text-[var(--color-bone)] p-4 rounded-2xl text-xs overflow-auto max-h-[350px]">{JSON_TEMPLATE}</pre>
             </div>
 
             <div>
@@ -288,7 +288,7 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
                   <Copy className="h-4 w-4 mr-2" /> Скопировать промпт
                 </Button>
               </div>
-              <pre className="bg-slate-950 p-4 rounded-md text-xs overflow-auto whitespace-pre-wrap">
+              <pre className="bg-[var(--color-inkwell-teal)] text-[var(--color-bone)] p-4 rounded-2xl text-xs overflow-auto whitespace-pre-wrap">
                 {PROMPT_TEMPLATE}
               </pre>
             </div>

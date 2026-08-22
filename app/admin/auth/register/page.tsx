@@ -70,7 +70,7 @@ export default function RegisterPage() {
       {/* Header with Login Link */}
       <div className="flex justify-end pt-6 px-8">
         <Link href="/admin/auth/login">
-          <Button variant="outline" className="border-slate-700 text-slate-300 hover:text-slate-100">
+          <Button variant="outline" className="rounded-full border-[var(--color-sage-mist)] text-[var(--color-slate-veil)] hover:text-[var(--color-inkwell-teal)]">
             Вход
           </Button>
         </Link>
@@ -132,8 +132,8 @@ export default function RegisterPage() {
       </div>
 
       {/* Footer */}
-      <div className="py-6 px-4 text-center border-t border-slate-800">
-        <p className="text-sm text-slate-500">© 2026 artnen gems. Все права защищены.</p>
+      <div className="py-6 px-4 text-center border-t border-[var(--color-sage-mist)]">
+        <p className="text-sm text-[var(--color-slate-veil)]">© 2026 artnen gems. Все права защищены.</p>
       </div>
     </>
   );

@@ -204,7 +204,7 @@ export function ScientificSection({ form }: ScientificSectionProps) {
       <CardContent className="space-y-8">
         {/* ===== Химия ===== */}
         <div>
-          <h4 className="font-medium mb-4 text-sm text-slate-400 uppercase tracking-wide">Химия</h4>
+          <h4 className="font-medium mb-4 text-sm text-[var(--color-slate-veil)] uppercase tracking-wide">Химия</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
@@ -329,8 +329,8 @@ export function ScientificSection({ form }: ScientificSectionProps) {
         </div>
 
         {/* ===== Физика ===== */}
-        <div className="border-t border-slate-700 pt-8">
-          <h4 className="font-medium mb-4 text-sm text-slate-400 uppercase tracking-wide">Физика</h4>
+        <div className="border-t border-[var(--color-sage-mist)] pt-8">
+          <h4 className="font-medium mb-4 text-sm text-[var(--color-slate-veil)] uppercase tracking-wide">Физика</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="grid grid-cols-2 gap-4">
               <FormField
@@ -623,8 +623,8 @@ export function ScientificSection({ form }: ScientificSectionProps) {
         </div>
 
         {/* ===== Кристаллография ===== */}
-        <div className="border-t border-slate-700 pt-8">
-          <h4 className="font-medium mb-4 text-sm text-slate-400 uppercase tracking-wide">Кристаллография</h4>
+        <div className="border-t border-[var(--color-sage-mist)] pt-8">
+          <h4 className="font-medium mb-4 text-sm text-[var(--color-slate-veil)] uppercase tracking-wide">Кристаллография</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
@@ -674,8 +674,8 @@ export function ScientificSection({ form }: ScientificSectionProps) {
         </div>
 
         {/* ===== Оптика ===== */}
-        <div className="border-t border-slate-700 pt-8">
-          <h4 className="font-medium mb-4 text-sm text-slate-400 uppercase tracking-wide">Оптика</h4>
+        <div className="border-t border-[var(--color-sage-mist)] pt-8">
+          <h4 className="font-medium mb-4 text-sm text-[var(--color-slate-veil)] uppercase tracking-wide">Оптика</h4>
           <FormField
             control={form.control}
             name="scientific.phenomena"
@@ -692,8 +692,8 @@ export function ScientificSection({ form }: ScientificSectionProps) {
         </div>
 
         {/* ===== Классификация ===== */}
-        <div className="border-t border-slate-700 pt-8">
-          <h4 className="font-medium mb-4 text-sm text-slate-400 uppercase tracking-wide">Классификация</h4>
+        <div className="border-t border-[var(--color-sage-mist)] pt-8">
+          <h4 className="font-medium mb-4 text-sm text-[var(--color-slate-veil)] uppercase tracking-wide">Классификация</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
@@ -775,7 +775,7 @@ export function ScientificSection({ form }: ScientificSectionProps) {
           </div>
         </div>
 
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-[var(--color-slate-veil)]">
           Название, Lore, описание цвета, советы по идентификации и предупреждения по
           безопасности заполняются на вкладке «Названия + Lore» — отдельно для русского
           и английского. Все поля на этой странице — закрытые перечисления, языконезависимые:

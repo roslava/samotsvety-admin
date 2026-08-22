@@ -101,7 +101,7 @@ function LangFields(props: {
                 }
               />
             </FormControl>
-            <p className="text-xs text-slate-500 mt-1">{labels.colorHint}</p>
+            <p className="text-xs text-[var(--color-slate-veil)] mt-1">{labels.colorHint}</p>
             <FormMessage />
           </FormItem>
         )}
@@ -189,7 +189,7 @@ export function I18nSection({ form }: I18nSectionProps) {
     <Card>
       <CardHeader>
         <CardTitle>Названия и Lore (Русский + English)</CardTitle>
-        <p className="text-sm text-slate-500 mt-1">
+        <p className="text-sm text-[var(--color-slate-veil)] mt-1">
           Поля со звёздочкой обязательны, только если вы вообще начали заполнять этот язык
           (ввели название). Можно оставить целиком одну вкладку пустой как черновик — но нельзя
           заполнить её наполовину. Хотя бы один язык (RU или EN) должен быть заполнен полностью.

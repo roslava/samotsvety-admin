@@ -59,14 +59,14 @@ export function GallerySection({ form, slug = '' }: GallerySectionProps) {
       </CardHeader>
       <CardContent className="space-y-6">
         {fields.length === 0 && (
-          <div className="text-slate-500 text-center py-12 border border-dashed rounded-lg">
+          <div className="text-[var(--color-slate-veil)] text-center py-12 border border-dashed rounded-lg">
             Добавьте изображения
           </div>
         )}
 
         {fields.map((field, index) => {
           return (
-            <div key={field.id} className="border border-slate-700 rounded-lg p-5 space-y-4">
+            <div key={field.id} className="border border-[var(--color-sage-mist)] rounded-lg p-5 space-y-4">
               <div className="flex justify-between">
                 <h4 className="font-medium">Изображение #{index + 1}</h4>
                 <Button type="button" variant="ghost" size="sm" onClick={() => remove(index)}>

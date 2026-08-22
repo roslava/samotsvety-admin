@@ -52,19 +52,19 @@ export function LocalitiesSection({ form }: LocalitiesSectionProps) {
             Добавить месторождение
           </Button>
         </div>
-        <p className="text-sm text-slate-500 mt-2">
+        <p className="text-sm text-[var(--color-slate-veil)] mt-2">
           Страну нужно указать хотя бы на одном языке (RU или EN) для каждого месторождения.
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
         {fields.length === 0 && (
-          <p className="text-slate-500 text-center py-8">
+          <p className="text-[var(--color-slate-veil)] text-center py-8">
             Добавьте хотя бы одно месторождение
           </p>
         )}
 
         {fields.map((field, index) => (
-          <div key={field.id} className="border border-slate-700 rounded-lg p-6 space-y-4 relative">
+          <div key={field.id} className="border border-[var(--color-sage-mist)] rounded-lg p-6 space-y-4 relative">
             <Button
               type="button"
               variant="ghost"
@@ -76,7 +76,7 @@ export function LocalitiesSection({ form }: LocalitiesSectionProps) {
             </Button>
 
             <div>
-              <h4 className="text-sm text-slate-400 uppercase tracking-wide mb-3">🇷🇺 Русский</h4>
+              <h4 className="text-sm text-[var(--color-slate-veil)] uppercase tracking-wide mb-3">🇷🇺 Русский</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
@@ -136,8 +136,8 @@ export function LocalitiesSection({ form }: LocalitiesSectionProps) {
               />
             </div>
 
-            <div className="border-t border-slate-700 pt-4">
-              <h4 className="text-sm text-slate-400 uppercase tracking-wide mb-3">🇬🇧 English</h4>
+            <div className="border-t border-[var(--color-sage-mist)] pt-4">
+              <h4 className="text-sm text-[var(--color-slate-veil)] uppercase tracking-wide mb-3">🇬🇧 English</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}

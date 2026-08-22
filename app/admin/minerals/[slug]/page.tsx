@@ -542,14 +542,14 @@ export default function MineralViewPage() {
         </Button>
 
         <div className="flex items-center gap-3">
-          <div className="flex rounded-lg border border-slate-700 overflow-hidden">
+          <div className="flex rounded-full border border-[var(--color-sage-mist)] overflow-hidden">
             <button
               type="button"
               onClick={() => setLang('ru')}
               className={`px-4 py-2 text-sm font-medium transition-colors ${
                 lang === 'ru'
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-slate-900 text-slate-400 hover:text-white'
+                  ? 'bg-[var(--color-inkwell-teal)] text-[var(--color-paper-white)]'
+                  : 'bg-[var(--color-bone)] text-[var(--color-slate-veil)] hover:text-[var(--color-inkwell-teal)]'
               }`}
             >
               🇷🇺 RU
@@ -559,8 +559,8 @@ export default function MineralViewPage() {
               onClick={() => setLang('en')}
               className={`px-4 py-2 text-sm font-medium transition-colors ${
                 lang === 'en'
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-slate-900 text-slate-400 hover:text-white'
+                  ? 'bg-[var(--color-inkwell-teal)] text-[var(--color-paper-white)]'
+                  : 'bg-[var(--color-bone)] text-[var(--color-slate-veil)] hover:text-[var(--color-inkwell-teal)]'
               }`}
             >
               🇬🇧 EN
@@ -577,24 +577,24 @@ export default function MineralViewPage() {
       </div>
 
       <div className="flex items-center gap-4 mb-2">
-        <Gem className="h-8 w-8 text-emerald-500" />
+        <Gem className="h-8 w-8 text-[var(--color-vellum-lavender)]" />
         <div>
-          <h1 className="text-5xl font-bold">{t?.name || mineral.slug}</h1>
-          <p className="text-xl text-slate-400">/{mineral.slug}</p>
+          <h1 className="text-5xl font-bold text-[var(--color-inkwell-teal)]">{t?.name || mineral.slug}</h1>
+          <p className="text-xl text-[var(--color-slate-veil)]">/{mineral.slug}</p>
         </div>
         {mineral.type && (
-          <Badge variant="outline" className="ml-auto text-lg px-4 py-1">
+          <Badge variant="outline" className="ml-auto rounded-full border-[var(--color-sage-mist)] text-[var(--color-inkwell-teal)] text-lg px-4 py-1">
             {typeLabel}
           </Badge>
         )}
       </div>
 
       {mineral.main_image_url && (
-        <div className="mb-12 rounded-3xl overflow-hidden border border-slate-700">
+        <div className="mb-12 rounded-3xl overflow-hidden border border-[var(--color-sage-mist)]">
           <img
             src={mineral.main_image_url}
             alt={t?.name || mineral.slug}
-            className="w-full max-h-[520px] object-contain bg-slate-950"
+            className="w-full max-h-[520px] object-contain bg-[var(--color-driftwood)]"
           />
         </div>
       )}
@@ -736,12 +736,12 @@ export default function MineralViewPage() {
 
                 <div>
                   <strong>{ui.colorDescription}:</strong>
-                  <p className="mt-1 text-slate-300">{t?.color_description || '—'}</p>
+                  <p className="mt-1 text-[var(--color-slate-veil)]">{t?.color_description || '—'}</p>
                 </div>
 
                 <div>
                   <strong>{ui.composition}:</strong>
-                  <p className="mt-1 text-slate-300">{scientific.composition || '—'}</p>
+                  <p className="mt-1 text-[var(--color-slate-veil)]">{scientific.composition || '—'}</p>
                 </div>
 
                 <div>
@@ -752,27 +752,27 @@ export default function MineralViewPage() {
                         <Badge
                           key={phen}
                           variant="outline"
-                          className="text-amber-400 border-amber-400/30 px-3 py-1"
+                          className="rounded-full text-amber-700 border-amber-300 bg-amber-50 px-3 py-1"
                         >
                           {PHENOMENON_LABELS[lang][phen]}
                         </Badge>
                       ))}
                     </div>
                   ) : (
-                    <p className="mt-1 text-slate-300">—</p>
+                    <p className="mt-1 text-[var(--color-slate-veil)]">—</p>
                   )}
                 </div>
 
                 <div>
                   <strong>{ui.identificationTips}:</strong>
-                  <p className="mt-2 text-slate-300 leading-relaxed">
+                  <p className="mt-2 text-[var(--color-slate-veil)] leading-relaxed">
                     {t?.identification_tips || '—'}
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-rose-900/50 bg-rose-950/30 p-4 rounded-xl">
-                  <strong className="text-rose-400">{ui.safety}:</strong>
-                  <p className="mt-2 text-rose-300/90 text-sm leading-relaxed">
+                <div className="pt-4 border-t border-red-200 bg-red-50 p-4 rounded-xl">
+                  <strong className="text-red-700">{ui.safety}:</strong>
+                  <p className="mt-2 text-red-700/80 text-sm leading-relaxed">
                     {t?.safety_notes || '—'}
                   </p>
                 </div>
@@ -806,28 +806,28 @@ export default function MineralViewPage() {
                     return (
                       <div
                         key={i}
-                        className="p-5 bg-slate-950 rounded-2xl border border-slate-800"
+                        className="p-5 bg-[var(--color-bone)] rounded-2xl border border-[var(--color-sage-mist)]"
                       >
                         <div className="flex justify-between items-start">
                           <div>
-                            <div className="font-semibold text-lg">{localityName || '—'}</div>
-                            <div className="text-slate-400">
+                            <div className="font-semibold text-lg text-[var(--color-inkwell-teal)]">{localityName || '—'}</div>
+                            <div className="text-[var(--color-slate-veil)]">
                               {[region, country].filter(Boolean).join(', ')}
                             </div>
                           </div>
                           <div className="flex gap-2">
-                            {loc.is_russian && <Badge variant="default">{ui.russia}</Badge>}
-                            {loc.famous && <Badge variant="outline">{ui.famous}</Badge>}
+                            {loc.is_russian && <Badge variant="default" className="rounded-full">{ui.russia}</Badge>}
+                            {loc.famous && <Badge variant="outline" className="rounded-full">{ui.famous}</Badge>}
                           </div>
                         </div>
                         {description && (
-                          <p className="mt-4 text-slate-300 leading-relaxed">{description}</p>
+                          <p className="mt-4 text-[var(--color-slate-veil)] leading-relaxed">{description}</p>
                         )}
                       </div>
                     );
                   })
                 ) : (
-                  <p className="text-slate-500 py-8 text-center">{ui.localitiesEmpty}</p>
+                  <p className="text-[var(--color-slate-veil)] py-8 text-center">{ui.localitiesEmpty}</p>
                 )}
               </CardContent>
             </Card>
@@ -854,8 +854,8 @@ export default function MineralViewPage() {
         <TabsContent value="lore">
           <Card>
             <CardContent className="pt-8">
-              <h3 className="text-2xl font-semibold mb-6">{ui.loreTitle}</h3>
-              <div className="prose prose-invert max-w-none text-lg leading-relaxed">
+              <h3 className="text-2xl font-semibold mb-6 text-[var(--color-inkwell-teal)]">{ui.loreTitle}</h3>
+              <div className="prose max-w-none text-lg leading-relaxed text-[var(--color-inkwell-teal)]">
                 <p className="whitespace-pre-wrap">{t?.lore || '—'}</p>
               </div>
             </CardContent>
@@ -905,7 +905,7 @@ export default function MineralViewPage() {
                     {esoteric.healing_interpretation && (
                       <div>
                         <h4 className="font-medium mb-3">{ui.healing}</h4>
-                        <p className="text-slate-300 leading-relaxed">
+                        <p className="text-[var(--color-slate-veil)] leading-relaxed">
                           {esoteric.healing_interpretation}
                         </p>
                       </div>
@@ -913,13 +913,13 @@ export default function MineralViewPage() {
                     {esoteric.energy_notes && (
                       <div>
                         <h4 className="font-medium mb-3">{ui.energy}</h4>
-                        <p className="text-slate-300 leading-relaxed">{esoteric.energy_notes}</p>
+                        <p className="text-[var(--color-slate-veil)] leading-relaxed">{esoteric.energy_notes}</p>
                       </div>
                     )}
                     {esoteric.ritual_uses && (
                       <div>
                         <h4 className="font-medium mb-3">{ui.ritual}</h4>
-                        <p className="text-slate-300 leading-relaxed">{esoteric.ritual_uses}</p>
+                        <p className="text-[var(--color-slate-veil)] leading-relaxed">{esoteric.ritual_uses}</p>
                       </div>
                     )}
                   </div>
@@ -928,7 +928,7 @@ export default function MineralViewPage() {
             </Card>
           ) : (
             <Card>
-              <CardContent className="pt-20 pb-20 text-center text-slate-500">
+              <CardContent className="pt-20 pb-20 text-center text-[var(--color-slate-veil)]">
                 {ui.esotericEmpty}
               </CardContent>
             </Card>
@@ -961,7 +961,7 @@ export default function MineralViewPage() {
                           </Badge>
                         )}
                         {description && (
-                          <p className="text-sm text-slate-400">{description}</p>
+                          <p className="text-sm text-[var(--color-slate-veil)]">{description}</p>
                         )}
                       </CardContent>
                     )}
@@ -970,7 +970,7 @@ export default function MineralViewPage() {
               })}
             </div>
           ) : (
-            <p className="text-slate-500 text-center py-20">{ui.galleryEmpty}</p>
+            <p className="text-[var(--color-slate-veil)] text-center py-20">{ui.galleryEmpty}</p>
           )}
         </TabsContent>
       </Tabs>
