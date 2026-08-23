@@ -192,6 +192,17 @@ const PROMPT_TEMPLATE = `Ты — эксперт-минералог и гемм�
   - Каждый элемент gallery — объект { url, type, description_ru, description_en }, где
     type: "specimen" | "polished" | "jewelry" | "micro" (см. пример в шаблоне)
 
+**Формат вывода — строго синтаксически валидный JSON, без единого отклонения:**
+- НЕ оборачивай URL в markdown-ссылки вида "[https://...](https://...)" — только голая строка
+  "https://...". Это касается main_image_url, thumbnail_url и gallery[].url без исключений.
+- НЕ используй прямые двойные кавычки ASCII (") ВНУТРИ значений строк для выделения слов или
+  цитат — это ломает JSON-парсинг (строка обрывается на первой внутренней кавычке). Для
+  выделения используй «ёлочки» (в русском тексте) или одинарные кавычки/просто без кавычек
+  (в английском), например: Crocodile Jasper без кавычек или 'Crocodile Jasper', но не
+  "Crocodile Jasper" внутри JSON-строки.
+- НЕ оборачивай ответ в \`\`\`json блок и не добавляй пояснений до или после — первый символ
+  ответа должен быть "{", последний — "}".
+
 Верни **только валидный JSON** без дополнительного текста.`;
 
 export function ImportJsonSection({ form }: ImportJsonSectionProps) {
@@ -208,12 +219,56 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
     [stoneName]
   );
 
+  // Модели иногда всё равно оборачивают URL в markdown-ссылку
+  // "[https://x/a.webp](https://x/a.webp)" — это синтаксически валидный JSON
+  // (кавычки тут ни при чём), но падает на z.string().url(), т.к. строка
+  // начинается с "[". Раз оба URL внутри скобок идентичны, извлекаем их
+  // автоматически вместо того, чтобы заставлять человека чистить руками.
+  const unwrapMarkdownLinks = (value: unknown): unknown => {
+    if (typeof value === 'string') {
+      const match = value.match(/^\[(https?:\/\/[^\]]+)\]\(\1\)$/);
+      return match ? match[1] : value;
+    }
+    if (Array.isArray(value)) {
+      return value.map(unwrapMarkdownLinks);
+    }
+    if (value && typeof value === 'object') {
+      return Object.fromEntries(
+        Object.entries(value as Record<string, unknown>).map(([k, v]) => [k, unwrapMarkdownLinks(v)])
+      );
+    }
+    return value;
+  };
+
+  // JSON.parse даёт только "Unexpected token ... at position N" — бесполезно
+  // на JSON в 200+ строк без указания, где именно искать. Показываем строку,
+  // столбец и сам проблемный фрагмент, чтобы не листать текст вручную.
+  const describeJsonError = (raw: string, error: unknown): string => {
+    const message = error instanceof Error ? error.message : String(error);
+    const positionMatch = message.match(/position (\d+)/);
+    if (!positionMatch) {
+      return `Ошибка парсинга JSON: проверьте синтаксис (запятые, кавычки, скобки).\n${message}`;
+    }
+    const pos = Number(positionMatch[1]);
+    const before = raw.slice(0, pos);
+    const line = before.split('\n').length;
+    const col = pos - before.lastIndexOf('\n');
+    const snippetStart = Math.max(0, pos - 40);
+    const snippet = raw.slice(snippetStart, pos + 20).replace(/\n/g, ' ');
+    return (
+      `Ошибка парсинга JSON на строке ${line}, столбец ${col}.\n` +
+      `Частая причина — незаэкранированные кавычки " внутри текста или markdown-ссылка вместо URL.\n` +
+      `Фрагмент рядом с ошибкой: …${snippet}…`
+    );
+  };
+
   const handleImport = () => {
     let parsed: unknown;
+    const trimmedInput = jsonInput.trim();
     try {
-      parsed = JSON.parse(jsonInput.trim());
+      parsed = unwrapMarkdownLinks(JSON.parse(trimmedInput));
     } catch (error) {
-      toast.error('Ошибка парсинга JSON: проверьте синтаксис (запятые, кавычки, скобки)');
+      toast.error(describeJsonError(trimmedInput, error), { duration: 15000 });
       return;
     }
 
