@@ -297,7 +297,7 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
               placeholder='Вставьте сюда полный JSON минерала...'
               className="min-h-[420px] font-mono text-sm"
             />
-            <Button onClick={handleImport} className="w-full" size="lg">
+            <Button type="button" onClick={handleImport} className="w-full" size="lg">
               Импортировать в форму
             </Button>
           </TabsContent>
@@ -306,7 +306,7 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
             <div>
               <div className="flex justify-between items-center mb-2">
                 <h4 className="font-medium">Шаблон JSON (актуальный)</h4>
-                <Button variant="outline" size="sm" onClick={copyTemplate}>
+                <Button type="button" variant="outline" size="sm" onClick={copyTemplate}>
                   <Copy className="h-4 w-4 mr-2" /> Скопировать
                 </Button>
               </div>
@@ -332,7 +332,7 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
               <pre className="bg-[var(--color-inkwell-teal)] text-[var(--color-bone)] p-4 rounded-2xl text-xs overflow-auto whitespace-pre-wrap">
                 {renderedPrompt}
               </pre>
-              <Button variant="outline" size="sm" onClick={copyPrompt} className="mt-3">
+              <Button type="button" variant="outline" size="sm" onClick={copyPrompt} className="mt-3">
                 <Copy className="h-4 w-4 mr-2" /> Скопировать промпт
               </Button>
             </div>
