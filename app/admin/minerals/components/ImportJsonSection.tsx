@@ -265,17 +265,53 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
     setJsonInput('');
   };
 
+  // navigator.clipboard требует "secure context" (https или localhost) — при
+  // открытии админки по WSL2-сетевому IP (http://172.x.x.x:3000, см. заметки
+  // проекта про WSL2-networking) этого API просто нет (undefined), поэтому
+  // .writeText() падал с TypeError. Фолбэк через скрытый textarea +
+  // document.execCommand('copy') работает и в небезопасном контексте.
+  const copyToClipboard = (text: string, successMessage: string) => {
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard
+        .writeText(text)
+        .then(() => toast.success(successMessage))
+        .catch(() => copyViaFallback(text, successMessage));
+      return;
+    }
+    copyViaFallback(text, successMessage);
+  };
+
+  const copyViaFallback = (text: string, successMessage: string) => {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try {
+      const copied = document.execCommand('copy');
+      if (copied) {
+        toast.success(successMessage);
+      } else {
+        toast.error('Не удалось скопировать автоматически — выделите текст вручную (Ctrl+C)');
+      }
+    } catch {
+      toast.error('Не удалось скопировать автоматически — выделите текст вручную (Ctrl+C)');
+    } finally {
+      document.body.removeChild(textarea);
+    }
+  };
+
   const copyTemplate = () => {
-    navigator.clipboard.writeText(JSON_TEMPLATE);
-    toast.success('Шаблон JSON скопирован');
+    copyToClipboard(JSON_TEMPLATE, 'Шаблон JSON скопирован');
   };
 
   const copyPrompt = () => {
     if (!stoneName.trim()) {
       toast.warning('Название камня не указано — в промпте останется плейсхолдер [НАЗВАНИЕ_КАМНЯ]');
     }
-    navigator.clipboard.writeText(renderedPrompt);
-    toast.success('Промпт скопирован');
+    copyToClipboard(renderedPrompt, 'Промпт скопирован');
   };
 
   return (
