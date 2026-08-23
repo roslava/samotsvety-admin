@@ -314,12 +314,7 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
             </div>
 
             <div>
-              <div className="flex justify-between items-center mb-2">
-                <h4 className="font-medium">Промпт для нейросети</h4>
-                <Button variant="outline" size="sm" onClick={copyPrompt}>
-                  <Copy className="h-4 w-4 mr-2" /> Скопировать промпт
-                </Button>
-              </div>
+              <h4 className="font-medium mb-2">Промпт для нейросети</h4>
               <div className="mb-3 space-y-1.5">
                 <label className="text-sm font-medium" htmlFor="stone-name-input">
                   Название камня
@@ -337,6 +332,9 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
               <pre className="bg-[var(--color-inkwell-teal)] text-[var(--color-bone)] p-4 rounded-2xl text-xs overflow-auto whitespace-pre-wrap">
                 {renderedPrompt}
               </pre>
+              <Button variant="outline" size="sm" onClick={copyPrompt} className="mt-3">
+                <Copy className="h-4 w-4 mr-2" /> Скопировать промпт
+              </Button>
             </div>
           </TabsContent>
         </Tabs>
