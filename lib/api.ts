@@ -12,7 +12,42 @@ const getHeaders = (apiKey?: string) => {
   return headers;
 };
 
+export class ApiValidationError extends Error {
+  constructor(public readonly fields: Array<{ path: string; message: string; suggestion?: string }>, message: string) { super(message); }
+}
+async function v2Error(res: Response): Promise<never> {
+  const body = await res.json().catch(() => ({}));
+  const fields = Array.isArray(body.fields) ? body.fields : body.path ? [{ path: body.path, message: body.message || 'Ошибка валидации', suggestion: body.suggestion }] : [];
+  throw new ApiValidationError(fields, body.message || body.error || 'Ошибка сохранения');
+}
+
 export const api = {
+  async getGemEntity(slug: string) {
+    const res = await fetch(`${API_BASE}/api/v2/gem-entities/${encodeURIComponent(slug)}`);
+    if (!res.ok) await v2Error(res);
+    return res.json();
+  },
+  async getGemEntities() {
+    const res = await fetch(`${API_BASE}/api/v2/gem-entities`);
+    if (!res.ok) await v2Error(res);
+    const result = await res.json();
+    return Array.isArray(result) ? result : (result.data || []);
+  },
+  async createGemEntity(data: Record<string, unknown>, apiKey: string) {
+    const res = await fetch(`${API_BASE}/api/v2/gem-entities`, { method: 'POST', headers: getHeaders(apiKey), body: JSON.stringify(data) });
+    if (!res.ok) await v2Error(res);
+    return res.json();
+  },
+  async replaceGemEntity(slug: string, data: Record<string, unknown>, apiKey: string) {
+    const res = await fetch(`${API_BASE}/api/v2/gem-entities/${encodeURIComponent(slug)}`, { method: 'PUT', headers: getHeaders(apiKey), body: JSON.stringify(data) });
+    if (!res.ok) await v2Error(res);
+    return res.json();
+  },
+  async deleteGemEntity(slug: string, apiKey: string) {
+    const res = await fetch(`${API_BASE}/api/v2/gem-entities/${encodeURIComponent(slug)}`, { method: 'DELETE', headers: getHeaders(apiKey) });
+    if (!res.ok) await v2Error(res);
+    return true;
+  },
   // Public endpoints
   async getMinerals(params: { 
     lang?: 'ru' | 'en'; 
@@ -170,4 +205,3 @@ export const api = {
     return res.json();
   },
 };
-

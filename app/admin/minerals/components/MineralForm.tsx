@@ -1,22 +1,24 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useForm, FormProvider, useWatch, type FieldErrors } from 'react-hook-form';
+import { useForm, FormProvider, type FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { MineralSchema, type MineralFormData } from '@/lib/validations/mineral';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { api } from '@/lib/api';
+import { api, ApiValidationError } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 
+import { ImportJsonSection } from './ImportJsonSection';
+import { toV2WritePayload } from '@/lib/v2-helpers';
 import { BasicInfoSection } from './BasicInfoSection';
 import { ScientificSection } from './ScientificSection';
 import { I18nSection } from './I18nSection';
 import { LocalitiesSection } from './LocalitiesSection';
 import { GallerySection } from './GallerySection';
-import { EsotericSection } from './EsotericSection';
-import { ImportJsonSection } from './ImportJsonSection';
+import { SourcesSection } from './SourcesSection';
 
 interface MineralFormProps {
   defaultValues?: Partial<MineralFormData>;
@@ -86,43 +88,24 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
     slug: defaultValues?.slug ?? '',
     type: defaultValues?.type ?? 'mineral',
     scientific: {
-      chemical_formula: defaultValues?.scientific?.chemical_formula ?? '',
-      hardness: {
-        min: defaultValues?.scientific?.hardness?.min ?? 1,
-        max: defaultValues?.scientific?.hardness?.max ?? 1,
-      },
-      specific_gravity: {
-        min: defaultValues?.scientific?.specific_gravity?.min ?? 1,
-        max: defaultValues?.scientific?.specific_gravity?.max ?? 1,
-      },
-      rarity: defaultValues?.scientific?.rarity ?? 'common',
+      chemical_formula: defaultValues?.scientific?.chemical_formula ?? null,
+      hardness: defaultValues?.scientific?.hardness ?? null,
+      specific_gravity: defaultValues?.scientific?.specific_gravity ?? null,
+      rarity: defaultValues?.scientific?.rarity ?? null,
       ...defaultValues?.scientific,
     },
     i18n: {
-      ru: { ...emptyLangData, ...defaultValues?.i18n?.ru },
-      en: { ...emptyLangData, ...defaultValues?.i18n?.en },
+      ru: { ...emptyLangData, name: defaultValues?.i18n?.ru?.name ?? '', ...defaultValues?.i18n?.ru },
+      en: { ...emptyLangData, name: defaultValues?.i18n?.en?.name ?? '', ...defaultValues?.i18n?.en },
     },
-    localities: (defaultValues?.localities ?? []).map((locality) => ({
-      ...locality,
-      is_russian: locality?.is_russian ?? false,
-      famous: locality?.famous ?? false,
-    })),
-    main_image_url: defaultValues?.main_image_url ?? '',
-    thumbnail_url: defaultValues?.thumbnail_url ?? '',
-    gallery: defaultValues?.gallery ?? [],
-    related_minerals: defaultValues?.related_minerals ?? [],
-  };
+    localities: defaultValues?.localities ?? [], images: defaultValues?.images ?? { storage_key: '', hero: null, thumbnail: null, gallery: [] },
+    related_entities: defaultValues?.related_entities ?? [], sources: defaultValues?.sources ?? [],
+  } as MineralFormData;
 
   const form = useForm<MineralFormData>({
     resolver: zodResolver(MineralSchema),
     defaultValues: completeDefaults,
     mode: 'onBlur',
-  });
-
-  const currentSlug = useWatch({
-    control: form.control,
-    name: 'slug',
-    defaultValue: editSlug || '',
   });
 
   const onSubmit = async (data: MineralFormData) => {
@@ -134,15 +117,19 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
 
     try {
       if (isEdit && editSlug) {
-        await api.updateMineral(editSlug, data, apiKey);
+        await api.replaceGemEntity(editSlug, toV2WritePayload(data) as unknown as Record<string, unknown>, apiKey);
         toast.success('Минерал обновлён!');
       } else {
-        await api.createMineral(data, apiKey);
+        await api.createGemEntity(toV2WritePayload(data) as unknown as Record<string, unknown>, apiKey);
         toast.success('Минерал создан!');
       }
       router.push('/admin/minerals');
-    } catch (error: any) {
-      toast.error(error.message || 'Ошибка сохранения');
+    } catch (error: unknown) {
+      if (error instanceof ApiValidationError) {
+        error.fields.forEach(({ path, message }) => form.setError(path as any, { message }));
+        const detail = error.fields.slice(0, 3).map(e => `${e.path}: ${e.message}${e.suggestion ? ` (${e.suggestion})` : ''}`).join('; ');
+        toast.error(detail || error.message, { duration: 10000 });
+      } else toast.error(error instanceof Error ? error.message : 'Ошибка сохранения');
     }
   };
 
@@ -173,37 +160,18 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
               <TabsList className="grid w-full grid-cols-7">
                 <TabsTrigger value="basic">Основное</TabsTrigger>
                 <TabsTrigger value="scientific">Научные</TabsTrigger>
-                <TabsTrigger value="i18n">Названия + Lore</TabsTrigger>
+                <TabsTrigger value="i18n">RU / EN</TabsTrigger>
                 <TabsTrigger value="localities">Месторождения</TabsTrigger>
-                <TabsTrigger value="gallery">Галерея</TabsTrigger>
-                <TabsTrigger value="esoteric">Эзотерика</TabsTrigger>
-                <TabsTrigger value="import">Импорт JSON</TabsTrigger>
+                <TabsTrigger value="images">Изображения</TabsTrigger>
+                <TabsTrigger value="sources">Источники</TabsTrigger>
+                <TabsTrigger value="import">JSON</TabsTrigger>
               </TabsList>
-
-              <TabsContent value="basic" className="mt-6">
-                <BasicInfoSection form={form} slug={currentSlug} />
-              </TabsContent>
-
-              <TabsContent value="scientific" className="mt-6">
-                <ScientificSection form={form} />
-              </TabsContent>
-
-              <TabsContent value="i18n" className="mt-6">
-                <I18nSection form={form} />
-              </TabsContent>
-
-              <TabsContent value="localities" className="mt-6">
-                <LocalitiesSection form={form} />
-              </TabsContent>
-
-              <TabsContent value="gallery" className="mt-6">
-                <GallerySection form={form} slug={currentSlug} />
-              </TabsContent>
-
-              <TabsContent value="esoteric" className="mt-6">
-                <EsotericSection form={form} />
-              </TabsContent>
-
+              <TabsContent value="basic" className="mt-6"><BasicInfoSection form={form} /></TabsContent>
+              <TabsContent value="scientific" className="mt-6"><ScientificSection form={form} /></TabsContent>
+              <TabsContent value="i18n" className="mt-6"><I18nSection form={form} /></TabsContent>
+              <TabsContent value="localities" className="mt-6"><LocalitiesSection form={form} /></TabsContent>
+              <TabsContent value="images" className="mt-6"><GallerySection form={form} /></TabsContent>
+              <TabsContent value="sources" className="mt-6"><SourcesSection form={form} /></TabsContent>
               <TabsContent value="import" className="mt-6">
                 <ImportJsonSection form={form} />
               </TabsContent>

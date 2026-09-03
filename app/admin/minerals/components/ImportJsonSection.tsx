@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { UseFormReturn } from 'react-hook-form';
-import { MineralFormData, MineralSchema } from '@/lib/validations/mineral';
+import { MineralFormData, GemEntityV2ImportSchema } from '@/lib/validations/mineral';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,93 +19,17 @@ interface ImportJsonSectionProps {
 const STONE_NAME_PLACEHOLDER = '[НАЗВАНИЕ_КАМНЯ]';
 
 const JSON_TEMPLATE = `{
-  "slug": "malachite",
-  "type": "mineral",
-  "scientific": {
-    "chemical_formula": "Cu₂CO₃(OH)₂",
-    "hardness": { "min": 3.5, "max": 4.0 },
-    "hardness_note": "варьируется в зависимости от примесей",
-    "specific_gravity": { "min": 3.6, "max": 4.05 },
-    "rarity": "common",
-    "mineral_class": "carbonates_nitrates",
-    "silicate_subclass": null,
-    "mineral_family": null,
-    "composition": "",
-    "crystal_system": "monoclinic",
-    "crystal_habit": ["botryoidal", "fibrous", "radiating"],
-    "streak": "green",
-    "transparency": "opaque",
-    "luster": ["vitreous", "silky", "dull"],
-    "fracture": "uneven",
-    "cleavage_degree": "perfect",
-    "cleavage_direction": "1",
-    "cleavage_type": "pinacoidal",
-    "tenacity": ["brittle"],
-    "phenomena": [],
-    "ima_status": "approved",
-    "rock_type": null
-  },
+  "slug": "kambaba-jasper", "type": "rock",
+  "scientific": { "hardness": { "min": 6, "max": 7 }, "phenomena": [] },
   "i18n": {
-    "ru": {
-      "name": "Малахит",
-      "synonyms": ["медная зелень", "малахитовая руда"],
-      "color": ["ярко-зелёный", "тёмно-зелёный", "изумрудно-зелёный"],
-      "color_description": "Характерный насыщенный зелёный цвет с полосчатым и концентрическим рисунком",
-      "lore": "История добычи на Урале, использование в камнерезном искусстве, легенды и культурное значение...",
-      "identification_tips": "Отличительные признаки от похожих минералов...",
-      "safety_notes": "Содержит медь. Не рекомендуется длительный контакт с кожей...",
-      "esoteric": {
-        "metaphysical_properties": ["защита", "эмоциональное исцеление", "гармония"],
-        "chakras": ["сердечная чакра (Анахата)"],
-        "zodiac": ["Телец", "Весы", "Козерог"],
-        "healing_interpretation": "В эзотерической традиции малахит считается мощным камнем эмоционального очищения...",
-        "energy_notes": "Многие практики отмечают, что камень помогает трансформировать тяжёлые эмоции...",
-        "ritual_uses": "Используется в медитациях на сердечную чакру..."
-      }
-    },
-    "en": {
-      "name": "Malachite",
-      "synonyms": ["copper green"],
-      "color": ["bright green", "dark green", "emerald green"],
-      "color_description": "Characteristic rich green color with banded patterns",
-      "lore": "History of mining in the Urals...",
-      "identification_tips": "Distinguishing features from similar minerals...",
-      "safety_notes": "Contains copper. Prolonged skin contact is not recommended...",
-      "esoteric": {
-        "metaphysical_properties": ["protection", "emotional healing", "harmony"],
-        "chakras": ["heart chakra (Anahata)"],
-        "zodiac": ["Taurus", "Libra", "Capricorn"],
-        "healing_interpretation": "In esoteric tradition, malachite is considered a powerful stone of emotional cleansing...",
-        "energy_notes": "Many practitioners note that the stone helps transform heavy emotions...",
-        "ritual_uses": "Used in heart chakra meditations..."
-      }
-    }
+    "ru": { "name": "Камбаба-яшма", "scientific_notes": { "hardness": "RU note", "composition": "RU composition" } },
+    "en": { "name": "Kambaba Jasper", "scientific_notes": { "hardness": "EN note", "composition": "EN composition" } }
   },
-  "localities": [
-    {
-      "country_ru": "Россия",
-      "country_en": "Russia",
-      "region_ru": "Свердловская область",
-      "region_en": "Sverdlovsk Oblast",
-      "locality_ru": "Меднорудянское месторождение (Нижний Тагил)",
-      "locality_en": "Mednorudyanskoye deposit (Nizhny Tagil)",
-      "is_russian": true,
-      "famous": true,
-      "description_ru": "Классическое уральское месторождение...",
-      "description_en": "Classic Ural malachite deposit..."
-    }
-  ],
-  "main_image_url": "https://storage.yandexcloud.net/samotsvety-cdn/malachite/hero.webp",
-  "thumbnail_url": "https://storage.yandexcloud.net/samotsvety-cdn/malachite/thumbnail.webp",
-  "gallery": [
-    {
-      "url": "https://storage.yandexcloud.net/samotsvety-cdn/malachite/gallery/specimen-01.webp",
-      "type": "specimen",
-      "description_ru": "Необработанный образец с характерным концентрическим рисунком",
-      "description_en": "Raw specimen with characteristic concentric banding"
-    }
-  ],
-  "related_minerals": ["azurite", "chrysocolla"]
+  "localities": [],
+  "images": { "storage_key": "kambaba_jasper", "hero": { "path": "hero.webp" }, "thumbnail": { "path": "thumbnail.webp" }, "gallery": [
+    { "path": "gallery/kambaba_jasper00.webp" }, { "path": "gallery/kambaba_jasper01.webp" }, { "path": "gallery/kambaba_jasper02.webp" }
+  ] },
+  "related_entities": [], "sources": []
 }`;
 
 const PROMPT_TEMPLATE = `Ты — эксперт-минералог и геммолог высшего уровня.
@@ -311,7 +236,7 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
     // структура не совпадала со схемой (опечатка в enum-коде, не тот тип
     // поля и т.д.); ошибки вылезали только при сабмите, без явной связи
     // с тем, что источник — вставленный JSON. Теперь проверяем сразу.
-    const result = MineralSchema.safeParse(parsed);
+    const result = GemEntityV2ImportSchema.safeParse(parsed);
 
     if (result.success) {
       form.reset(result.data);
@@ -325,13 +250,19 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
     // от бизнес-правил (superRefine ниже в схеме: "язык не дописан до
     // конца", "у месторождения нет страны") — это нормальное состояние
     // черновика, который человек доработает в самой форме после импорта.
+    const aliasSuggestion: Record<string, string> = {
+      chemical_class: 'Используйте scientific.mineral_class.', collector_group: 'Используйте scientific.mineral_family.',
+      hardness_note: 'Поле больше не language-neutral. Используйте i18n.ru.scientific_notes.hardness или i18n.en.scientific_notes.hardness.',
+      composition: 'Используйте i18n.ru.scientific_notes.composition или i18n.en.scientific_notes.composition.',
+      related_minerals: 'Используйте related_entities.', main_image_url: 'Используйте images.storage_key и images.hero.path.', thumbnail_url: 'Используйте images.storage_key и images.thumbnail.path.',
+    };
     const structuralIssues = result.error.issues.filter((issue) => issue.code !== 'custom');
     const businessIssues = result.error.issues.filter((issue) => issue.code === 'custom');
 
     if (structuralIssues.length > 0) {
       const preview = structuralIssues
         .slice(0, 5)
-        .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+        .map((issue) => { const path = issue.path.join('.'); const key = String(issue.path.at(-1) ?? ''); return `${path}: ${issue.message}${aliasSuggestion[key] ? ` ${aliasSuggestion[key]}` : ''}`; })
         .join('\n');
       toast.error(
         `JSON не соответствует схеме формы (${structuralIssues.length} ` +
