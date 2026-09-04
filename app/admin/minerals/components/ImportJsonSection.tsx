@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { useMemo, useState } from 'react';
 import { Copy } from 'lucide-react';
+import { MINERAL_IMPORT_EXAMPLE } from '@/lib/mineral-import-example';
 
 interface ImportJsonSectionProps {
   form: UseFormReturn<MineralFormData>;
@@ -18,151 +19,27 @@ interface ImportJsonSectionProps {
 
 const STONE_NAME_PLACEHOLDER = '[НАЗВАНИЕ_КАМНЯ]';
 
-const JSON_TEMPLATE = `{
-  "slug": "kambaba-jasper", "type": "rock",
-  "scientific": { "hardness": { "min": 6, "max": 7 }, "phenomena": [] },
-  "i18n": {
-    "ru": { "name": "Камбаба-яшма", "scientific_notes": { "hardness": "RU note", "composition": "RU composition" } },
-    "en": { "name": "Kambaba Jasper", "scientific_notes": { "hardness": "EN note", "composition": "EN composition" } }
-  },
-  "localities": [],
-  "images": { "storage_key": "kambaba_jasper", "hero": { "path": "hero.webp" }, "thumbnail": { "path": "thumbnail.webp" }, "gallery": [
-    { "path": "gallery/kambaba_jasper00.webp" }, { "path": "gallery/kambaba_jasper01.webp" }, { "path": "gallery/kambaba_jasper02.webp" }
-  ] },
-  "related_entities": [], "sources": []
-}`;
+const JSON_TEMPLATE = JSON.stringify(MINERAL_IMPORT_EXAMPLE, null, 2);
 
-const PROMPT_TEMPLATE = `Ты — эксперт-минералог и геммолог высшего уровня.
+const PROMPT_TEMPLATE = `Ты — эксперт-минералог и геммолог. Создай запись для «${STONE_NAME_PLACEHOLDER}».
 
-Собери **полную, точную и детализированную информацию** по камню «${STONE_NAME_PLACEHOLDER}» согласно структуре проекта Samotsvety.
+Верни ТОЛЬКО синтаксически валидный JSON: первый символ {, последний }. Никакого Markdown, markdown-ссылок, code fence или пояснений. Структура должна строго соответствовать MineralSchema: не добавляй никаких других ключей. Неизвестное необязательное значение опускай или указывай null.
 
-**Обязательные правила:**
-- "slug": транслитерация названия латиницей в нижнем регистре, только [a-z0-9-], слова через дефис,
-  без пробелов и без языковых окончаний (напр. «Малахит» → "malachite», «Александрит» → "alexandrite").
-  Это обязательное поле, без него JSON не пройдёт валидацию формы.
-- Укажи "type": "mineral", "rock", "gem_variety" или "organic" (для янтаря и подобного).
-- Необязательные поля, для которых нет данных, можно указывать как null или просто не включать
-  в JSON — оба варианта корректны.
+Верхний уровень: slug (lowercase [a-z0-9-]), type (mineral | rock | gem_variety | organic), scientific, i18n {ru, en}; опционально localities, images, related_entities, sources.
 
-- ВСЁ нижеперечисленное — ВНУТРИ объекта "scientific" (не на верхнем уровне JSON, не в i18n!).
-  Это единые для минерала данные: одно значение независимо от языка интерфейса.
+scientific содержит только: chemical_formula, hardness {min,max} (числа 1–10), specific_gravity {min,max} (положительные числа), rarity (common|uncommon|rare|very_rare), base_color (red|black|bi_color|blue|brown|green|yellow|grey|purple|white|pink|multicolor|orange), mineral_class (native_elements|sulfides_sulfosalts|halides|oxides_hydroxides|carbonates_nitrates|borates|sulfates_chromates_molybdates_tungstates|phosphates_arsenates_vanadates|silicates|organic), silicate_subclass (nesosilicates|sorosilicates|cyclosilicates|inosilicates|phyllosilicates|tectosilicates), mineral_family (garnet_group|feldspar_group|quartz_group|tourmaline_group|mica_group|pyroxene_group|amphibole_group|zeolite_group|beryl_group|spinel_group|corundum_group|calcite_group), crystal_system (monoclinic|orthorhombic|hexagonal|trigonal|isometric|triclinic|tetragonal|amorphous), crystal_habit, streak (black|white_or_colourless|grey|green|blue|brown|pink_to_red|yellow_to_orange), transparency (transparent|translucent|opaque), luster, tenacity, fracture (conchoidal|uneven|splintery|hackly|earthy|fibrous), cleavage_degree (none|very_poor|poor|good|perfect), cleavage_direction ("1"|"2"|"3"|"4"), cleavage_type (basal|prismatic|pinacoidal|rhombohedral|cubic|octahedral|dodecahedral), phenomena, ima_status (approved|grandfathered|questionable|discredited), rock_type (igneous|sedimentary|metamorphic). Массивы crystal_habit, luster, tenacity и phenomena содержат только коды из schema. base_color описывай, когда он известен. Для type=rock не требуй и не выдумывай свойства отдельного минерала: chemical_formula, crystal_system, mineral_class, IMA и подобные поля добавляй лишь когда они применимы; rock_type применяй только для rock.
 
-  Обязательные поля scientific (без них JSON не пройдёт валидацию):
-  - hardness: { "min": число, "max": число } — твёрдость по шкале Мооса. Укажи реалистичный
-    диапазон именно для этого вида по справочным минералогическим данным (напр. кварц: min 7,
-    max 7; если у вида фиксированное значение — min и max совпадают, не выдумывай разброс).
-  - specific_gravity: { "min": число, "max": число } — плотность, г/см³, аналогично hardness.
-  - rarity — редкость на коллекционном/ювелирном рынке, ОДНО из: "common" | "uncommon" |
-    "rare" | "very_rare". Ориентир: common — широко распространённые породообразующие виды
-    (кварц, кальцит, полевые шпаты); uncommon — известные, но не повсеместные (малахит,
-    флюorit); rare — специфичные месторождения, коллекционная ценность (александрит, бенитоит);
-    very_rare — считаные месторождения в мире или экстремальная редкость находок.
+В scientific НИКОГДА не включай hardness_note или composition. Локализованные заметки указывай отдельно как i18n.ru.scientific_notes {hardness, composition} и i18n.en.scientific_notes {hardness, composition}.
 
-  Необязательные одиночные поля (один код или не указывать вовсе):
-  - crystal_system: monoclinic | orthorhombic | hexagonal | isometric | triclinic | tetragonal | amorphous
-  - streak: black | white_or_colourless | grey | green | blue | brown | pink_to_red | yellow_to_orange
-  - fracture: conchoidal | uneven | splintery | hackly | earthy | fibrous
-  - cleavage_degree: none | very_poor | poor | good | perfect
-  - cleavage_direction: "1" | "2" | "3" | "4" (строкой; указывай, только если cleavage_degree
-    != none; это число направлений, а не граней формы — напр. кубическая спайность галита это
-    3 направления, а не 6 граней куба; октаэдрическая у флюорита — 4, а не 8 граней октаэдра)
-  - cleavage_type (необязательно): basal | prismatic | pinacoidal | rhombohedral | cubic | octahedral | dodecahedral
-  - transparency: transparent | translucent | opaque
-  - ima_status — ТОЛЬКО формальный статус вида по IMA, не путать с торговым названием:
-    approved | grandfathered | questionable | discredited
-  - rock_type (только для type: "rock"): igneous | sedimentary | metamorphic
-  - mineral_class — химический класс по Дана/Штрунцу: native_elements | sulfides_sulfosalts |
-    halides | oxides_hydroxides | carbonates_nitrates | borates |
-    sulfates_chromates_molybdates_tungstates | phosphates_arsenates_vanadates | silicates | organic
-  - silicate_subclass (только если mineral_class == "silicates"): nesosilicates | sorosilicates |
-    cyclosilicates | inosilicates | phyllosilicates | tectosilicates
-  - mineral_family — коллекционная группа (независимая от mineral_class ось, для фильтров
-    на сайте): garnet_group | feldspar_group | quartz_group | tourmaline_group | mica_group |
-    pyroxene_group | amphibole_group | zeolite_group | beryl_group | spinel_group |
-    corundum_group | calcite_group (если минерал не входит ни в одну — не указывай)
+i18n.ru и i18n.en обязательны и содержат name; возможны synonyms (массив), color (массив), color_description, lore, identification_tips, safety_notes, scientific_notes и esoteric. В esoteric допустимы только metaphysical_properties (массив), chakras (массив), zodiac (массив), healing_interpretation, energy_notes, ritual_uses.
 
-  Необязательные массивы (можно несколько значений одновременно — заполняй ТОЛЬКО тем, что
-  реально верно для этого минерала, не пытайся заполнить все варианты):
-  - luster: vitreous | adamantine | metallic | submetallic | pearly | silky | resinous | greasy | waxy | dull | earthy
-  - tenacity: brittle | malleable | ductile | sectile | flexible | elastic
-    (напр. золото: ["malleable", "ductile"]; слюда: ["flexible", "elastic"])
-  - phenomena: asterism | iridescence | aventurescence | adularescence | labradorescence |
-    chatoyancy | opalescence | color_change (iridescence уже включает то, что иногда называют
-    "переливчатостью" — не дублируй отдельным термином; labradorescence не дублируй как
-    отдельный "шиллер-эффект")
-  - crystal_habit: prismatic | acicular | tabular | platy | foliated | fibrous | granular |
-    massive | druzy | radiating | globular | reniform | botryoidal | columnar | cubic |
-    rhombohedral | dendritic | earthy
+Каждая locality содержит ТОЛЬКО country_code, country_ru, country_en, region_ru, region_en, locality_ru, locality_en, description_ru, description_en, famous. country_code обязателен: ISO 3166-1 alpha-2, две заглавные буквы, например RU, MG, US. Не используй is_russian.
 
-  Необязательный свободный текст (тоже внутри scientific, одно значение на минерал, не в i18n):
-  - chemical_formula — химическая формула (для минерала почти всегда стоит указать, для
-    породы обычно не применимо, тогда не указывай)
-  - hardness_note — короткая ремарка к твёрдости
-  - composition — для минерала обычно не нужен (дублировал бы chemical_formula); для
-    породы — содержательное петрографическое описание, напр. "Состоит преимущественно
-    из кварца и полевых шпатов, с примесью биотита"
+images: {storage_key, hero:{path}, thumbnail:{path}, gallery:[{path,type,caption:{ru,en}}]}. storage_key — идентификатор папки; все path относительны к нему, например hero.webp, thumbnail.webp, gallery/example00.webp. Не используй полные URL и не включай main_image_url, thumbnail_url или gallery[].url.
 
-- В i18n.ru и i18n.en остаётся только по-настоящему переводимый контент — заполняй его на
-  обоих языках отдельно, с реальным переводом, а не заглушками:
-  - name — название на языке
-  - synonyms — массив синонимов/альтернативных названий
-  - color — МАССИВ строк с названиями цветов/оттенков (не одна строка!), напр.
-    ["ярко-зелёный", "тёмно-зелёный"]. Обязателен (минимум 1 элемент), если язык заполняется.
-  - color_description — связное описание окраски и рисунка текстом (это отдельное поле,
-    не то же самое что color)
-  - lore — минимум 20 символов, если язык заполняется
-  - identification_tips, safety_notes — свободный текст
-  - esoteric — объект (см. ниже); можно опустить целиком, если эзотерическая часть неуместна
+related_entities — массив slug, не related_minerals. sources — массив объектов только с title, url, author, publisher; у каждого source должен быть хотя бы title или url. URL — обычная строка URL, никогда не Markdown-ссылка.
 
-  esoteric.<lang> — обязательные поля внутри (если объект esoteric присутствует):
-  - metaphysical_properties — массив строк, минимум 1 значение
-  - chakras — МАССИВ строк (обязательное поле; если чакры неприменимы или неизвестны — передай
-    пустой массив [], но не пропускай поле и не делай его строкой)
-  - zodiac — МАССИВ строк знаков зодиака (та же логика: [] можно, пропускать нельзя)
-  - healing_interpretation — минимум 10 символов, реально 2–3 содержательных предложения
-  - energy_notes — минимум 10 символов, реально 2–3 содержательных предложения
-  - ritual_uses — ОДНА строка свободного текста (НЕ массив), необязательно
-
-- Localities — массив, минимум 1 элемент. У каждого элемента:
-  - country_ru/country_en, region_ru/region_en, locality_ru/locality_en — заполняй оба языка,
-    где возможно; требуется страна хотя бы на одном языке
-  - is_russian — ОБЯЗАТЕЛЬНОЕ булево поле (true/false) для КАЖДОГО месторождения: true, если
-    оно в России, иначе false. Никогда не пропускай это поле.
-  - famous — необязательное булево, true если месторождение имеет коллекционную/историческую
-    известность
-  - description_ru/description_en — содержательное описание месторождения на обоих языках
-- Особенно подробно опиши российские (уральские и сибирские) месторождения, если они есть;
-  если для этого вида нет подтверждённых российских месторождений — честно укажи это в
-  description, а не выдумывай.
-- Lore — увлекательный историко-культурный текст, на обоих языках.
-- Эзотерика — мягкая формулировка («в традиции считается», «многие практики отмечают»).
-- related_minerals — МАССИВ SLUG'ОВ (не названий!) 2–4 реально похожих или часто путаемых
-  минералов в том же формате, что и slug выше (напр. ["azurite", "chrysocolla"]). Если не
-  уверен в slug соседнего минерала — лучше не включай его.
-- Изображения (main_image_url, thumbnail_url, gallery[].url) — это ПРИМЕР-ПЛЕЙСХОЛДЕР пути
-  в Yandex Cloud (samotsvety-cdn), а не реальные файлы. Оставь структуру путей как в шаблоне
-  (hero.webp, thumbnail.webp, gallery/specimen-01.webp и т.д.) — после генерации JSON нужно
-  либо загрузить файлы с такими именами в облако, либо вручную подставить настоящие URL
-  перед сохранением формы, иначе поле пройдёт валидацию (это просто строка-URL), но картинка
-  не отобразится. main_image_url обязателен, thumbnail_url необязателен.
-  - Каждый элемент gallery — объект { url, type, description_ru, description_en }, где
-    type: "specimen" | "polished" | "jewelry" | "micro" (см. пример в шаблоне)
-
-**Формат вывода — строго синтаксически валидный JSON, без единого отклонения:**
-- НЕ оборачивай URL в markdown-ссылки вида "[https://...](https://...)" — только голая строка
-  "https://...". Это касается main_image_url, thumbnail_url и gallery[].url без исключений.
-- НЕ используй прямые двойные кавычки ASCII (") ВНУТРИ значений строк для выделения слов или
-  цитат — это ломает JSON-парсинг (строка обрывается на первой внутренней кавычке). Для
-  выделения используй «ёлочки» (в русском тексте) или одинарные кавычки/просто без кавычек
-  (в английском), например: Crocodile Jasper без кавычек или 'Crocodile Jasper', но не
-  "Crocodile Jasper" внутри JSON-строки.
-- НЕ оборачивай ответ в \`\`\`json блок и не добавляй пояснений до или после — первый символ
-  ответа должен быть "{", последний — "}".
-- Перед выводом мысленно сверь структуру со schema: hardness/specific_gravity/rarity —
-  ВНУТРИ scientific; color — массив; chakras/zodiac — массивы, не пропущены; ritual_uses —
-  строка, не массив; is_russian — булево на каждом месторождении.
-
-Верни **только валидный JSON** без дополнительного текста.`;
+Верни только валидный JSON без дополнительного текста.`;
 
 export function ImportJsonSection({ form }: ImportJsonSectionProps) {
   const [jsonInput, setJsonInput] = useState('');

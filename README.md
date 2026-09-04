@@ -64,9 +64,9 @@ app/admin/
 
 Вкладки: Основное, Научные, Названия + Lore, Месторождения, Галерея, Эзотерика, Импорт JSON
 Импорт JSON — удобный способ быстрого заполнения (с шаблоном и промптом)
-Автогенерация URL изображений (hero.webp, thumbnail.webp, gallery/specimen-01.webp и т.д.)
+Пути изображений относительно storage_key (hero.webp, thumbnail.webp, gallery/specimen-01.webp и т.д.)
 Предпросмотр загруженных изображений
-Опциональные поля (locality, type в галерее, thumbnail_url)
+Опциональные поля (localities, type в галерее, thumbnail)
 Полная валидация через Zod
 
 ## Связь с backend
