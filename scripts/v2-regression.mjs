@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { parseV2Import, toV2WritePayload } from '../lib/v2-helpers.ts';
+import { normalizeV2ImportSourceUrls, parseV2Import, toV2WritePayload } from '../lib/v2-helpers.ts';
 import { GemEntityV2ImportSchema } from '../lib/validations/mineral.ts';
 import { MINERAL_IMPORT_EXAMPLE } from '../lib/mineral-import-example.ts';
 
@@ -12,6 +12,15 @@ assert.equal(parsed.images.storage_key, 'kambaba_jasper'); assert.equal(parsed.i
 assert.equal(parsed.localities[0].country_code, 'MG'); assert.equal(parsed.sources[0].title, 'Mindat: Kambaba Jasper'); assert.deepEqual(parsed.related_entities, []);
 assert.equal(parsed.scientific.hardness_note, undefined); assert.equal(parsed.scientific.composition, undefined);
 assert.equal(parseV2Import(JSON.stringify({...kambaba, scientific:{...kambaba.scientific, crystal_system:'trigonal',base_color:'green'}})).scientific.crystal_system, 'trigonal');
+const sourceUrl = kambaba.sources[0].url;
+const normalUrl = normalizeV2ImportSourceUrls({...kambaba, sources: [{...kambaba.sources[0], url: sourceUrl}]});
+assert.equal(normalUrl.sources[0].url, sourceUrl, 'normal source URL must remain unchanged');
+const markdownUrl = normalizeV2ImportSourceUrls({...kambaba, sources: [{...kambaba.sources[0], url: `[${sourceUrl}](${sourceUrl})`}]});
+assert.equal(markdownUrl.sources[0].url, sourceUrl, 'identical Markdown source URL must be normalized');
+const mismatchedMarkdownUrl = normalizeV2ImportSourceUrls({...kambaba, sources: [{...kambaba.sources[0], url: `[${sourceUrl}](https://example.com/other)`}]});
+assert.equal(GemEntityV2ImportSchema.safeParse(mismatchedMarkdownUrl).success, false, 'mismatched Markdown source URL must not be accepted');
+const invalidUrl = normalizeV2ImportSourceUrls({...kambaba, sources: [{...kambaba.sources[0], url: 'not-a-url'}]});
+assert.equal(GemEntityV2ImportSchema.safeParse(invalidUrl).success, false, 'invalid source URL must fail schema validation');
 const legacyExamples = [
   {...kambaba,scientific:{...kambaba.scientific,hardness_note:'legacy'}},
   {...kambaba,scientific:{...kambaba.scientific,composition:'legacy'}},

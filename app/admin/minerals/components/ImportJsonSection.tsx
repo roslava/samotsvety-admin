@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { UseFormReturn } from 'react-hook-form';
@@ -12,6 +11,7 @@ import { toast } from 'sonner';
 import { useMemo, useState } from 'react';
 import { Copy } from 'lucide-react';
 import { MINERAL_IMPORT_EXAMPLE } from '@/lib/mineral-import-example';
+import { normalizeV2ImportSourceUrls } from '@/lib/v2-helpers';
 
 interface ImportJsonSectionProps {
   form: UseFormReturn<MineralFormData>;
@@ -55,27 +55,6 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
     [stoneName]
   );
 
-  // Модели иногда всё равно оборачивают URL в markdown-ссылку
-  // "[https://x/a.webp](https://x/a.webp)" — это синтаксически валидный JSON
-  // (кавычки тут ни при чём), но падает на z.string().url(), т.к. строка
-  // начинается с "[". Раз оба URL внутри скобок идентичны, извлекаем их
-  // автоматически вместо того, чтобы заставлять человека чистить руками.
-  const unwrapMarkdownLinks = (value: unknown): unknown => {
-    if (typeof value === 'string') {
-      const match = value.match(/^\[(https?:\/\/[^\]]+)\]\(\1\)$/);
-      return match ? match[1] : value;
-    }
-    if (Array.isArray(value)) {
-      return value.map(unwrapMarkdownLinks);
-    }
-    if (value && typeof value === 'object') {
-      return Object.fromEntries(
-        Object.entries(value as Record<string, unknown>).map(([k, v]) => [k, unwrapMarkdownLinks(v)])
-      );
-    }
-    return value;
-  };
-
   // JSON.parse даёт только "Unexpected token ... at position N" — бесполезно
   // на JSON в 200+ строк без указания, где именно искать. Показываем строку,
   // столбец и сам проблемный фрагмент, чтобы не листать текст вручную.
@@ -102,7 +81,7 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
     let parsed: unknown;
     const trimmedInput = jsonInput.trim();
     try {
-      parsed = unwrapMarkdownLinks(JSON.parse(trimmedInput));
+      parsed = normalizeV2ImportSourceUrls(JSON.parse(trimmedInput));
     } catch (error) {
       toast.error(describeJsonError(trimmedInput, error), { duration: 15000 });
       return;
