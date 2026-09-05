@@ -5,17 +5,19 @@ export const MINERAL_IMPORT_EXAMPLE = {
     hardness: { min: 6, max: 7 },
     specific_gravity: { min: 2.6, max: 2.8 },
     base_color: 'green',
-    rock_type: 'sedimentary',
+    rock_type: 'igneous',
     phenomena: [],
   },
   i18n: {
-    ru: { name: 'Камбаба-яшма', scientific_notes: { hardness: '6–7 по шкале Мооса.', composition: 'Осадочная порода с кварцем, строматолитами и другими минералами.' } },
-    en: { name: 'Kambaba Jasper', scientific_notes: { hardness: '6–7 on the Mohs scale.', composition: 'A sedimentary rock with quartz, stromatolites, and other minerals.' } },
+    ru: { name: 'Камбаба-яшма', scientific_notes: { hardness: '6–7 по шкале Мооса.', composition: 'Вулканическая риолитовая порода.' } },
+    en: { name: 'Kambaba Jasper', scientific_notes: { hardness: '6–7 on the Mohs scale.', composition: 'A rhyolitic volcanic rock.' } },
   },
   localities: [{
     country_code: 'MG', country_ru: 'Мадагаскар', country_en: 'Madagascar',
     region_ru: null, region_en: null, locality_ru: null, locality_en: null,
-    description_ru: null, description_en: null, famous: true,
+    description_ru: null, description_en: null,
+    latitude: -16.4, longitude: 46.5, coordinate_precision: 'approximate',
+    famous: true,
   }],
   images: {
     storage_key: 'kambaba_jasper',

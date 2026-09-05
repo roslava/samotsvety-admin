@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useForm, FormProvider, type FieldErrors } from 'react-hook-form';
+import { useForm, FormProvider, useWatch, type FieldErrors } from 'react-hook-form';
+import { useEffect, useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { MineralSchema, type MineralFormData } from '@/lib/validations/mineral';
 import { Button } from '@/components/ui/button';
@@ -28,13 +29,21 @@ interface MineralFormProps {
 
 // Определяет, к какой вкладке формы относится путь невалидного поля,
 // чтобы можно было показать пользователю, где именно искать ошибку.
-function getTabLabel(path: string): string {
-  if (path.includes('.esoteric')) return 'Эзотерика';
-  if (path.startsWith('i18n')) return 'Названия + Lore';
-  if (path.startsWith('scientific')) return 'Научные';
-  if (path.startsWith('localities')) return 'Месторождения';
-  if (path.startsWith('gallery')) return 'Галерея';
-  return 'Основное';
+function getTab(path: string): { value: string; label: string } {
+  if (path.startsWith('i18n')) return { value: 'i18n', label: 'RU / EN' };
+  if (path.startsWith('scientific')) return { value: 'scientific', label: 'Научные' };
+  if (path.startsWith('localities')) return { value: 'localities', label: 'Месторождения' };
+  if (path.startsWith('images')) return { value: 'images', label: 'Изображения' };
+  if (path.startsWith('sources')) return { value: 'sources', label: 'Источники' };
+  return { value: 'basic', label: 'Основное' };
+}
+
+function readableError(path: string, message: string): string {
+  if (path === 'slug') return 'Проверьте адрес карточки: используйте строчные латинские буквы, цифры и дефисы.';
+  if (path === 'images.storage_key') return 'Укажите папку изображений: только латиница, цифры, точка, дефис или подчёркивание.';
+  if (/localities\.\d+\.country_code/.test(path)) return 'Укажите двухбуквенный код страны, например MG, RU или US.';
+  if (/sources\.\d+$/.test(path)) return 'Укажите название источника или ссылку.';
+  return message;
 }
 
 // Рекурсивно собирает плоский список сообщений об ошибках из вложенного
@@ -83,6 +92,9 @@ const emptyLangData = {
 
 export default function MineralForm({ defaultValues, isEdit = false, slug: editSlug }: MineralFormProps) {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState('basic');
+  const storageKeyEdited = useRef(isEdit || Boolean(defaultValues?.images?.storage_key));
+  const automaticallySuggestedStorageKey = useRef<string | null>(null);
 
   const completeDefaults: MineralFormData = {
     slug: defaultValues?.slug ?? '',
@@ -107,6 +119,23 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
     defaultValues: completeDefaults,
     mode: 'onBlur',
   });
+  const slug = useWatch({ control: form.control, name: 'slug' });
+  const storageKey = useWatch({ control: form.control, name: 'images.storage_key' });
+
+  // Предложение папки доступно сразу после ввода slug, даже если вкладка
+  // «Изображения» не открывалась. После ручного изменения ключа не трогаем его.
+  useEffect(() => {
+    if (isEdit || storageKeyEdited.current || !slug) return;
+    const suggestedKey = slug.replaceAll('-', '_');
+    if (storageKey && storageKey !== automaticallySuggestedStorageKey.current && storageKey !== suggestedKey) {
+      storageKeyEdited.current = true;
+      return;
+    }
+    if (storageKey !== suggestedKey) {
+      form.setValue('images.storage_key', suggestedKey, { shouldDirty: false, shouldValidate: true });
+    }
+    automaticallySuggestedStorageKey.current = suggestedKey;
+  }, [form, isEdit, slug, storageKey]);
 
   const onSubmit = async (data: MineralFormData) => {
     const apiKey = localStorage.getItem('admin_api_key');
@@ -126,8 +155,10 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
       router.push('/admin/minerals');
     } catch (error: unknown) {
       if (error instanceof ApiValidationError) {
-        error.fields.forEach(({ path, message }) => form.setError(path as any, { message }));
-        const detail = error.fields.slice(0, 3).map(e => `${e.path}: ${e.message}${e.suggestion ? ` (${e.suggestion})` : ''}`).join('; ');
+        error.fields.forEach(({ path, message }) => form.setError(path as any, { message: readableError(path, message) }));
+        const firstError = error.fields[0];
+        if (firstError) setActiveTab(getTab(firstError.path).value);
+        const detail = error.fields.slice(0, 3).map(e => readableError(e.path, e.message)).join('; ');
         toast.error(detail || error.message, { duration: 10000 });
       } else toast.error(error instanceof Error ? error.message : 'Ошибка сохранения');
     }
@@ -142,8 +173,10 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
       return;
     }
 
-    const tabs = Array.from(new Set(fieldErrors.map((e) => getTabLabel(e.path))));
-    const firstFew = fieldErrors.slice(0, 3).map((e) => e.message).join('; ');
+    const tabs = Array.from(new Set(fieldErrors.map((e) => getTab(e.path).label)));
+    const firstFew = fieldErrors.slice(0, 3).map((e) => readableError(e.path, e.message)).join('; ');
+    const firstError = fieldErrors[0];
+    if (firstError) setActiveTab(getTab(firstError.path).value);
 
     toast.error(
       `Не сохранено: проверьте вкладк${tabs.length > 1 ? 'и' : 'у'} «${tabs.join('», «')}». ${firstFew}`,
@@ -156,8 +189,8 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
       <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-8">
         <Card>
           <CardContent className="pt-6">
-            <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="grid w-full grid-cols-7">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-7 overflow-x-auto">
                 <TabsTrigger value="basic">Основное</TabsTrigger>
                 <TabsTrigger value="scientific">Научные</TabsTrigger>
                 <TabsTrigger value="i18n">RU / EN</TabsTrigger>
@@ -170,7 +203,7 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
               <TabsContent value="scientific" className="mt-6"><ScientificSection form={form} /></TabsContent>
               <TabsContent value="i18n" className="mt-6"><I18nSection form={form} /></TabsContent>
               <TabsContent value="localities" className="mt-6"><LocalitiesSection form={form} /></TabsContent>
-              <TabsContent value="images" className="mt-6"><GallerySection form={form} /></TabsContent>
+              <TabsContent value="images" className="mt-6"><GallerySection form={form} onStorageKeyManualChange={() => { storageKeyEdited.current = true; }} /></TabsContent>
               <TabsContent value="sources" className="mt-6"><SourcesSection form={form} /></TabsContent>
               <TabsContent value="import" className="mt-6">
                 <ImportJsonSection form={form} />

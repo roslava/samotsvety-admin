@@ -13,12 +13,12 @@ const getHeaders = (apiKey?: string) => {
 };
 
 export class ApiValidationError extends Error {
-  constructor(public readonly fields: Array<{ path: string; message: string; suggestion?: string }>, message: string) { super(message); }
+  constructor(public readonly fields: Array<{ path: string; message: string; suggestion?: string }>, message: string, public readonly status?: number) { super(message); }
 }
 async function v2Error(res: Response): Promise<never> {
   const body = await res.json().catch(() => ({}));
   const fields = Array.isArray(body.fields) ? body.fields : body.path ? [{ path: body.path, message: body.message || 'Ошибка валидации', suggestion: body.suggestion }] : [];
-  throw new ApiValidationError(fields, body.message || body.error || 'Ошибка сохранения');
+  throw new ApiValidationError(fields, body.message || body.error || 'Ошибка сохранения', res.status);
 }
 
 export const api = {
