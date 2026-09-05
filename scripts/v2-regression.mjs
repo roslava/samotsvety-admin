@@ -23,6 +23,24 @@ assert.equal(parsed.i18n.ru.scientific_notes.composition, 'Вулканичес�
 assert.equal(parsed.images.storage_key, 'kambaba_jasper'); assert.equal(parsed.images.gallery.length, 1);
 assert.equal(parsed.localities[0].country_code, 'MG'); assert.equal(parsed.sources[0].title, 'Mindat: Kambaba Jasper'); assert.deepEqual(parsed.related_entities, []);
 assert.equal(parsed.scientific.hardness_note, undefined); assert.equal(parsed.scientific.composition, undefined);
+const locality = kambaba.localities[0];
+const withLocality = (localityPatch) => ({ ...kambaba, localities: [{ ...locality, ...localityPatch }] });
+const withoutGeo = { ...locality };
+delete withoutGeo.latitude; delete withoutGeo.longitude; delete withoutGeo.coordinate_precision;
+assert.equal(GemEntityV2ImportSchema.safeParse({ ...kambaba, localities: [withoutGeo] }).success, true, 'locality without geo fields must pass');
+assert.equal(GemEntityV2ImportSchema.safeParse(withLocality({ latitude: null, longitude: null, coordinate_precision: null })).success, true, 'null geo fields must pass');
+assert.equal(GemEntityV2ImportSchema.safeParse(withLocality({ latitude: 0, longitude: 0 })).success, true, 'zero coordinates must pass as numbers');
+assert.equal(GemEntityV2ImportSchema.safeParse(withLocality({ latitude: -90, longitude: -180 })).success, true, 'minimum coordinate bounds must pass');
+assert.equal(GemEntityV2ImportSchema.safeParse(withLocality({ latitude: 90, longitude: 180 })).success, true, 'maximum coordinate bounds must pass');
+assert.equal(GemEntityV2ImportSchema.safeParse(withLocality({ latitude: -90.000001 })).success, false, 'latitude below minimum must fail');
+assert.equal(GemEntityV2ImportSchema.safeParse(withLocality({ latitude: 90.000001 })).success, false, 'latitude above maximum must fail');
+assert.equal(GemEntityV2ImportSchema.safeParse(withLocality({ longitude: -180.000001 })).success, false, 'longitude below minimum must fail');
+assert.equal(GemEntityV2ImportSchema.safeParse(withLocality({ longitude: 180.000001 })).success, false, 'longitude above maximum must fail');
+for (const coordinate_precision of ['exact', 'approximate', 'region']) {
+  assert.equal(GemEntityV2ImportSchema.safeParse(withLocality({ coordinate_precision })).success, true, `${coordinate_precision} coordinate precision must pass`);
+}
+assert.equal(GemEntityV2ImportSchema.safeParse(withLocality({ coordinate_precision: 'estimated' })).success, false, 'unknown coordinate precision must fail');
+assert.throws(() => parseV2Import(JSON.stringify(withLocality({ geojson: { type: 'Point', coordinates: [46.5, -16.4] } }))), 'unknown locality geo keys must be rejected by strict import');
 assert.equal(parseV2Import(JSON.stringify({...kambaba, scientific:{...kambaba.scientific, crystal_system:'trigonal',base_color:'green'}})).scientific.crystal_system, 'trigonal');
 const sourceUrl = kambaba.sources[0].url;
 const normalUrl = normalizeV2ImportSourceUrls({...kambaba, sources: [{...kambaba.sources[0], url: sourceUrl}]});

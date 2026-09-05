@@ -29,7 +29,10 @@ export function normalizeV2ImportSourceUrls(value: unknown): unknown {
 export function parseV2Import(raw: string): MineralFormData {
   let value: unknown;
   try { value = JSON.parse(raw); } catch (error) { throw new Error(`invalid JSON: ${error instanceof Error ? error.message : String(error)}`); }
-  return MineralSchema.parse(value);
+  // Keep programmatic imports aligned with the UI import path: normalize the
+  // one supported presentation-only URL form, then validate the complete
+  // payload against the strict canonical schema.
+  return MineralSchema.parse(normalizeV2ImportSourceUrls(value));
 }
 
 export function toV2WritePayload(entity: GemEntityV2Response | MineralFormData): GemEntityV2WritePayload {

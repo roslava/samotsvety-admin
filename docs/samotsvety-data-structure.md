@@ -8,7 +8,9 @@
 
 Твёрдость и состав — локализованные заметки: `i18n.{ru,en}.scientific_notes.hardness` и `i18n.{ru,en}.scientific_notes.composition`. Устаревших `scientific.hardness_note` и `scientific.composition` нет. Для `rock` добавляйте только применимые научные свойства, а `rock_type` используйте только для пород.
 
-Locality содержит обязательный uppercase ISO 3166-1 alpha-2 `country_code` и только поля `country_ru`, `country_en`, `region_ru`, `region_en`, `locality_ru`, `locality_en`, `description_ru`, `description_en`, `famous`. `is_russian` не поддерживается.
+Locality содержит обязательный uppercase ISO 3166-1 alpha-2 `country_code` и только поля `country_ru`, `country_en`, `region_ru`, `region_en`, `locality_ru`, `locality_en`, `description_ru`, `description_en`, `latitude`, `longitude`, `coordinate_precision`, `famous`. `is_russian` не поддерживается.
+
+Географические поля необязательны: `latitude` и `longitude` можно опустить или задать как `null` независимо друг от друга. Ненулевые и нулевые числовые значения валидны в диапазонах `latitude: -90..90` и `longitude: -180..180` включительно. `coordinate_precision` также необязателен (`null` или один из `exact`, `approximate`, `region`). Координаты добавляют только из надёжного источника; нельзя выдумывать точные координаты или маркировать как `exact` приблизительную, региональную либо неизвестную привязку. При отсутствии подтверждённых координат все три geo-поля следует опустить или указать `null`.
 
 Изображения: `images.storage_key`, `hero.path`, `thumbnail.path`, `gallery[].path`, `gallery[].type`, `gallery[].caption.{ru,en}`. Пути относительные, например `hero.webp` и `gallery/example00.webp`; URL и ключи `main_image_url`, `thumbnail_url`, `gallery[].url` запрещены.
 
