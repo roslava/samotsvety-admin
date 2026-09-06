@@ -9,9 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { useMemo, useState } from 'react';
-import { Copy } from 'lucide-react';
+import { Copy, Download, Upload } from 'lucide-react';
 import { MINERAL_IMPORT_EXAMPLE } from '@/lib/mineral-import-example';
 import { normalizeV2ImportSourceUrls } from '@/lib/v2-helpers';
+import { MINERAL_MARKDOWN_PROMPT_TEMPLATE, MINERAL_MARKDOWN_TEMPLATE, MineralMarkdownParseError, parseMineralMarkdown } from '@/lib/mineral-markdown';
 
 interface ImportJsonSectionProps {
   form: UseFormReturn<MineralFormData>;
@@ -39,13 +40,15 @@ i18n.ru и i18n.en обязательны и содержат name; возмож
 
 images: {storage_key, hero:{path}, thumbnail:{path}, gallery:[{path,type,caption:{ru,en}}]}. storage_key — идентификатор папки; все path относительны к нему, например hero.webp, thumbnail.webp, gallery/example00.webp. Не используй полные URL и не включай main_image_url, thumbnail_url или gallery[].url.
 
-related_entities — массив slug, не related_minerals. sources — массив объектов только с title, url, author, publisher; у каждого source должен быть хотя бы title или url. URL — обычная строка URL, никогда не Markdown-ссылка.
+related_entities — массив slug, не related_minerals. sources — массив объектов только с title, url, author, publisher; у каждого source должен быть хотя бы title или url. При генерации JSON для ручного копирования из AI НЕ включай sources[].url. Для каждого источника указывай title и по возможности author и publisher. Поле url поддерживается схемой и может быть добавлено или отредактировано позже в форме, но в AI-generated JSON его следует опускать, чтобы интерфейс чата не повреждал ссылки при копировании.
 
 Верни только валидный JSON без дополнительного текста.`;
 
 export function ImportJsonSection({ form }: ImportJsonSectionProps) {
   const [jsonInput, setJsonInput] = useState('');
-  const [activeTab, setActiveTab] = useState<'import' | 'template'>('import');
+  const [markdownInput, setMarkdownInput] = useState('');
+  const [markdownFileName, setMarkdownFileName] = useState('');
+  const [activeTab, setActiveTab] = useState<'markdown' | 'template' | 'json'>('markdown');
   // Название камня для подстановки в промпт — предзаполняем из уже введённого
   // на вкладке "Основное" русского названия, если оно есть, но дальше не
   // синхронизируем принудительно: пользователь может печатать сюда что угодно
@@ -143,6 +146,38 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
     setJsonInput('');
   };
 
+  const handleMarkdownImport = () => {
+    let parsed: unknown;
+    try {
+      parsed = parseMineralMarkdown(markdownInput);
+    } catch (error) {
+      const message = error instanceof MineralMarkdownParseError
+        ? `Ошибка Markdown: ${error.message}`
+        : `Ошибка Markdown: ${error instanceof Error ? error.message : String(error)}`;
+      toast.error(message, { duration: 12000 });
+      return;
+    }
+    const result = GemEntityV2ImportSchema.safeParse(parsed);
+    if (!result.success) {
+      const preview = result.error.issues.slice(0, 5).map((issue) => `${issue.path.join('.')}: ${issue.message}`).join('\n');
+      toast.error(`Markdown разобран, но не соответствует canonical V2:\n${preview}`, { duration: 12000 });
+      return;
+    }
+    form.reset(result.data);
+    toast.success('Форма обновлена из Markdown — все поля прошли canonical V2 проверку');
+  };
+
+  const handleMarkdownFile = async (file?: File) => {
+    if (!file) return;
+    try {
+      setMarkdownInput(await file.text());
+      setMarkdownFileName(file.name);
+      toast.success(`Файл ${file.name} загружен — проверьте и импортируйте его в форму`);
+    } catch {
+      toast.error('Не удалось прочитать Markdown-файл');
+    }
+  };
+
   // navigator.clipboard требует "secure context" (https или localhost) — при
   // открытии админки по WSL2-сетевому IP (http://172.x.x.x:3000, см. заметки
   // проекта про WSL2-networking) этого API просто нет (undefined), поэтому
@@ -181,8 +216,19 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
     }
   };
 
-  const copyTemplate = () => {
+  const copyJsonTemplate = () => {
     copyToClipboard(JSON_TEMPLATE, 'Шаблон JSON скопирован');
+  };
+
+  const copyMarkdownTemplate = () => copyToClipboard(MINERAL_MARKDOWN_TEMPLATE, 'Шаблон Markdown скопирован');
+
+  const downloadMarkdownTemplate = () => {
+    const url = URL.createObjectURL(new Blob([MINERAL_MARKDOWN_TEMPLATE], { type: 'text/markdown;charset=utf-8' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'samotsvety-mineral-v1.md';
+    anchor.click();
+    URL.revokeObjectURL(url);
   };
 
   const copyPrompt = () => {
@@ -195,16 +241,52 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Импорт / Шаблон JSON</CardTitle>
+        <CardTitle>Импорт минерала</CardTitle>
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
           <TabsList className="mb-4">
-            <TabsTrigger value="import">Импорт JSON</TabsTrigger>
-            <TabsTrigger value="template">Шаблон + Промпт</TabsTrigger>
+            <TabsTrigger value="markdown">Импорт Markdown</TabsTrigger>
+            <TabsTrigger value="template">Шаблон Markdown</TabsTrigger>
+            <TabsTrigger value="json">JSON (расширенный)</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="import" className="space-y-4">
+          <TabsContent value="markdown" className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="mineral-markdown-file">Markdown-файл</label>
+              <Input id="mineral-markdown-file" type="file" accept=".md,text/markdown,text/plain" onChange={(event) => void handleMarkdownFile(event.target.files?.[0])} />
+              {markdownFileName && <p className="text-sm text-[var(--color-slate-veil)]">Выбран файл: {markdownFileName}</p>}
+            </div>
+            <Textarea value={markdownInput} onChange={(event) => { setMarkdownInput(event.target.value); setMarkdownFileName(''); }} placeholder="Загрузите .md файл или вставьте Samotsvety Markdown v1..." className="min-h-[420px] font-mono text-sm" />
+            <Button type="button" onClick={handleMarkdownImport} className="w-full" size="lg" disabled={!markdownInput.trim()}>
+              <Upload className="h-4 w-4 mr-2" /> Импортировать в форму
+            </Button>
+          </TabsContent>
+
+          <TabsContent value="template" className="space-y-6">
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <h4 className="font-medium">Шаблон Samotsvety Markdown v1</h4>
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" size="sm" onClick={copyMarkdownTemplate}><Copy className="h-4 w-4 mr-2" /> Скопировать</Button>
+                  <Button type="button" variant="outline" size="sm" onClick={downloadMarkdownTemplate}><Download className="h-4 w-4 mr-2" /> Скачать .md</Button>
+                </div>
+              </div>
+              <pre className="bg-[var(--color-inkwell-teal)] text-[var(--color-bone)] p-4 rounded-2xl text-xs overflow-auto max-h-[350px]">{MINERAL_MARKDOWN_TEMPLATE}</pre>
+            </div>
+            <div>
+              <h4 className="font-medium mb-2">Промпт для генерации Markdown</h4>
+              <div className="mb-3 space-y-1.5">
+                <label className="text-sm font-medium" htmlFor="stone-name-input">Название камня</label>
+                <Input id="stone-name-input" value={stoneName} onChange={(e) => setStoneName(e.target.value)} placeholder="Например: Малахит" />
+              </div>
+              <pre className="bg-[var(--color-inkwell-teal)] text-[var(--color-bone)] p-4 rounded-2xl text-xs overflow-auto whitespace-pre-wrap">{MINERAL_MARKDOWN_PROMPT_TEMPLATE.replaceAll('[НАЗВАНИЕ_КАМНЯ]', stoneName.trim() || STONE_NAME_PLACEHOLDER)}</pre>
+              <Button type="button" variant="outline" size="sm" onClick={() => copyToClipboard(MINERAL_MARKDOWN_PROMPT_TEMPLATE.replaceAll('[НАЗВАНИЕ_КАМНЯ]', stoneName.trim() || STONE_NAME_PLACEHOLDER), 'Markdown-промпт скопирован')} className="mt-3"><Copy className="h-4 w-4 mr-2" /> Скопировать промпт</Button>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="json" className="space-y-6">
+            <p className="text-sm text-[var(--color-slate-veil)]">Расширенный импорт для уже подготовленного canonical V2 JSON.</p>
             <Textarea
               value={jsonInput}
               onChange={(e) => setJsonInput(e.target.value)}
@@ -214,13 +296,10 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
             <Button type="button" onClick={handleImport} className="w-full" size="lg">
               Импортировать в форму
             </Button>
-          </TabsContent>
-
-          <TabsContent value="template" className="space-y-6">
             <div>
               <div className="flex justify-between items-center mb-2">
                 <h4 className="font-medium">Шаблон JSON (актуальный)</h4>
-                <Button type="button" variant="outline" size="sm" onClick={copyTemplate}>
+                <Button type="button" variant="outline" size="sm" onClick={copyJsonTemplate}>
                   <Copy className="h-4 w-4 mr-2" /> Скопировать
                 </Button>
               </div>
