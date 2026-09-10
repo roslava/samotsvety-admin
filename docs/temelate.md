@@ -12,6 +12,8 @@
 
 `scientific` допускает только поля canonical schema: `chemical_formula`, `hardness`, `specific_gravity`, `rarity`, `base_color`, `mineral_class`, `silicate_subclass`, `mineral_family`, `crystal_system`, `crystal_habit`, `streak`, `transparency`, `luster`, `tenacity`, `fracture`, `cleavage_degree`, `cleavage_direction`, `cleavage_type`, `phenomena`, `ima_status`, `rock_type`.
 
+`chemical_formula` — optional nullable string; `hardness` и `specific_gravity` — optional nullable numeric ranges. Только `crystal_habit`, `luster`, `tenacity`, `phenomena` — optional nullable enum arrays. Все остальные enum-поля (`rarity`, `base_color`, `mineral_class`, `silicate_subclass`, `mineral_family`, `crystal_system`, `streak`, `transparency`, `fracture`, `cleavage_degree`, `cleavage_direction`, `cleavage_type`, `ima_status`, `rock_type`) — optional nullable scalar: ровно одно enum-значение или пусто; строки вида `a, b` запрещены.
+
 `base_color`: `red | black | bi_color | blue | brown | green | yellow | grey | purple | white | pink | multicolor | orange`.
 
 `crystal_system`: `monoclinic | orthorhombic | hexagonal | trigonal | isometric | triclinic | tetragonal | amorphous`.

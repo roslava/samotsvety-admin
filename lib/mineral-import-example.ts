@@ -6,7 +6,6 @@ export const MINERAL_IMPORT_EXAMPLE = {
     specific_gravity: { min: 2.6, max: 2.8 },
     base_color: 'green',
     rock_type: 'igneous',
-    phenomena: [],
   },
   i18n: {
     ru: { name: 'Камбаба-яшма', scientific_notes: { hardness: '6–7 по шкале Мооса.', composition: 'Вулканическая риолитовая порода.' } },

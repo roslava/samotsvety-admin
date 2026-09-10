@@ -1,4 +1,11 @@
-import type { MineralFormData } from './validations/mineral';
+import {
+  BASE_COLOR_VALUES, CLEAVAGE_DEGREE_VALUES, CLEAVAGE_DIRECTION_VALUES, CLEAVAGE_TYPE_VALUES,
+  CRYSTAL_HABIT_VALUES, CRYSTAL_SYSTEM_VALUES, ENTITY_TYPE_VALUES, FRACTURE_VALUES,
+  IMA_STATUS_VALUES, LUSTER_VALUES, MINERAL_CLASS_VALUES, MINERAL_FAMILY_VALUES,
+  PHENOMENON_VALUES, RARITY_VALUES, ROCK_TYPE_VALUES, SILICATE_SUBCLASS_VALUES,
+  STREAK_VALUES, TENACITY_VALUES, TRANSPARENCY_VALUES, type MineralFormData,
+} from './validations/mineral.ts';
+import { parseRelatedEntityInput, type RelatedEntityWarning } from './related-entities.ts';
 
 export const MINERAL_MARKDOWN_VERSION = '<!-- samotsvety-mineral-md:v1 -->';
 
@@ -20,6 +27,14 @@ const scientificKeys = new Set([
   'crystal_habit', 'streak', 'transparency', 'luster', 'tenacity', 'fracture', 'cleavage_degree',
   'cleavage_direction', 'cleavage_type', 'phenomena', 'ima_status', 'rock_type',
 ]);
+// Keep this classification aligned with MineralSchema: these are the only
+// scientific table rows that Markdown v1 turns into comma-separated arrays.
+const scientificArrayKeys = new Set(['crystal_habit', 'luster', 'tenacity', 'phenomena']);
+const scientificScalarEnumKeys = [
+  'rarity', 'base_color', 'mineral_class', 'silicate_subclass', 'mineral_family', 'crystal_system',
+  'streak', 'transparency', 'fracture', 'cleavage_degree', 'cleavage_direction', 'cleavage_type',
+  'ima_status', 'rock_type',
+] as const;
 const localizedKeys = new Set([
   'name', 'synonyms', 'color', 'color_description', 'lore', 'identification_tips', 'safety_notes',
   'scientific_notes.hardness', 'scientific_notes.composition', 'esoteric.metaphysical_properties',
@@ -184,7 +199,7 @@ export function parseMineralMarkdown(markdown: string): unknown {
     } else if (key === 'specific_gravity_min' || key === 'specific_gravity_max') {
       const gravity = (scientific.specific_gravity ??= {}) as Record<string, unknown>;
       gravity[key.slice('specific_gravity_'.length)] = numberValue(item.value, item.line, key);
-    } else if (['crystal_habit', 'luster', 'tenacity', 'phenomena'].includes(key)) scientific[key] = commaList(item.value);
+    } else if (scientificArrayKeys.has(key)) scientific[key] = commaList(item.value);
     else scientific[key] = item.value.trim();
   }
   if (!Object.keys(scientific).length) delete output.scientific;
@@ -245,10 +260,12 @@ export function parseMineralMarkdown(markdown: string): unknown {
     related.body.forEach((line, offset) => {
       if (!line.trim()) return;
       const match = line.match(/^- ([^\s].*)$/);
-      if (!match) { error('Ожидается маркированный список вида - slug', related.bodyStart + offset, related.name); return; }
-      values.push(match[1].trim());
+      // Only list entries are related entities. Ordinary prose in this optional
+      // section must not be promoted to a relationship.
+      if (!match) return;
+      values.push(match[1]);
     });
-    output.related_entities = values;
+    output.related_entities = parseRelatedEntityInput(values).slugs;
   }
   const sourceSection = byName.get('Источники');
   if (sourceSection) {
@@ -256,6 +273,14 @@ export function parseMineralMarkdown(markdown: string): unknown {
     output.sources = parsed.rows.map((row) => { const source: Record<string, unknown> = {}; for (const key of sourceColumns) optionalText(source, key, row[key]); return source; });
   }
   return output;
+}
+
+/** Strict parse plus non-blocking related-entity warnings for the importer. */
+export function parseMineralMarkdownWithWarnings(markdown: string): { data: unknown; warnings: RelatedEntityWarning[] } {
+  const data = parseMineralMarkdown(markdown);
+  const section = markdown.replace(/\r\n?/g, '\n').match(/^## Связанные сущности\n([\s\S]*?)(?=^## |$(?![\s\S]))/m);
+  const values = section?.[1].split('\n').flatMap((line) => line.match(/^- (.*)$/) ? [line.slice(2)] : []) ?? [];
+  return { data, warnings: parseRelatedEntityInput(values).warnings };
 }
 
 function textBlock(key: string, value: unknown): string { return value == null || value === '' ? '' : `### ${key}\n${value}\n\n`; }
@@ -284,18 +309,32 @@ export function serializeMineralMarkdown(data: MineralFormData): string {
 }
 
 export const MINERAL_MARKDOWN_TEMPLATE = serializeMineralMarkdown({
-  slug: 'kambaba-jasper', type: 'rock', scientific: { hardness: { min: 6, max: 7 }, specific_gravity: { min: 2.6, max: 2.8 }, base_color: 'green', crystal_system: 'trigonal', rock_type: 'igneous' },
-  i18n: { ru: { name: 'Камбаба яшма', scientific_notes: { hardness: '6–7 по шкале Мооса.', composition: 'Пример заметки о составе.' } }, en: { name: 'Kambaba Jasper', scientific_notes: { hardness: '6–7 on the Mohs scale.', composition: 'Example composition note.' } } },
-  localities: [{ country_code: 'MG', country_ru: 'Мадагаскар', country_en: 'Madagascar', region_ru: null, region_en: null, locality_ru: null, locality_en: null, description_ru: null, description_en: null, latitude: 0, longitude: 0, coordinate_precision: 'approximate', famous: false }],
-  images: { storage_key: 'kambaba_jasper', hero: { path: 'hero.webp' }, thumbnail: { path: 'thumbnail.webp' }, gallery: [{ path: 'gallery/kambaba_jasper00.webp', type: 'specimen', caption: { ru: 'Образец', en: 'Specimen' } }] }, related_entities: [], sources: [{ title: 'Example source', url: 'https://example.com/', author: null, publisher: null }],
+  slug: 'kambaba-jasper', type: 'rock', scientific: { hardness: { min: 6, max: 7 }, specific_gravity: { min: 2.6, max: 2.8 }, base_color: 'green', rock_type: 'igneous' },
+  i18n: { ru: { name: 'Камбаба-яшма', synonyms: ['Камбаба', 'крокодиловая яшма'], color: ['зелёный', 'чёрный'], color_description: 'Текст может занимать несколько строк.', lore: 'Пример истории.', identification_tips: 'Пример диагностического признака.', safety_notes: 'Пример примечания по безопасности.', scientific_notes: { hardness: '6–7 по шкале Мооса.', composition: 'Вулканическая риолитовая порода.' }, esoteric: { metaphysical_properties: ['спокойствие', 'заземление'], chakras: ['сердечная'], zodiac: ['Рак'], healing_interpretation: 'Пример интерпретации.', energy_notes: 'Пример энергетической заметки.', ritual_uses: 'Пример применения.' } }, en: { name: 'Kambaba Jasper', synonyms: ['Crocodile Jasper'], color: ['green', 'black'], color_description: 'Text may span multiple lines.', lore: 'Example history.', identification_tips: 'Example identification tip.', safety_notes: 'Example safety note.', scientific_notes: { hardness: '6–7 on the Mohs scale.', composition: 'A rhyolitic volcanic rock.' }, esoteric: { metaphysical_properties: ['calm', 'grounding'], chakras: ['heart'], zodiac: ['Cancer'], healing_interpretation: 'Example interpretation.', energy_notes: 'Example energy note.', ritual_uses: 'Example use.' } } },
+  localities: [{ country_code: 'MG', country_ru: 'Мадагаскар', country_en: 'Madagascar', region_ru: null, region_en: null, locality_ru: null, locality_en: null, description_ru: null, description_en: null, latitude: -16.4, longitude: 46.5, coordinate_precision: 'approximate', famous: true }],
+  images: { storage_key: 'kambaba_jasper', hero: { path: 'hero.webp' }, thumbnail: { path: 'thumbnail.webp' }, gallery: [{ path: 'gallery/example00.webp', type: 'specimen', caption: { ru: 'Образец', en: 'Specimen' } }] }, related_entities: [], sources: [{ title: 'Mindat: Kambaba Jasper', url: 'https://www.mindat.org/', author: null, publisher: 'Mindat' }],
 } as MineralFormData);
+
+const enumValues = (values: readonly string[]) => values.join('|');
 
 export const MINERAL_MARKDOWN_PROMPT_TEMPLATE = `Ты — эксперт-минералог и геммолог. Создай Samotsvety Markdown v1 для «[НАЗВАНИЕ_КАМНЯ]».
 
-Верни ТОЛЬКО Markdown-документ формата v1: первой строкой ${MINERAL_MARKDOWN_VERSION}, затем # название и только разделы/таблицы из шаблона. Никаких code fence, пояснений, JSON или произвольного Markdown. Пустые неизвестные значения оставляй пустыми; не добавляй неизвестные ключи.
+Создай результат именно как файл с расширением .md и предоставь этот файл пользователю.
+
+Имя файла: <slug>.md, где <slug> — значение поля slug создаваемой сущности.
+
+Содержимое файла должно быть ТОЛЬКО Markdown-документом Samotsvety Markdown v1 строго по полному шаблону ниже. Не добавляй в файл пояснения, code fence, JSON, комментарии от себя или любой другой текст до/после Markdown-документа. Не выводи содержимое Markdown отдельным текстовым ответом, если файл успешно создан. Результатом должен быть готовый .md-файл для загрузки в Samotsvety Admin.
+
+Замени примерные значения на проверенные факты для запрошенного камня, но не переименовывай разделы, не добавляй неизвестные разделы, не меняй уровни заголовков, названия ключей или порядок и названия колонок. Пустые неизвестные optional значения оставляй пустыми (не пиши null); обязательные slug, type, scientific и name для RU/EN заполни. Запятые разрешены только в реально массивных полях: scientific-строки crystal_habit, luster, tenacity, phenomena; ###-поля synonyms, color, esoteric.metaphysical_properties, esoteric.chakras, esoteric.zodiac. Для таблиц используй \\| для literal | и \\n для переноса в ячейке.
 
 type: mineral — самостоятельный минеральный вид; rock — горная порода/природная смесь; gem_variety — геммологическая разновидность минерала; organic — материал органического происхождения. Не выбирай mineral только из-за торгового названия. Для rock заполняй rock_type только при достоверном происхождении.
 
-Enum values: type mineral|rock|gem_variety|organic; rarity common|uncommon|rare|very_rare; base_color red|black|bi_color|blue|brown|green|yellow|grey|purple|white|pink|multicolor|orange; mineral_class native_elements|sulfides_sulfosalts|halides|oxides_hydroxides|carbonates_nitrates|borates|sulfates_chromates_molybdates_tungstates|phosphates_arsenates_vanadates|silicates|organic; silicate_subclass nesosilicates|sorosilicates|cyclosilicates|inosilicates|phyllosilicates|tectosilicates; mineral_family garnet_group|feldspar_group|quartz_group|tourmaline_group|mica_group|pyroxene_group|amphibole_group|zeolite_group|beryl_group|spinel_group|corundum_group|calcite_group; crystal_system monoclinic|orthorhombic|hexagonal|trigonal|isometric|triclinic|tetragonal|amorphous; streak black|white_or_colourless|grey|green|blue|brown|pink_to_red|yellow_to_orange; transparency transparent|translucent|opaque; fracture conchoidal|uneven|splintery|hackly|earthy|fibrous; cleavage_degree none|very_poor|poor|good|perfect; cleavage_type basal|prismatic|pinacoidal|rhombohedral|cubic|octahedral|dodecahedral; ima_status approved|grandfathered|questionable|discredited; rock_type igneous|sedimentary|metamorphic. crystal_habit, luster, tenacity и phenomena — comma-separated codes из схемы.
+Enum values: type ${enumValues(ENTITY_TYPE_VALUES)}; rarity ${enumValues(RARITY_VALUES)}; base_color ${enumValues(BASE_COLOR_VALUES)}; mineral_class ${enumValues(MINERAL_CLASS_VALUES)}; silicate_subclass ${enumValues(SILICATE_SUBCLASS_VALUES)}; mineral_family ${enumValues(MINERAL_FAMILY_VALUES)}; crystal_system ${enumValues(CRYSTAL_SYSTEM_VALUES)}; crystal_habit ${enumValues(CRYSTAL_HABIT_VALUES)}; streak ${enumValues(STREAK_VALUES)}; transparency ${enumValues(TRANSPARENCY_VALUES)}; luster ${enumValues(LUSTER_VALUES)}; tenacity ${enumValues(TENACITY_VALUES)}; fracture ${enumValues(FRACTURE_VALUES)}; cleavage_degree ${enumValues(CLEAVAGE_DEGREE_VALUES)}; cleavage_direction ${enumValues(CLEAVAGE_DIRECTION_VALUES)}; cleavage_type ${enumValues(CLEAVAGE_TYPE_VALUES)}; phenomena ${enumValues(PHENOMENON_VALUES)}; ima_status ${enumValues(IMA_STATUS_VALUES)}; rock_type ${enumValues(ROCK_TYPE_VALUES)}.
 
-hardness_min/max и specific_gravity_min/max — реальные числа. scientific_notes находятся только в локализованных ### scientific_notes.hardness/composition. country_code — ISO alpha-2. Никогда не выдумывай координаты; latitude/longitude/coordinate_precision оставь пустыми без надёжного источника. coordinate_precision: exact|approximate|region. Пути images только относительные, не URL. Не создавай legacy поля. sources.url — обычный URL, не Markdown link.`;
+Scientific scalar enum rows ${scientificScalarEnumKeys.join(', ')}: ровно одно enum-значение или пусто; несколько значений через запятую запрещены. Не превращай scalar enum в список и не выбирай первое значение из нескольких. Только crystal_habit, luster, tenacity и phenomena являются scientific arrays.
+
+hardness_min/max и specific_gravity_min/max — реальные числа. scientific_notes находятся только в локализованных ### scientific_notes.hardness/composition. country_code — ISO alpha-2. Никогда не выдумывай координаты; latitude/longitude/coordinate_precision оставь пустыми без надёжного источника. coordinate_precision: exact|approximate|region. famous: true|false или пусто. Пути images только относительные, не URL. related_entities — один существующий slug в каждой строке списка. Указывай только slug, в существовании которого уверен по предоставленному каталогу; если каталога нет, оставь раздел пустым. Не выдумывай связи и не преобразуй названия в slug. sources.url — обычный URL, не Markdown link. Не создавай legacy поля.
+
+ПОЛНЫЙ CANONICAL MARKDOWN V1 TEMPLATE (воспроизводи его структуру буквально):
+
+${MINERAL_MARKDOWN_TEMPLATE}`;

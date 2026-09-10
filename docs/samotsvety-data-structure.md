@@ -6,6 +6,8 @@
 
 Научные коды, в том числе `base_color` и `crystal_system`, должны точно соответствовать enum в schema. `base_color` включает `red`, `black`, `bi_color`, `blue`, `brown`, `green`, `yellow`, `grey`, `purple`, `white`, `pink`, `multicolor`, `orange`; `crystal_system` включает `trigonal`.
 
+В `scientific` `chemical_formula` — optional nullable string; `hardness` и `specific_gravity` — optional nullable numeric ranges; только `crystal_habit`, `luster`, `tenacity`, `phenomena` — optional nullable enum arrays. `rarity`, `base_color`, `mineral_class`, `silicate_subclass`, `mineral_family`, `crystal_system`, `streak`, `transparency`, `fracture`, `cleavage_degree`, `cleavage_direction`, `cleavage_type`, `ima_status`, `rock_type` — optional nullable scalar enum. Каждый такой scalar содержит ровно один код или отсутствует/null, никогда не строку с несколькими кодами через запятую.
+
 Твёрдость и состав — локализованные заметки: `i18n.{ru,en}.scientific_notes.hardness` и `i18n.{ru,en}.scientific_notes.composition`. Устаревших `scientific.hardness_note` и `scientific.composition` нет. Для `rock` добавляйте только применимые научные свойства, а `rock_type` используйте только для пород.
 
 Locality содержит обязательный uppercase ISO 3166-1 alpha-2 `country_code` и только поля `country_ru`, `country_en`, `region_ru`, `region_en`, `locality_ru`, `locality_en`, `description_ru`, `description_en`, `latitude`, `longitude`, `coordinate_precision`, `famous`. `is_russian` не поддерживается.

@@ -16,123 +16,24 @@
 
 Пустая ячейка/блок означает, что поле не передаётся. Для optional nullable полей это семантически эквивалентно отсутствию значения при импорте; не используется отдельный текстовый маркер `null`. Пустой `## Связанные сущности` последовательно превращается в `related_entities: []`. В значениях таблиц `\|` означает literal `|`, а `\n` — перенос строки.
 
-## Полный формат
+## Canonical template
 
-```md
-<!-- samotsvety-mineral-md:v1 -->
+Единственный canonical template находится в `lib/mineral-markdown.ts` как `MINERAL_MARKDOWN_TEMPLATE`. Он строится serializer-ом из полноценного валидного примера Kambaba Jasper, выводится во вкладке импорта и **вставляется в AI prompt тем же значением**. Не поддерживайте вручную вторую копию шаблона в документации.
 
-# Камбаба яшма
+Template показывает все допустимые `##` sections, `###` fields и таблицы в точном порядке. Четыре раздела обязательны: `Основное`, `Научные данные`, `Русский`, `English`; `Месторождения`, `Изображения`, `Связанные сущности` и `Источники` optional. `## English` использует те же canonical names после `###`: `name`, `synonyms`, `color`, `color_description`, `lore`, `identification_tips`, `safety_notes`, `scientific_notes.hardness`, `scientific_notes.composition`, `esoteric.metaphysical_properties`, `esoteric.chakras`, `esoteric.zodiac`, `esoteric.healing_interpretation`, `esoteric.energy_notes`, `esoteric.ritual_uses`. `name` для RU и EN обязателен на уровне `MineralSchema`.
 
-## Основное
-| Поле | Значение |
+Запятые разделяют только реально массивные поля: scientific-строки `crystal_habit`, `luster`, `tenacity`, `phenomena` и `###`-поля `synonyms`, `color`, `esoteric.metaphysical_properties`, `esoteric.chakras`, `esoteric.zodiac`. Остальные локализованные значения могут быть многострочными. Пустые optional ячейки и `###` blocks не передаются в результат; текстовый маркер `null` не используется.
+
+### Типы scientific полей
+
+| Тип | Поля |
 |---|---|
-| slug | kambaba-jasper |
-| type | rock |
+| scalar string, nullable/optional | `chemical_formula` |
+| numeric range, nullable/optional | `hardness` (`hardness_min`/`hardness_max`, 1–10), `specific_gravity` (`specific_gravity_min`/`specific_gravity_max`, положительные числа) |
+| scalar enum, nullable/optional | `rarity`, `base_color`, `mineral_class`, `silicate_subclass`, `mineral_family`, `crystal_system`, `streak`, `transparency`, `fracture`, `cleavage_degree`, `cleavage_direction`, `cleavage_type`, `ima_status`, `rock_type` |
+| enum array, nullable/optional | `crystal_habit`, `luster`, `tenacity`, `phenomena` |
 
-## Научные данные
-| Поле | Значение |
-|---|---|
-| chemical_formula | |
-| hardness_min | 6 |
-| hardness_max | 7 |
-| specific_gravity_min | 2.6 |
-| specific_gravity_max | 2.8 |
-| rarity | uncommon |
-| base_color | green |
-| mineral_class | |
-| silicate_subclass | |
-| mineral_family | |
-| crystal_system | trigonal |
-| crystal_habit | massive, granular |
-| streak | |
-| transparency | opaque |
-| luster | vitreous, waxy |
-| tenacity | brittle |
-| fracture | conchoidal |
-| cleavage_degree | none |
-| cleavage_direction | 1 |
-| cleavage_type | |
-| phenomena | iridescence, chatoyancy |
-| ima_status | |
-| rock_type | igneous |
-
-## Русский
-### name
-Камбаба яшма
-
-### synonyms
-Камбаба, крокодиловая яшма
-
-### color
-зелёный, чёрный
-
-### color_description
-Текст может занимать
-несколько строк.
-
-### scientific_notes.hardness
-6–7 по шкале Мооса.
-
-### scientific_notes.composition
-Риолитовая вулканическая порода.
-
-### esoteric.metaphysical_properties
-спокойствие, заземление
-
-### esoteric.chakras
-сердечная
-
-### esoteric.zodiac
-Рак
-
-### esoteric.healing_interpretation
-Текст интерпретации.
-
-### esoteric.energy_notes
-Текст заметки.
-
-### esoteric.ritual_uses
-Текст применения.
-
-## English
-### name
-Kambaba Jasper
-
-### color_description
-Multiline text is preserved.
-
-## Месторождения
-| country_code | country_ru | country_en | region_ru | region_en | locality_ru | locality_en | description_ru | description_en | latitude | longitude | coordinate_precision | famous |
-|---|---|---|---|---|---|---|---|---|---:|---:|---|---|
-| MG | Мадагаскар | Madagascar | | | | | | | -16.4 | 46.5 | approximate | true |
-
-## Изображения
-### storage_key
-kambaba_jasper
-
-### hero
-hero.webp
-
-### thumbnail
-thumbnail.webp
-
-### gallery
-| path | type | caption_ru | caption_en |
-|---|---|---|---|
-| gallery/kambaba_jasper00.webp | specimen | Образец | Specimen |
-
-## Связанные сущности
-- rhyolite
-- jasper
-- ocean-jasper
-
-## Источники
-| title | url | author | publisher |
-|---|---|---|---|
-| Mindat: Kambaba Jasper | https://www.mindat.org/ | | Mindat |
-```
-
-`## English` использует те же canonical names после `###`: `name`, `synonyms`, `color`, `color_description`, `lore`, `identification_tips`, `safety_notes`, `scientific_notes.hardness`, `scientific_notes.composition` и `esoteric.*`. `name` для RU и EN обязателен уже на уровне `MineralSchema`. Списки `synonyms`, `color`, `esoteric.metaphysical_properties`, `esoteric.chakras`, `esoteric.zodiac` разделяются запятыми с trim. Остальные локализованные значения могут быть многострочными.
+Для каждого scientific scalar enum действует строгое правило: **ровно одно enum-значение или пусто; несколько значений через запятую запрещены**. Например, `transparency: translucent, opaque` и `fracture: conchoidal, uneven` не являются списками: parser сохраняет эти строки без преобразования, а canonical V2 validation должна явно отклонить документ. Parser не выбирает первое значение и не нормализует невалидный scalar enum.
 
 ## Canonical mapping и validation
 

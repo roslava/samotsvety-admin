@@ -20,6 +20,7 @@ import { I18nSection } from './I18nSection';
 import { LocalitiesSection } from './LocalitiesSection';
 import { GallerySection } from './GallerySection';
 import { SourcesSection } from './SourcesSection';
+import { normalizeErrorMessage, relatedEntityWarningText, resolveRelatedEntities } from '@/lib/related-entities';
 
 interface MineralFormProps {
   defaultValues?: Partial<MineralFormData>;
@@ -38,12 +39,12 @@ function getTab(path: string): { value: string; label: string } {
   return { value: 'basic', label: 'Основное' };
 }
 
-function readableError(path: string, message: string): string {
+function readableError(path: string, message: unknown): string {
   if (path === 'slug') return 'Проверьте адрес карточки: используйте строчные латинские буквы, цифры и дефисы.';
   if (path === 'images.storage_key') return 'Укажите папку изображений: только латиница, цифры, точка, дефис или подчёркивание.';
   if (/localities\.\d+\.country_code/.test(path)) return 'Укажите двухбуквенный код страны, например MG, RU или US.';
   if (/sources\.\d+$/.test(path)) return 'Укажите название источника или ссылку.';
-  return message;
+  return normalizeErrorMessage(message, 'Проверьте значение поля.');
 }
 
 // Рекурсивно собирает плоский список сообщений об ошибках из вложенного
@@ -145,11 +146,14 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
     }
 
     try {
+      const resolvedRelated = await resolveRelatedEntities(data.related_entities ?? [], api.getGemEntity);
+      const payload = toV2WritePayload({ ...data, related_entities: resolvedRelated.slugs }) as unknown as Record<string, unknown>;
+      if (resolvedRelated.warnings.length) toast.warning(resolvedRelated.warnings.map((warning) => relatedEntityWarningText(warning)).join('\n'), { duration: 10000 });
       if (isEdit && editSlug) {
-        await api.replaceGemEntity(editSlug, toV2WritePayload(data) as unknown as Record<string, unknown>, apiKey);
+        await api.replaceGemEntity(editSlug, payload, apiKey);
         toast.success('Минерал обновлён!');
       } else {
-        await api.createGemEntity(toV2WritePayload(data) as unknown as Record<string, unknown>, apiKey);
+        await api.createGemEntity(payload, apiKey);
         toast.success('Минерал создан!');
       }
       router.push('/admin/minerals');
@@ -159,8 +163,8 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
         const firstError = error.fields[0];
         if (firstError) setActiveTab(getTab(firstError.path).value);
         const detail = error.fields.slice(0, 3).map(e => readableError(e.path, e.message)).join('; ');
-        toast.error(detail || error.message, { duration: 10000 });
-      } else toast.error(error instanceof Error ? error.message : 'Ошибка сохранения');
+        toast.error(detail || normalizeErrorMessage(error, 'Не удалось сохранить карточку.'), { duration: 10000 });
+      } else toast.error(normalizeErrorMessage(error, 'Не удалось сохранить карточку.'));
     }
   };
 

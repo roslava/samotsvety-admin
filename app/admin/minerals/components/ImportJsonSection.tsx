@@ -12,7 +12,9 @@ import { useMemo, useState } from 'react';
 import { Copy, Download, Upload } from 'lucide-react';
 import { MINERAL_IMPORT_EXAMPLE } from '@/lib/mineral-import-example';
 import { normalizeV2ImportSourceUrls } from '@/lib/v2-helpers';
-import { MINERAL_MARKDOWN_PROMPT_TEMPLATE, MINERAL_MARKDOWN_TEMPLATE, MineralMarkdownParseError, parseMineralMarkdown } from '@/lib/mineral-markdown';
+import { MINERAL_MARKDOWN_PROMPT_TEMPLATE, MINERAL_MARKDOWN_TEMPLATE, MineralMarkdownParseError, parseMineralMarkdownWithWarnings } from '@/lib/mineral-markdown';
+import { api } from '@/lib/api';
+import { relatedEntityWarningText, resolveRelatedEntities } from '@/lib/related-entities';
 
 interface ImportJsonSectionProps {
   form: UseFormReturn<MineralFormData>;
@@ -30,7 +32,7 @@ const PROMPT_TEMPLATE = `Ты — эксперт-минералог и гемм�
 
 Перед выбором type сначала определи научную природу объекта. type определяется по ней, а не по торговому названию, слову "jasper", использованию в ювелирном деле или названию раздела админки. mineral — самостоятельный минеральный вид. rock — горная порода, полиминеральный агрегат или природная смесь минералов, если объект геологически является породой. gem_variety — геммологическая или ювелирная разновидность конкретного минерала либо минерального материала, когда это именно разновидность, а не отдельная горная порода. organic — природный материал органического происхождения. Не классифицируй объект как mineral только потому, что он называется "камнем", gemstone, jasper или подобным торговым названием. Контрольный пример: Kambaba Jasper → type: "rock", scientific.rock_type: "igneous"; не mineral и не sedimentary rock.
 
-scientific содержит только: chemical_formula, hardness {min,max} (числа 1–10), specific_gravity {min,max} (положительные числа), rarity (common|uncommon|rare|very_rare), base_color (red|black|bi_color|blue|brown|green|yellow|grey|purple|white|pink|multicolor|orange), mineral_class (native_elements|sulfides_sulfosalts|halides|oxides_hydroxides|carbonates_nitrates|borates|sulfates_chromates_molybdates_tungstates|phosphates_arsenates_vanadates|silicates|organic), silicate_subclass (nesosilicates|sorosilicates|cyclosilicates|inosilicates|phyllosilicates|tectosilicates), mineral_family (garnet_group|feldspar_group|quartz_group|tourmaline_group|mica_group|pyroxene_group|amphibole_group|zeolite_group|beryl_group|spinel_group|corundum_group|calcite_group), crystal_system (monoclinic|orthorhombic|hexagonal|trigonal|isometric|triclinic|tetragonal|amorphous), crystal_habit, streak (black|white_or_colourless|grey|green|blue|brown|pink_to_red|yellow_to_orange), transparency (transparent|translucent|opaque), luster, tenacity, fracture (conchoidal|uneven|splintery|hackly|earthy|fibrous), cleavage_degree (none|very_poor|poor|good|perfect), cleavage_direction ("1"|"2"|"3"|"4"), cleavage_type (basal|prismatic|pinacoidal|rhombohedral|cubic|octahedral|dodecahedral), phenomena, ima_status (approved|grandfathered|questionable|discredited), rock_type (igneous|sedimentary|metamorphic). Массивы crystal_habit, luster, tenacity и phenomena содержат только коды из schema. base_color описывай, когда он известен. Для type=rock не требуй и не выдумывай свойства отдельного минерала: chemical_formula, crystal_system, mineral_class, IMA и подобные поля добавляй лишь когда они применимы. rock_type применяй только для rock: он отражает происхождение породы (igneous | sedimentary | metamorphic), а не торговое название. Если происхождение достоверно определить нельзя, не заполняй rock_type, а не угадывай.
+scientific содержит только: chemical_formula, hardness {min,max} (числа 1–10), specific_gravity {min,max} (положительные числа), rarity (common|uncommon|rare|very_rare), base_color (red|black|bi_color|blue|brown|green|yellow|grey|purple|white|pink|multicolor|orange), mineral_class (native_elements|sulfides_sulfosalts|halides|oxides_hydroxides|carbonates_nitrates|borates|sulfates_chromates_molybdates_tungstates|phosphates_arsenates_vanadates|silicates|organic), silicate_subclass (nesosilicates|sorosilicates|cyclosilicates|inosilicates|phyllosilicates|tectosilicates), mineral_family (garnet_group|feldspar_group|quartz_group|tourmaline_group|mica_group|pyroxene_group|amphibole_group|zeolite_group|beryl_group|spinel_group|corundum_group|calcite_group), crystal_system (monoclinic|orthorhombic|hexagonal|trigonal|isometric|triclinic|tetragonal|amorphous), crystal_habit, streak (black|white_or_colourless|grey|green|blue|brown|pink_to_red|yellow_to_orange), transparency (transparent|translucent|opaque), luster, tenacity, fracture (conchoidal|uneven|splintery|hackly|earthy|fibrous), cleavage_degree (none|very_poor|poor|good|perfect), cleavage_direction ("1"|"2"|"3"|"4"), cleavage_type (basal|prismatic|pinacoidal|rhombohedral|cubic|octahedral|dodecahedral), phenomena, ima_status (approved|grandfathered|questionable|discredited), rock_type (igneous|sedimentary|metamorphic). Только crystal_habit, luster, tenacity и phenomena — массивы кодов. Все остальные scientific enum-поля (включая transparency и fracture) — scalar: ровно одно enum-значение или null/отсутствует; массив и строка с несколькими значениями через запятую запрещены. base_color описывай, когда он известен. Для type=rock не требуй и не выдумывай свойства отдельного минерала: chemical_formula, crystal_system, mineral_class, IMA и подобные поля добавляй лишь когда они применимы. rock_type применяй только для rock: он отражает происхождение породы (igneous | sedimentary | metamorphic), а не торговое название. Если происхождение достоверно определить нельзя, не заполняй rock_type, а не угадывай.
 
 В scientific НИКОГДА не включай hardness_note или composition. Локализованные заметки указывай отдельно как i18n.ru.scientific_notes {hardness, composition} и i18n.en.scientific_notes {hardness, composition}.
 
@@ -146,10 +148,10 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
     setJsonInput('');
   };
 
-  const handleMarkdownImport = () => {
-    let parsed: unknown;
+  const handleMarkdownImport = async () => {
+    let parsed: { data: unknown; warnings: ReturnType<typeof parseMineralMarkdownWithWarnings>['warnings'] };
     try {
-      parsed = parseMineralMarkdown(markdownInput);
+      parsed = parseMineralMarkdownWithWarnings(markdownInput);
     } catch (error) {
       const message = error instanceof MineralMarkdownParseError
         ? `Ошибка Markdown: ${error.message}`
@@ -157,14 +159,20 @@ export function ImportJsonSection({ form }: ImportJsonSectionProps) {
       toast.error(message, { duration: 12000 });
       return;
     }
-    const result = GemEntityV2ImportSchema.safeParse(parsed);
+    const result = GemEntityV2ImportSchema.safeParse(parsed.data);
     if (!result.success) {
       const preview = result.error.issues.slice(0, 5).map((issue) => `${issue.path.join('.')}: ${issue.message}`).join('\n');
       toast.error(`Markdown разобран, но не соответствует canonical V2:\n${preview}`, { duration: 12000 });
       return;
     }
-    form.reset(result.data);
-    toast.success('Форма обновлена из Markdown — все поля прошли canonical V2 проверку');
+    const resolved = await resolveRelatedEntities(result.data.related_entities ?? [], api.getGemEntity);
+    form.reset({ ...result.data, related_entities: resolved.slugs });
+    const warnings = [...parsed.warnings, ...resolved.warnings];
+    if (warnings.length) {
+      toast.warning(`Карточка импортирована, но некоторые связи пропущены:\n${warnings.map((warning) => relatedEntityWarningText(warning)).join('\n')}`, { duration: 12000 });
+    } else {
+      toast.success('Форма обновлена из Markdown — все поля прошли canonical V2 проверку');
+    }
   };
 
   const handleMarkdownFile = async (file?: File) => {
