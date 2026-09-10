@@ -1,6 +1,6 @@
-# Samotsvety: canonical V2 import schema
+# Samotsvety: canonical V2 schema
 
-Для импорта минералов canonical contract — `GemEntityV2ImportSchema`, идентичная `MineralSchema` в `lib/validations/mineral.ts`. Это strict Zod schema: любой неописанный ключ делает JSON невалидным.
+Для V2 API canonical contract — `GemEntityV2ImportSchema`, идентичная `MineralSchema` в `lib/validations/mineral.ts`. Это strict Zod schema: любой неописанный ключ делает JSON невалидным. Markdown — единственный пользовательский формат импорта в админке; JSON используется для передачи данных в API.
 
 Запись имеет обязательные `slug`, `type`, `scientific`, `i18n.ru` и `i18n.en`; в каждом языке нужен `name`. Возможные type: `mineral`, `rock`, `gem_variety`, `organic`.
 

@@ -273,8 +273,7 @@ function EsotericFields({ form, lang }: { form: UseFormReturn<MineralFormData>; 
         )}
       />
 
-      {/* ritual_uses — было в схеме (EsotericSchema.ritual_uses), но контрола
-          не было ни на одном языке; попасть можно было только через JSON-импорт. */}
+      {/* ritual_uses присутствует в canonical schema и доступен для обоих языков. */}
       <FormField
         control={form.control}
         name={`i18n.${lang}.esoteric.ritual_uses`}

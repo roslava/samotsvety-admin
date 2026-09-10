@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { api, ApiValidationError } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 
-import { ImportJsonSection } from './ImportJsonSection';
+import { ImportMarkdownSection } from './ImportMarkdownSection';
 import { toV2WritePayload } from '@/lib/v2-helpers';
 import { BasicInfoSection } from './BasicInfoSection';
 import { ScientificSection } from './ScientificSection';
@@ -201,7 +201,7 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
                 <TabsTrigger value="localities">Месторождения</TabsTrigger>
                 <TabsTrigger value="images">Изображения</TabsTrigger>
                 <TabsTrigger value="sources">Источники</TabsTrigger>
-                <TabsTrigger value="import">JSON</TabsTrigger>
+                <TabsTrigger value="import">Markdown</TabsTrigger>
               </TabsList>
               <TabsContent value="basic" className="mt-6"><BasicInfoSection form={form} /></TabsContent>
               <TabsContent value="scientific" className="mt-6"><ScientificSection form={form} /></TabsContent>
@@ -210,7 +210,7 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
               <TabsContent value="images" className="mt-6"><GallerySection form={form} onStorageKeyManualChange={() => { storageKeyEdited.current = true; }} /></TabsContent>
               <TabsContent value="sources" className="mt-6"><SourcesSection form={form} /></TabsContent>
               <TabsContent value="import" className="mt-6">
-                <ImportJsonSection form={form} />
+                <ImportMarkdownSection form={form} />
               </TabsContent>
             </Tabs>
           </CardContent>

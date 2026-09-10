@@ -1,6 +1,6 @@
-# Canonical V2 шаблон минерала
+# Canonical V2 JSON-представление минерала
 
-Источник истины для импортируемой записи — `lib/validations/mineral.ts`: `GemEntityV2ImportSchema = MineralSchema`. Схема strict: не добавляйте ключи, которых в ней нет.
+Источник истины для V2 API JSON-представления — `lib/validations/mineral.ts`: `GemEntityV2ImportSchema = MineralSchema`. Это strict schema: не добавляйте ключи, которых в ней нет. В админке пользователь импортирует только Markdown; JSON остаётся транспортным форматом API.
 
 ## Верхний уровень
 
@@ -53,4 +53,4 @@
 
 `sources` — массив объектов с ключами `title`, `url`, `author`, `publisher`. В каждом источнике должен быть хотя бы `title` или `url`.
 
-Перед импортом проверьте объект через `GemEntityV2ImportSchema.safeParse(example)`.
+Перед отправкой в V2 API проверьте объект через `GemEntityV2ImportSchema.safeParse(example)`.

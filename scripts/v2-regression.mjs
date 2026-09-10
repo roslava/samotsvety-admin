@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { normalizeV2ImportSourceUrls, parseV2Import, toV2WritePayload } from '../lib/v2-helpers.ts';
+import { toV2WritePayload } from '../lib/v2-helpers.ts';
 import { GemEntityV2ImportSchema } from '../lib/validations/mineral.ts';
 import { MINERAL_IMPORT_EXAMPLE } from '../lib/mineral-import-example.ts';
 import { COUNTRIES, getCountryByCode, getCountryValues } from '../lib/countries.ts';
@@ -17,26 +16,12 @@ assert.deepEqual(getCountryValues(madagascar), { country_code: 'MG', country_ru:
 
 const kambaba = MINERAL_IMPORT_EXAMPLE;
 assert.equal(GemEntityV2ImportSchema.safeParse(kambaba).success, true, 'canonical example must pass MineralSchema');
-const importPrompt = readFileSync(new URL('../app/admin/minerals/components/ImportJsonSection.tsx', import.meta.url), 'utf8');
-assert.ok(importPrompt.includes('При генерации JSON для ручного копирования из AI НЕ включай sources[].url.'), 'AI prompt must explicitly omit source URLs');
-assert.equal(importPrompt.includes('экранируй каждый символ "/"'), false, 'AI prompt must not require escaped URL slashes');
-assert.equal(importPrompt.includes('encodeURIComponent'), false, 'AI prompt must not include URL encoding instructions');
-assert.equal(importPrompt.includes('Не экранируй двоеточие, ?, &, = или %'), false, 'AI prompt must not include special URL character escaping instructions');
 const sourceWithoutUrl = { ...kambaba, sources: [{ title: 'Mindat: Kambaba Jasper', author: 'Mindat', publisher: 'Mindat.org' }] };
 assert.equal(GemEntityV2ImportSchema.safeParse(sourceWithoutUrl).success, true, 'source with title and no URL must pass import schema validation');
 const sourceWithUrl = { ...kambaba, sources: [{ url: 'https://www.mindat.org/min-52559.html' }] };
 assert.equal(GemEntityV2ImportSchema.safeParse(sourceWithUrl).success, true, 'source with a normal URL must remain supported by import schema validation');
 const sourceWithoutTitleOrUrl = { ...kambaba, sources: [{ author: 'Mindat', publisher: 'Mindat.org' }] };
 assert.equal(GemEntityV2ImportSchema.safeParse(sourceWithoutTitleOrUrl).success, false, 'source without title or URL must fail import schema validation');
-const parsed = parseV2Import(JSON.stringify(kambaba));
-assert.equal(parsed.type, 'rock'); assert.equal(parsed.scientific.rock_type, 'igneous');
-assert.equal(parsed.scientific.hardness.min, 6); assert.equal(parsed.scientific.hardness.max, 7);
-assert.equal(parsed.scientific.specific_gravity.min, 2.6); assert.equal(parsed.scientific.specific_gravity.max, 2.8);
-assert.equal(parsed.i18n.ru.scientific_notes.hardness, '6–7 по шкале Мооса.'); assert.equal(parsed.i18n.en.scientific_notes.hardness, '6–7 on the Mohs scale.');
-assert.equal(parsed.i18n.ru.scientific_notes.composition, 'Вулканическая риолитовая порода.'); assert.equal(parsed.i18n.en.scientific_notes.composition, 'A rhyolitic volcanic rock.');
-assert.equal(parsed.images.storage_key, 'kambaba_jasper'); assert.equal(parsed.images.gallery.length, 1);
-assert.equal(parsed.localities[0].country_code, 'MG'); assert.equal(parsed.sources[0].title, 'Mindat: Kambaba Jasper'); assert.deepEqual(parsed.related_entities, []);
-assert.equal(parsed.scientific.hardness_note, undefined); assert.equal(parsed.scientific.composition, undefined);
 assert.deepEqual(parseRelatedEntityInput(' jasper, quartz, jasper, , ').slugs, ['jasper', 'quartz'], 'related slugs must trim, dedupe, and preserve order');
 assert.deepEqual(parseRelatedEntityInput('iron oxides, Iron-Oxides, iron_oxides').warnings.map((warning) => warning.slug), ['iron oxides', 'Iron-Oxides', 'iron_oxides'], 'invalid related slugs must be reported');
 let relatedGetCalls = 0;
@@ -70,28 +55,9 @@ for (const coordinate_precision of ['exact', 'approximate', 'region']) {
   assert.equal(GemEntityV2ImportSchema.safeParse(withLocality({ coordinate_precision })).success, true, `${coordinate_precision} coordinate precision must pass`);
 }
 assert.equal(GemEntityV2ImportSchema.safeParse(withLocality({ coordinate_precision: 'estimated' })).success, false, 'unknown coordinate precision must fail');
-assert.throws(() => parseV2Import(JSON.stringify(withLocality({ geojson: { type: 'Point', coordinates: [46.5, -16.4] } }))), 'unknown locality geo keys must be rejected by strict import');
-assert.equal(parseV2Import(JSON.stringify({...kambaba, scientific:{...kambaba.scientific, crystal_system:'trigonal',base_color:'green'}})).scientific.crystal_system, 'trigonal');
-const sourceUrl = kambaba.sources[0].url;
-const normalUrl = normalizeV2ImportSourceUrls({...kambaba, sources: [{...kambaba.sources[0], url: sourceUrl}]});
-assert.equal(normalUrl.sources[0].url, sourceUrl, 'normal source URL must remain unchanged');
-const markdownUrl = normalizeV2ImportSourceUrls({...kambaba, sources: [{...kambaba.sources[0], url: `[${sourceUrl}](${sourceUrl})`}]});
-assert.equal(markdownUrl.sources[0].url, sourceUrl, 'identical Markdown source URL must be normalized');
-const mismatchedMarkdownUrl = normalizeV2ImportSourceUrls({...kambaba, sources: [{...kambaba.sources[0], url: `[${sourceUrl}](https://example.com/other)`}]});
-assert.equal(GemEntityV2ImportSchema.safeParse(mismatchedMarkdownUrl).success, false, 'mismatched Markdown source URL must not be accepted');
-const escapedSlashSourceCases = [
-  { rawUrl: 'https:\\/\\/www.mindat.org\\/min-52559.html', expectedUrl: 'https://www.mindat.org/min-52559.html', name: 'Mindat URL' },
-  { rawUrl: 'https:\\/\\/www.epigem.de\\/en-us\\/?catid=73&id=350%3Anebula-kambaba-eldarite&layout=blog&view=article', expectedUrl: 'https://www.epigem.de/en-us/?catid=73&id=350%3Anebula-kambaba-eldarite&layout=blog&view=article', name: 'Epigem query URL' },
-];
-for (const { rawUrl, expectedUrl, name } of escapedSlashSourceCases) {
-  const rawJson = JSON.stringify({...kambaba, sources: [{...kambaba.sources[0], url: sourceUrl}]}).replace(sourceUrl, rawUrl);
-  assert.ok(rawJson.includes(`"${rawUrl}"`), `${name} must use escaped slashes in raw JSON`);
-  const parsedRawJson = JSON.parse(rawJson);
-  assert.equal(parsedRawJson.sources[0].url, expectedUrl, `${name} must restore the exact URL after JSON.parse`);
-  assert.equal(GemEntityV2ImportSchema.safeParse(parsedRawJson).success, true, `${name} must pass import schema validation after JSON.parse`);
-}
-const invalidUrl = normalizeV2ImportSourceUrls({...kambaba, sources: [{...kambaba.sources[0], url: 'not-a-url'}]});
-assert.equal(GemEntityV2ImportSchema.safeParse(invalidUrl).success, false, 'invalid source URL must fail schema validation');
+assert.equal(GemEntityV2ImportSchema.safeParse(withLocality({ geojson: { type: 'Point', coordinates: [46.5, -16.4] } })).success, false, 'unknown locality geo keys must be rejected by strict schema');
+assert.equal(GemEntityV2ImportSchema.safeParse({ ...kambaba, scientific: { ...kambaba.scientific, crystal_system: 'trigonal' } }).success, true, 'valid scalar enum must pass schema validation');
+assert.equal(GemEntityV2ImportSchema.safeParse({ ...kambaba, sources: [{ ...kambaba.sources[0], url: 'not-a-url' }] }).success, false, 'invalid source URL must fail schema validation');
 const legacyExamples = [
   {...kambaba,scientific:{...kambaba.scientific,hardness_note:'legacy'}},
   {...kambaba,scientific:{...kambaba.scientific,composition:'legacy'}},
@@ -101,8 +67,7 @@ const legacyExamples = [
   {...kambaba,images:{...kambaba.images,gallery:[{...kambaba.images.gallery[0],url:'https://example.com/gallery.webp'}]}},
   {...kambaba,related_minerals:[]},
 ];
-for (const bad of [{extra:true},{...kambaba,scientific:{...kambaba.scientific,chemical_class:'x'}},...legacyExamples]) assert.throws(() => parseV2Import(JSON.stringify(bad)));
-assert.throws(() => parseV2Import('{bad'));
+for (const bad of [{extra:true},{...kambaba,scientific:{...kambaba.scientific,chemical_class:'x'}},...legacyExamples]) assert.equal(GemEntityV2ImportSchema.safeParse(bad).success, false, 'strict schema must reject legacy or unknown fields');
 const write = toV2WritePayload({...kambaba, created_at:'x', updated_at:'y'});
 assert.equal('created_at' in write, false); assert.equal('updated_at' in write, false);
 for (const key of ['related_minerals','main_image_url','thumbnail_url','is_russian']) assert.equal(key in write, false);
