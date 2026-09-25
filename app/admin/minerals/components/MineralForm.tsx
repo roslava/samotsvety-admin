@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { api, ApiValidationError } from '@/lib/api';
 import { useRouter } from 'next/navigation';
+import { Upload } from 'lucide-react';
 
 import { ImportMarkdownSection } from './ImportMarkdownSection';
 import { toV2WritePayload } from '@/lib/v2-helpers';
@@ -94,6 +95,7 @@ const emptyLangData = {
 export default function MineralForm({ defaultValues, isEdit = false, slug: editSlug }: MineralFormProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('basic');
+  const [isMarkdownImportOpen, setIsMarkdownImportOpen] = useState(false);
   const storageKeyEdited = useRef(isEdit || Boolean(defaultValues?.images?.storage_key));
   const automaticallySuggestedStorageKey = useRef<string | null>(null);
 
@@ -151,10 +153,10 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
       if (resolvedRelated.warnings.length) toast.warning(resolvedRelated.warnings.map((warning) => relatedEntityWarningText(warning)).join('\n'), { duration: 10000 });
       if (isEdit && editSlug) {
         await api.replaceGemEntity(editSlug, payload, apiKey);
-        toast.success('Минерал обновлён!');
+        toast.success('Карточка обновлена!');
       } else {
         await api.createGemEntity(payload, apiKey);
-        toast.success('Минерал создан!');
+        toast.success('Карточка создана!');
       }
       router.push('/admin/minerals');
     } catch (error: unknown) {
@@ -191,27 +193,43 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-8">
+        <div className="space-y-4">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsMarkdownImportOpen((open) => !open)}
+            aria-expanded={isMarkdownImportOpen}
+            aria-controls="markdown-import"
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            {isMarkdownImportOpen ? 'Скрыть импорт Markdown' : 'Импортировать из Markdown'}
+          </Button>
+          {isMarkdownImportOpen && (
+            <div id="markdown-import">
+              <ImportMarkdownSection form={form} />
+            </div>
+          )}
+        </div>
         <Card>
           <CardContent className="pt-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-7 overflow-x-auto">
-                <TabsTrigger value="basic">Основное</TabsTrigger>
-                <TabsTrigger value="scientific">Научные</TabsTrigger>
-                <TabsTrigger value="i18n">RU / EN</TabsTrigger>
-                <TabsTrigger value="localities">Месторождения</TabsTrigger>
-                <TabsTrigger value="images">Изображения</TabsTrigger>
-                <TabsTrigger value="sources">Источники</TabsTrigger>
-                <TabsTrigger value="import">Markdown</TabsTrigger>
-              </TabsList>
+              <div className="overflow-x-auto">
+                <TabsList className="grid min-w-[44rem] grid-cols-6">
+                  <TabsTrigger value="basic">Основное</TabsTrigger>
+                  <TabsTrigger value="scientific">Научные</TabsTrigger>
+                  <TabsTrigger value="i18n">RU / EN</TabsTrigger>
+                  <TabsTrigger value="localities">Месторождения</TabsTrigger>
+                  <TabsTrigger value="images">Изображения</TabsTrigger>
+                  <TabsTrigger value="sources">Источники</TabsTrigger>
+                </TabsList>
+              </div>
               <TabsContent value="basic" className="mt-6"><BasicInfoSection form={form} /></TabsContent>
               <TabsContent value="scientific" className="mt-6"><ScientificSection form={form} /></TabsContent>
               <TabsContent value="i18n" className="mt-6"><I18nSection form={form} /></TabsContent>
               <TabsContent value="localities" className="mt-6"><LocalitiesSection form={form} /></TabsContent>
               <TabsContent value="images" className="mt-6"><GallerySection form={form} onStorageKeyManualChange={() => { storageKeyEdited.current = true; }} /></TabsContent>
               <TabsContent value="sources" className="mt-6"><SourcesSection form={form} /></TabsContent>
-              <TabsContent value="import" className="mt-6">
-                <ImportMarkdownSection form={form} />
-              </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
@@ -219,7 +237,7 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
         <Button type="submit" size="lg" className="w-full" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting
             ? 'Сохранение...'
-            : isEdit ? 'Обновить минерал' : 'Создать минерал'
+            : isEdit ? 'Обновить карточку' : 'Создать карточку'
           }
         </Button>
       </form>

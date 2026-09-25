@@ -70,4 +70,13 @@ Markdown — единственный пользовательский форм�
 Полная валидация через Zod
 
 ## Связь с backend
-NEXT_PUBLIC_API_URL=http://localhost:8080
+
+Перед входом запустите `samotsvety-api` и проверьте `http://localhost:8080/health`.
+Админка отправляет запросы к API через свой сервер, поэтому адрес backend должен быть доступен из процесса Next.js:
+
+```bash
+API_URL=http://localhost:8080
+```
+
+Если `API_URL` не задан, используется `NEXT_PUBLIC_API_URL` из `.env.local`, затем `http://localhost:8080`.
+После изменения адреса перезапустите Next.js.

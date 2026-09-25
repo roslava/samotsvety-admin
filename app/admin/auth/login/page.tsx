@@ -24,29 +24,25 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      
-      // Проверяем ключ на бэкенде
-      const res = await fetch(`${apiUrl}/api/v1/minerals`, {
-        method: 'GET',
+      const res = await fetch('/api/admin/verify', {
+        method: 'POST',
         headers: {
-          'X-API-Key': apiKey,
+          'X-API-Key': apiKey.trim(),
           'Content-Type': 'application/json',
         },
       });
 
       if (!res.ok) {
-        throw new Error('Неверный API Key');
+        const result = await res.json().catch(() => ({}));
+        throw new Error(result.message || 'Не удалось проверить API Key');
       }
 
-      // Если дошли сюда — ключ валидный
-      localStorage.setItem('admin_api_key', apiKey);
+      localStorage.setItem('admin_api_key', apiKey.trim());
       toast.success('Успешный вход!');
       router.push('/admin/minerals');
       
     } catch (error) {
-      console.error(error);
-      toast.error('Неверный API Key или проблема с сервером');
+      toast.error(error instanceof Error ? error.message : 'Не удалось проверить API Key');
     } finally {
       setIsLoading(false);
     }
