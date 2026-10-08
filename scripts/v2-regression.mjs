@@ -23,7 +23,7 @@ assert.equal(GemEntityV2ImportSchema.safeParse(sourceWithUrl).success, true, 'so
 const sourceWithoutTitleOrUrl = { ...kambaba, sources: [{ author: 'Mindat', publisher: 'Mindat.org' }] };
 assert.equal(GemEntityV2ImportSchema.safeParse(sourceWithoutTitleOrUrl).success, false, 'source without title or URL must fail import schema validation');
 assert.deepEqual(parseRelatedEntityInput(' jasper, quartz, jasper, , ').slugs, ['jasper', 'quartz'], 'related slugs must trim, dedupe, and preserve order');
-assert.deepEqual(parseRelatedEntityInput('iron oxides, Iron-Oxides, iron_oxides').warnings.map((warning) => warning.slug), ['iron oxides', 'Iron-Oxides', 'iron_oxides'], 'invalid related slugs must be reported');
+assert.deepEqual(parseRelatedEntityInput('iron oxides, Iron-Oxides, iron_oxides, -jasper, jasper--red').warnings.map((warning) => warning.slug), ['iron oxides', 'Iron-Oxides', 'iron_oxides', '-jasper', 'jasper--red'], 'invalid related slugs must be reported without changing them');
 let relatedGetCalls = 0;
 const resolvedRelated = await resolveRelatedEntities(['jasper', 'quartz', 'jasper', 'radiolarite', 'iron oxides'], async (slug) => {
   relatedGetCalls++;
@@ -34,10 +34,43 @@ const resolvedRelated = await resolveRelatedEntities(['jasper', 'quartz', 'jaspe
 assert.equal(relatedGetCalls, 3, 'a duplicate related slug must only cause one GET');
 assert.deepEqual(resolvedRelated.slugs, ['jasper'], 'only existing related entities may be retained');
 assert.deepEqual(resolvedRelated.warnings.map((warning) => warning.kind), ['invalid', 'unverified', 'not-found'], 'invalid, network, and 404 failures must remain distinct');
+assert.equal(resolvedRelated.canSave, false, 'a transient verification failure must block the entire write');
+const originalRelations = ['jasper', 'quartz'];
+const networkFailure = await resolveRelatedEntities(originalRelations, async (slug) => {
+  if (slug === 'quartz') throw { status: 503 };
+  return { slug };
+});
+assert.equal(networkFailure.canSave, false, '5xx verification must block saving');
+assert.deepEqual(originalRelations, ['jasper', 'quartz'], 'failed verification must not mutate source relations');
+const notFoundRelation = await resolveRelatedEntities(originalRelations, async (slug) => {
+  if (slug === 'quartz') throw { status: 404 };
+  return { slug };
+});
+assert.equal(notFoundRelation.canSave, true, 'confirmed 404 must remain non-blocking');
+assert.deepEqual(notFoundRelation.slugs, ['jasper'], 'confirmed missing relation must be excluded');
+const validRelations = await resolveRelatedEntities(originalRelations, async (slug) => ({ slug }));
+assert.equal(validRelations.canSave, true, 'valid relations must permit saving');
+assert.deepEqual(validRelations.slugs, originalRelations);
+const selfRelated = await resolveRelatedEntities(['kambaba-jasper', 'jasper', 'jasper'], async (slug) => ({ slug, i18n: { ru: { name: 'Яшма' }, en: { name: 'Jasper' } } }), 'kambaba-jasper');
+assert.deepEqual(selfRelated.slugs, ['jasper'], 'own slug and duplicate links must not reach the write payload');
+assert.deepEqual(selfRelated.warnings.map((warning) => warning.kind), ['self'], 'self link must produce a non-blocking warning');
+assert.equal(selfRelated.entities.get('jasper').i18n.ru.name, 'Яшма', 'resolved entity names must be available to the existing form');
 assert.equal(normalizeErrorMessage({}), 'Не удалось выполнить запрос.', 'empty API errors must never render as undefined');
 const markdownWithBadRelated = parseMineralMarkdownWithWarnings(MINERAL_MARKDOWN_TEMPLATE.replace('## Связанные сущности\n\n', '## Связанные сущности\n- jasper\n- iron oxides\n- jasper\nобычный минералогический текст\n\n'));
 assert.deepEqual(markdownWithBadRelated.data.related_entities, ['jasper'], 'Markdown must retain only syntactically valid unique list slugs');
 assert.deepEqual(markdownWithBadRelated.warnings.map((warning) => warning.slug), ['iron oxides'], 'Markdown invalid related entries must not block the card import');
+const relationSection = (slugs) => `## Связанные сущности\n${slugs.map((slug) => `- ${slug}`).join('\n')}\n\n`;
+const firstImport = parseMineralMarkdown(MINERAL_MARKDOWN_TEMPLATE.replace('## Связанные сущности\n\n', relationSection(['jasper', 'jasper', 'kambaba-jasper', 'missing-jasper'])));
+const firstResolved = await resolveRelatedEntities(firstImport.related_entities, async (slug) => {
+  if (slug === 'missing-jasper') throw { status: 404 };
+  return { slug };
+}, firstImport.slug);
+assert.deepEqual(firstResolved.slugs, ['jasper'], 'duplicate, own, and missing Markdown links must be skipped');
+assert.deepEqual(firstResolved.warnings.map((warning) => warning.kind), ['self', 'not-found']);
+const secondImport = parseMineralMarkdown(MINERAL_MARKDOWN_TEMPLATE.replace('## Связанные сущности\n\n', relationSection(['quartz'])));
+assert.deepEqual(secondImport.related_entities, ['quartz'], 'a later import must replace rather than append links');
+const emptyImport = parseMineralMarkdown(MINERAL_MARKDOWN_TEMPLATE);
+assert.deepEqual(emptyImport.related_entities, [], 'an empty related section must clear links on reimport');
 const locality = kambaba.localities[0];
 const withLocality = (localityPatch) => ({ ...kambaba, localities: [{ ...locality, ...localityPatch }] });
 const withoutGeo = { ...locality };

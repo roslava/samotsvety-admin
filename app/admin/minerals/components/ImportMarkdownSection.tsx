@@ -15,6 +15,7 @@ import { relatedEntityWarningText, resolveRelatedEntities, type RelatedEntityWar
 
 interface ImportMarkdownSectionProps {
   form: UseFormReturn<MineralFormData>;
+  onImported?: () => void;
 }
 
 interface ImportSummary {
@@ -30,7 +31,7 @@ interface ImportSummary {
 
 const STONE_NAME_PLACEHOLDER = '[НАЗВАНИЕ_КАМНЯ]';
 
-export function ImportMarkdownSection({ form }: ImportMarkdownSectionProps) {
+export function ImportMarkdownSection({ form, onImported }: ImportMarkdownSectionProps) {
   const [markdownInput, setMarkdownInput] = useState('');
   const [markdownFileName, setMarkdownFileName] = useState('');
   const [summary, setSummary] = useState<ImportSummary | null>(null);
@@ -59,8 +60,13 @@ export function ImportMarkdownSection({ form }: ImportMarkdownSectionProps) {
       return;
     }
     const relatedEntities = result.data.related_entities ?? [];
-    const resolved = await resolveRelatedEntities(relatedEntities, api.getGemEntity);
+    const resolved = await resolveRelatedEntities(relatedEntities, api.getGemEntity, result.data.slug);
+    if (!resolved.canSave) {
+      toast.error('Не удалось проверить связанные камни. Форма не изменена; повторите импорт, когда API будет доступен.', { duration: 12000 });
+      return;
+    }
     form.reset({ ...result.data, related_entities: resolved.slugs });
+    onImported?.();
     setSummary({
       scientificFields: Object.keys(result.data.scientific ?? {}).length,
       localities: result.data.localities?.length ?? 0,

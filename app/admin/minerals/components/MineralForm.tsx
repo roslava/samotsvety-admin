@@ -96,6 +96,7 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('basic');
   const [isMarkdownImportOpen, setIsMarkdownImportOpen] = useState(false);
+  const [importRevision, setImportRevision] = useState(0);
   const storageKeyEdited = useRef(isEdit || Boolean(defaultValues?.images?.storage_key));
   const automaticallySuggestedStorageKey = useRef<string | null>(null);
 
@@ -148,7 +149,11 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
     }
 
     try {
-      const resolvedRelated = await resolveRelatedEntities(data.related_entities ?? [], api.getGemEntity);
+      const resolvedRelated = await resolveRelatedEntities(data.related_entities ?? [], api.getGemEntity, data.slug);
+      if (!resolvedRelated.canSave) {
+        toast.error('Не удалось проверить связанные камни. Карточка не сохранена; повторите попытку, когда API будет доступен.', { duration: 12000 });
+        return;
+      }
       const payload = toV2WritePayload({ ...data, related_entities: resolvedRelated.slugs }) as unknown as Record<string, unknown>;
       if (resolvedRelated.warnings.length) toast.warning(resolvedRelated.warnings.map((warning) => relatedEntityWarningText(warning)).join('\n'), { duration: 10000 });
       if (isEdit && editSlug) {
@@ -207,7 +212,7 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
           </Button>
           {isMarkdownImportOpen && (
             <div id="markdown-import">
-              <ImportMarkdownSection form={form} />
+              <ImportMarkdownSection form={form} onImported={() => setImportRevision((revision) => revision + 1)} />
             </div>
           )}
         </div>
@@ -224,7 +229,7 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
                   <TabsTrigger value="sources">Источники</TabsTrigger>
                 </TabsList>
               </div>
-              <TabsContent value="basic" className="mt-6"><BasicInfoSection form={form} /></TabsContent>
+              <TabsContent value="basic" className="mt-6"><BasicInfoSection key={importRevision} form={form} /></TabsContent>
               <TabsContent value="scientific" className="mt-6"><ScientificSection form={form} /></TabsContent>
               <TabsContent value="i18n" className="mt-6"><I18nSection form={form} /></TabsContent>
               <TabsContent value="localities" className="mt-6"><LocalitiesSection form={form} /></TabsContent>
