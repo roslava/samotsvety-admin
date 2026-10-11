@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { api, ApiValidationError } from "@/lib/api";
+import { prepareMineralMarkdownExport } from "@/lib/mineral-markdown-export";
 import { GemEntityV2Response, LocalizedContent } from "@/types/mineral";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -562,11 +563,13 @@ export default function MineralDetailPage() {
     Map<string, RelatedLookup>
   >(new Map());
   const [error, setError] = useState("");
+  const [exportError, setExportError] = useState("");
   const [language, setLanguage] = useState<Language>("ru");
   useEffect(() => {
     let cancelled = false;
     setEntity(null);
     setError("");
+    setExportError("");
     setRelatedBySlug(new Map());
     api
       .getGemEntity(slug)
@@ -612,6 +615,26 @@ export default function MineralDetailPage() {
       cancelled = true;
     };
   }, [slug]);
+  const downloadMarkdown = () => {
+    if (!entity) return;
+    setExportError("");
+    try {
+      const { slug: fileSlug, markdown } = prepareMineralMarkdownExport(entity);
+      const url = URL.createObjectURL(new Blob([markdown], { type: "text/markdown;charset=utf-8" }));
+      try {
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${fileSlug}.md`;
+        document.body.appendChild(link);
+        try { link.click(); } finally { link.remove(); }
+      } finally {
+        // Keep the URL alive through the browser's download dispatch.
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+    } catch (cause) {
+      setExportError(cause instanceof Error ? cause.message : "Не удалось подготовить Markdown для скачивания.");
+    }
+  };
   if (error) return <div className="p-8">{error}</div>;
   if (!entity) return <div className="p-8">Загрузка...</div>;
   const ru = language === "ru";
@@ -688,10 +711,14 @@ export default function MineralDetailPage() {
         <Button variant="ghost" onClick={() => router.back()}>
           {ru ? "Назад" : "Back"}
         </Button>
-        <Link href={`/admin/minerals/${entity.slug}/edit`}>
-          <Button>{ru ? "Редактировать" : "Edit"}</Button>
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href={`/admin/minerals/${entity.slug}/edit`}>
+            <Button>{ru ? "Редактировать" : "Edit"}</Button>
+          </Link>
+          <Button variant="outline" onClick={downloadMarkdown}>Скачать Markdown</Button>
+        </div>
       </div>
+      {exportError && <p role="alert" className="text-sm text-destructive">{exportError}</p>}
       <header className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
           {entity.i18n[language].name}

@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import { toV2WritePayload } from '../lib/v2-helpers.ts';
-import { GemEntityV2ImportSchema } from '../lib/validations/mineral.ts';
+import { GemEntityV2ImportSchema, MineralSchema } from '../lib/validations/mineral.ts';
 import { MINERAL_IMPORT_EXAMPLE } from '../lib/mineral-import-example.ts';
 import { COUNTRIES, getCountryByCode, getCountryValues } from '../lib/countries.ts';
 import { MINERAL_MARKDOWN_PROMPT_TEMPLATE, MINERAL_MARKDOWN_TEMPLATE, MineralMarkdownParseError, parseMineralMarkdown, parseMineralMarkdownWithWarnings, serializeMineralMarkdown } from '../lib/mineral-markdown.ts';
+import { prepareMineralMarkdownExport } from '../lib/mineral-markdown-export.ts';
 import { normalizeErrorMessage, parseRelatedEntityInput, resolveRelatedEntities } from '../lib/related-entities.ts';
 
 assert.equal(COUNTRIES.length, 249, 'country directory must contain all ISO 3166-1 alpha-2 entries');
@@ -152,6 +153,65 @@ assert.deepEqual(richParsed.scientific.phenomena, ['iridescence', 'chatoyancy'])
 assert.equal(richParsed.i18n.ru.color_description, 'Первая строка.\nВторая строка.');
 assert.deepEqual(richParsed.i18n.ru.synonyms, ['Камбаба', 'крокодиловая яшма']);
 assert.deepEqual(richParsed.related_entities, ['rhyolite', 'jasper', 'ocean-jasper']);
+
+const apiEntity = {
+  ...richMarkdownData,
+  created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-02T00:00:00Z',
+  scientific: { ...richMarkdownData.scientific, chemical_formula: 'SiO2 | \\ crystal\nform' },
+  i18n: {
+    ru: { ...richMarkdownData.i18n.ru, lore: 'Первая строка | \\ символ\nВторая строка', safety_notes: null,
+      esoteric: { ...richMarkdownData.i18n.ru.esoteric, energy_notes: 'Строка 1\nСтрока 2' } },
+    en: { ...richMarkdownData.i18n.en, lore: 'First line\nSecond line', synonyms: [],
+      scientific_notes: { hardness: null, composition: 'Line one\nLine two' } },
+  },
+  localities: [{ ...kambaba.localities[0], latitude: 0, longitude: 0, coordinate_precision: 'exact', famous: false,
+    description_ru: 'Труба | \\ знак\nНовая строка', description_en: 'Pipe | \\ sign\nNew line' }],
+  images: { ...kambaba.images, gallery: [{ path: 'gallery/a|b\\c.webp', type: 'specimen',
+    caption: { ru: 'Подпись | \\ знак\nВторая строка', en: 'Caption | \\ sign\nSecond line' } }] },
+  related_entities: ['rhyolite', 'jasper'],
+  sources: [{ title: 'Каталог | \\ выпуск\n2', url: 'https://example.com/a%7Cb', author: null, publisher: 'Издатель | \\ дом' }],
+};
+const exported = prepareMineralMarkdownExport(apiEntity);
+assert.equal(exported.slug, apiEntity.slug);
+assert.ok(!exported.markdown.includes('created_at') && !exported.markdown.includes('updated_at'));
+const importedExport = MineralSchema.parse(parseMineralMarkdown(exported.markdown));
+assert.equal(importedExport.localities[0].latitude, 0);
+assert.equal(importedExport.localities[0].longitude, 0);
+assert.equal(importedExport.localities[0].famous, false);
+assert.equal(importedExport.localities[0].description_ru, apiEntity.localities[0].description_ru);
+assert.equal(importedExport.images.gallery[0].caption.en, apiEntity.images.gallery[0].caption.en);
+assert.deepEqual(importedExport.related_entities, apiEntity.related_entities);
+assert.deepEqual(importedExport.scientific.phenomena, apiEntity.scientific.phenomena);
+assert.deepEqual(importedExport.sources[0].title, apiEntity.sources[0].title);
+assert.equal(importedExport.i18n.ru.lore, apiEntity.i18n.ru.lore);
+assert.equal(importedExport.i18n.en.lore, apiEntity.i18n.en.lore);
+assert.equal(importedExport.i18n.en.scientific_notes.composition, apiEntity.i18n.en.scientific_notes.composition);
+assert.equal('safety_notes' in importedExport.i18n.ru, false, 'null optional text maps to missing');
+assert.equal('synonyms' in importedExport.i18n.en, false, 'empty optional array maps to missing');
+const galleryOptionalTypes = {
+  ...apiEntity,
+  images: { ...apiEntity.images, gallery: [
+    { path: 'gallery/null-type.webp', type: null, caption: { ru: 'Без типа' } },
+    { path: 'gallery/missing-type.webp', caption: { en: 'No type' } },
+    { path: 'gallery/filled-type.webp', type: 'specimen', caption: { ru: 'Образец' } },
+  ] },
+};
+const galleryOptionalTypesMarkdown = prepareMineralMarkdownExport(galleryOptionalTypes).markdown;
+const galleryOptionalTypesImported = MineralSchema.parse(parseMineralMarkdown(galleryOptionalTypesMarkdown)).images.gallery;
+assert.equal('type' in galleryOptionalTypesImported[0], false, 'null gallery type must become absent');
+assert.equal('type' in galleryOptionalTypesImported[1], false, 'missing gallery type must remain absent');
+assert.equal(galleryOptionalTypesImported[2].type, 'specimen', 'filled gallery type must remain unchanged');
+assert.equal(galleryOptionalTypesImported[0].caption.ru, 'Без типа');
+assert.equal(galleryOptionalTypesImported[1].caption.en, 'No type');
+const emptyCollections = prepareMineralMarkdownExport({ ...apiEntity, localities: [], images: null, related_entities: [], sources: [] });
+const parsedEmptyCollections = MineralSchema.parse(parseMineralMarkdown(emptyCollections.markdown));
+assert.deepEqual(parsedEmptyCollections.localities, []);
+assert.deepEqual(parsedEmptyCollections.related_entities, []);
+assert.deepEqual(parsedEmptyCollections.sources, []);
+assert.equal(parsedEmptyCollections.images?.gallery?.length ?? 0, 0);
+assert.throws(() => prepareMineralMarkdownExport({ ...apiEntity, i18n: { ...apiEntity.i18n, ru: { ...apiEntity.i18n.ru, synonyms: ['red, blue'] } } }), /не сохраняет значение .*synonyms/, 'comma inside a localized list must block lossy export');
+assert.throws(() => prepareMineralMarkdownExport({ ...apiEntity, images: { ...apiEntity.images, hero: { path: 'https://example.com/hero.webp' } } }), /относительным путём/, 'absolute image URLs must block export');
+assert.throws(() => prepareMineralMarkdownExport({ ...apiEntity, slug: 'Invalid Slug' }), /Карточка не прошла проверку/, 'invalid API data must block export');
 
 const scientificMarkdownValue = (field, value) => MINERAL_MARKDOWN_TEMPLATE.replace(
   new RegExp(`(\\| ${field} \\| )[^|]*( \\|)`),

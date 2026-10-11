@@ -245,12 +245,14 @@ export function parseMineralMarkdown(markdown: string): unknown {
     if (gallery) {
       const galleryBody = gallery.value ? gallery.value.split('\n') : [];
       const parsed = table({ name: 'Изображения / gallery', line: gallery.line, body: galleryBody, bodyStart: gallery.line + 1 }, galleryColumns);
-      images.gallery = parsed.rows.map((row, index) => {
-        const item: Record<string, unknown> = { path: assertRelativeImagePath(row.path, parsed.lineByRow[index], 'gallery.path'), type: row.type.trim() };
+      const galleryItems = parsed.rows.map((row, index) => {
+        const item: Record<string, unknown> = { path: assertRelativeImagePath(row.path, parsed.lineByRow[index], 'gallery.path') };
+        optionalText(item, 'type', row.type);
         const caption: Record<string, unknown> = {}; optionalText(caption, 'ru', row.caption_ru); optionalText(caption, 'en', row.caption_en);
         if (Object.keys(caption).length) item.caption = caption;
         return item;
       });
+      if (galleryItems.length || Object.keys(images).length) images.gallery = galleryItems;
     }
     if (Object.keys(images).length) output.images = images;
   }
