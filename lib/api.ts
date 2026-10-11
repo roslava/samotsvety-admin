@@ -33,6 +33,22 @@ export const api = {
     const result = await res.json();
     return Array.isArray(result) ? result : (result.data || []);
   },
+  async getGemEntitiesForExport(): Promise<{ data: unknown[]; total: number }> {
+    const res = await fetch(`${API_BASE}/api/v2/gem-entities`, { cache: 'no-store' });
+    if (!res.ok) await v2Error(res);
+    const result: unknown = await res.json();
+    if (!result || typeof result !== 'object' ||
+        !Array.isArray((result as { data?: unknown }).data) ||
+        !Number.isSafeInteger((result as { total?: unknown }).total) ||
+        (result as { total: number }).total < 0) {
+      throw new Error('API вернул некорректный список каталога.');
+    }
+    const catalog = result as { data: unknown[]; total: number };
+    if (catalog.data.length !== catalog.total) {
+      throw new Error(`API сообщил ${catalog.total} карточек, но вернул ${catalog.data.length}. Экспорт отменён.`);
+    }
+    return catalog;
+  },
   async createGemEntity(data: Record<string, unknown>, apiKey: string) {
     const res = await fetch(`${API_BASE}/api/v2/gem-entities`, { method: 'POST', headers: getHeaders(apiKey), body: JSON.stringify(data) });
     if (!res.ok) await v2Error(res);

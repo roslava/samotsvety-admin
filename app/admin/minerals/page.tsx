@@ -2,8 +2,9 @@
 // @ts-nocheck -- V1 listing remains isolated while the editor is V2.
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { api } from '@/lib/api';
+import { exportMineralCatalog, type CatalogExportProgress, type CatalogManifest } from '@/lib/mineral-markdown-bulk-export';
 import { mediaUrl } from '@/lib/media-url';
 import { Mineral } from '@/types/mineral';
 import { Button } from '@/components/ui/button';
@@ -18,7 +19,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Eye, Search, X, Gem, Sparkles, Layers3, ImageOff } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Search, X, Gem, Sparkles, Layers3, ImageOff, Download } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { toast } from 'sonner';
@@ -88,6 +89,26 @@ export default function MineralsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [query, setQuery] = useState('');
+  const exportRunning = useRef(false);
+  const [exportProgress, setExportProgress] = useState<CatalogExportProgress | null>(null);
+  const [exportManifest, setExportManifest] = useState<CatalogManifest | null>(null);
+  const [exportError, setExportError] = useState('');
+
+  const handleCatalogExport = async () => {
+    if (exportRunning.current) return;
+    exportRunning.current = true;
+    setExportManifest(null);
+    setExportError('');
+    try {
+      const result = await exportMineralCatalog(setExportProgress);
+      setExportManifest(result.manifest);
+    } catch (cause) {
+      setExportError(cause instanceof Error ? cause.message : 'Не удалось экспортировать каталог.');
+    } finally {
+      exportRunning.current = false;
+      setExportProgress((current) => current ? { ...current, phase: 'complete' } : null);
+    }
+  };
 
   const loadMinerals = useCallback(async () => {
     try {
@@ -179,13 +200,43 @@ export default function MineralsPage() {
             </p>
           </div>
 
-          <Link href="/admin/minerals/new">
-            <Button size="lg" className="rounded-full bg-[var(--color-vellum-lavender)] text-[var(--color-inkwell-teal)] hover:bg-[var(--color-vellum-lavender)]/90">
-              <Plus className="mr-2 h-4 w-4" />
-              Новый минерал
+          <div className="flex flex-wrap gap-3">
+            <Button size="lg" variant="outline" onClick={handleCatalogExport} disabled={exportProgress?.phase !== 'complete' && !!exportProgress}
+              className="rounded-full border-[var(--color-vellum-lavender)] text-[var(--color-bone)] hover:bg-white/10 hover:text-[var(--color-bone)]">
+              <Download className="mr-2 h-4 w-4" />
+              Экспортировать каталог
             </Button>
-          </Link>
+            <Link href="/admin/minerals/new">
+              <Button size="lg" className="rounded-full bg-[var(--color-vellum-lavender)] text-[var(--color-inkwell-teal)] hover:bg-[var(--color-vellum-lavender)]/90">
+                <Plus className="mr-2 h-4 w-4" />
+                Новый минерал
+              </Button>
+            </Link>
+          </div>
         </div>
+
+        {(exportProgress || exportManifest || exportError) && (
+          <div className="mt-5 rounded-2xl bg-white/[0.06] p-4 text-sm text-[var(--color-bone)]" role="status" aria-live="polite">
+            {exportProgress?.phase === 'fetching' ? <p>Получение свежего каталога из API…</p> : exportProgress && (
+              <>
+                <p>Обработано {exportProgress.processed} из {exportProgress.total} · Успешно: {exportProgress.exported} · Ошибок: {exportProgress.failed}</p>
+                <progress className="mt-2 h-2 w-full accent-[var(--color-vellum-lavender)]" max={Math.max(exportProgress.total, 1)} value={exportProgress.processed} aria-label="Прогресс экспорта каталога" />
+                {exportProgress.phase === 'packing' && <p>Сборка ZIP-архива…</p>}
+              </>
+            )}
+            {exportManifest && <p className="mt-2 font-medium">
+              {exportManifest.summary.total === 0 ? 'Каталог пуст. Архив не создан.' : exportManifest.summary.exported === 0
+                ? 'Ни одна карточка не прошла проверку. Архив не создан.'
+                : exportManifest.status === 'partial' ? 'Внимание: скачан неполный архив с пометкой PARTIAL.' : 'Полный архив каталога скачан.'}
+            </p>}
+            {exportError && <p className="mt-2 text-red-200" role="alert">{exportError}</p>}
+            {!!exportManifest?.errors.length && <details className="mt-2"><summary className="cursor-pointer">Ошибки ({exportManifest.errors.length})</summary>
+              <ul className="mt-2 max-h-48 space-y-1 overflow-auto">
+                {exportManifest.errors.map((item, index) => <li key={`${item.identifier}-${index}`}>{item.identifier} · {item.stage}: {item.reason}</li>)}
+              </ul>
+            </details>}
+          </div>
+        )}
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           <div className="rounded-2xl bg-white/[0.04] p-4">

@@ -1,6 +1,15 @@
 import { parseMineralMarkdown, serializeMineralMarkdown } from './mineral-markdown.ts';
 import { MineralSchema } from './validations/mineral.ts';
 
+export class MineralMarkdownExportError extends Error {
+  readonly stage: 'validation' | 'markdown_validation' | 'equivalence';
+  constructor(stage: 'validation' | 'markdown_validation' | 'equivalence', message: string) {
+    super(message);
+    this.name = 'MineralMarkdownExportError';
+    this.stage = stage;
+  }
+}
+
 // Markdown v1 represents null, missing optional fields, and empty optional
 // collections with the same empty field/section. Compare their meaningful data.
 function meaningful(value: unknown): unknown {
@@ -40,15 +49,15 @@ export function prepareMineralMarkdownExport(entity: unknown): { slug: string; m
   const original = MineralSchema.safeParse(data);
   if (!original.success) {
     const issue = original.error.issues[0];
-    throw new Error(`Карточка не прошла проверку: ${issue.path.join('.') || 'данные'} — ${issue.message}`);
+    throw new MineralMarkdownExportError('validation', `Карточка не прошла проверку: ${issue.path.join('.') || 'данные'} — ${issue.message}`);
   }
   const markdown = serializeMineralMarkdown(original.data);
   const parsed = MineralSchema.safeParse(parseMineralMarkdown(markdown));
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
-    throw new Error(`Markdown не прошёл проверку: ${issue.path.join('.') || 'данные'} — ${issue.message}`);
+    throw new MineralMarkdownExportError('markdown_validation', `Markdown не прошёл проверку: ${issue.path.join('.') || 'данные'} — ${issue.message}`);
   }
   const difference = firstDifference(meaningful(original.data), meaningful(parsed.data));
-  if (difference) throw new Error(`Markdown v1 не сохраняет значение ${difference}. Скачивание отменено.`);
+  if (difference) throw new MineralMarkdownExportError('equivalence', `Markdown v1 не сохраняет значение ${difference}. Скачивание отменено.`);
   return { slug: original.data.slug, markdown };
 }

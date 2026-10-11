@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
+import { strFromU8, unzipSync } from 'fflate';
 import { toV2WritePayload } from '../lib/v2-helpers.ts';
 import { GemEntityV2ImportSchema, MineralSchema } from '../lib/validations/mineral.ts';
 import { MINERAL_IMPORT_EXAMPLE } from '../lib/mineral-import-example.ts';
 import { COUNTRIES, getCountryByCode, getCountryValues } from '../lib/countries.ts';
 import { MINERAL_MARKDOWN_PROMPT_TEMPLATE, MINERAL_MARKDOWN_TEMPLATE, MineralMarkdownParseError, parseMineralMarkdown, parseMineralMarkdownWithWarnings, serializeMineralMarkdown } from '../lib/mineral-markdown.ts';
 import { prepareMineralMarkdownExport } from '../lib/mineral-markdown-export.ts';
+import { buildMineralCatalogArchive, exportMineralCatalog } from '../lib/mineral-markdown-bulk-export.ts';
 import { normalizeErrorMessage, parseRelatedEntityInput, resolveRelatedEntities } from '../lib/related-entities.ts';
 
 assert.equal(COUNTRIES.length, 249, 'country directory must contain all ISO 3166-1 alpha-2 entries');
@@ -279,4 +281,79 @@ const invalidEnumMarkdown = parseMineralMarkdown(MINERAL_MARKDOWN_TEMPLATE.repla
 assert.equal(GemEntityV2ImportSchema.safeParse(invalidEnumMarkdown).success, false, 'invalid enum must pass Markdown structure parser and fail V2 schema');
 const invalidSlugMarkdown = parseMineralMarkdown(MINERAL_MARKDOWN_TEMPLATE.replace('| slug | kambaba-jasper |', '| slug | Not a slug |'));
 assert.equal(GemEntityV2ImportSchema.safeParse(invalidSlugMarkdown).success, false, 'invalid slug must fail V2 schema');
+
+const fixedExportTime = new Date('2026-10-11T12:00:00Z');
+const alexandrite = { ...kambaba, slug: 'alexandrite', i18n: {
+  ru: { ...kambaba.i18n.ru, name: 'Александрит' }, en: { ...kambaba.i18n.en, name: 'Alexandrite' },
+} };
+const validCatalog = { data: [apiEntity, alexandrite], total: 2 };
+const progressEvents = [];
+const completeBundle = await buildMineralCatalogArchive(validCatalog, (progress) => progressEvents.push(progress), fixedExportTime);
+assert.equal(completeBundle.filename, 'samotsvety-catalog-20261011-120000.zip');
+assert.equal(completeBundle.manifest.status, 'complete');
+assert.deepEqual(completeBundle.manifest.summary, { total: 2, exported: 2, failed: 0 });
+assert.deepEqual(completeBundle.manifest.files.map(({ slug }) => slug), ['alexandrite', 'kambaba-jasper']);
+assert.deepEqual(progressEvents.at(-1), { phase: 'complete', total: 2, processed: 2, exported: 2, failed: 0 });
+const zipFiles = unzipSync(completeBundle.archive);
+assert.deepEqual(Object.keys(zipFiles).sort(), [
+  'samotsvety-catalog/manifest.json',
+  'samotsvety-catalog/minerals/alexandrite.md',
+  'samotsvety-catalog/minerals/kambaba-jasper.md',
+]);
+const zipManifest = JSON.parse(strFromU8(zipFiles['samotsvety-catalog/manifest.json']));
+assert.deepEqual(zipManifest, completeBundle.manifest);
+assert.equal(zipManifest.files.length, zipManifest.summary.exported);
+assert.equal(zipManifest.errors.length, zipManifest.summary.failed);
+for (const file of zipManifest.files) {
+  const markdown = strFromU8(zipFiles[`samotsvety-catalog/${file.path}`]);
+  const imported = MineralSchema.parse(parseMineralMarkdown(markdown));
+  assert.equal(imported.slug, file.slug, 'every ZIP Markdown must import back under its manifest slug');
+  assert.equal(markdown, prepareMineralMarkdownExport(validCatalog.data.find((item) => item.slug === file.slug)).markdown);
+}
+const richFromZip = MineralSchema.parse(parseMineralMarkdown(strFromU8(zipFiles['samotsvety-catalog/minerals/kambaba-jasper.md'])));
+assert.equal(richFromZip.i18n.ru.lore, apiEntity.i18n.ru.lore);
+assert.equal(richFromZip.i18n.en.lore, apiEntity.i18n.en.lore);
+assert.deepEqual(richFromZip.scientific.phenomena, apiEntity.scientific.phenomena);
+assert.equal(richFromZip.localities[0].famous, false);
+assert.equal(richFromZip.images.gallery[0].caption.ru, apiEntity.images.gallery[0].caption.ru);
+assert.deepEqual(richFromZip.related_entities, apiEntity.related_entities);
+assert.equal(richFromZip.sources[0].title, apiEntity.sources[0].title);
+
+const invalidCard = { ...alexandrite, slug: 'invalid-card', scientific: { ...alexandrite.scientific, rarity: 'impossible' } };
+const partial = await buildMineralCatalogArchive({ data: [apiEntity, invalidCard], total: 2 }, undefined, fixedExportTime);
+assert.equal(partial.filename, 'samotsvety-catalog-PARTIAL-20261011-120000.zip');
+assert.deepEqual(partial.manifest.summary, { total: 2, exported: 1, failed: 1 });
+assert.equal(partial.manifest.status, 'partial');
+assert.deepEqual(partial.manifest.errors.map((item) => [item.identifier, item.stage]), [['invalid-card', 'validation']]);
+const partialFiles = unzipSync(partial.archive);
+assert.equal(Object.keys(partialFiles).length, 2, 'partial ZIP has one Markdown and a manifest');
+assert.deepEqual(JSON.parse(strFromU8(partialFiles['samotsvety-catalog/manifest.json'])), partial.manifest);
+assert.equal(MineralSchema.parse(parseMineralMarkdown(strFromU8(partialFiles['samotsvety-catalog/minerals/kambaba-jasper.md']))).slug, apiEntity.slug);
+
+const allInvalid = await buildMineralCatalogArchive({ data: [invalidCard], total: 1 }, undefined, fixedExportTime);
+assert.equal(allInvalid.archive, undefined, 'no ZIP for all-invalid catalog');
+assert.deepEqual(allInvalid.manifest.summary, { total: 1, exported: 0, failed: 1 });
+const emptyCatalog = await buildMineralCatalogArchive({ data: [], total: 0 }, undefined, fixedExportTime);
+assert.equal(emptyCatalog.archive, undefined, 'no ZIP for empty catalog');
+assert.deepEqual(emptyCatalog.manifest.summary, { total: 0, exported: 0, failed: 0 });
+const duplicates = await buildMineralCatalogArchive({ data: [alexandrite, { ...alexandrite }, apiEntity], total: 3 }, undefined, fixedExportTime);
+assert.deepEqual(duplicates.manifest.summary, { total: 3, exported: 1, failed: 2 });
+assert.deepEqual(duplicates.manifest.errors.map(({ stage }) => stage), ['duplicate_slug', 'duplicate_slug']);
+assert.equal(Object.keys(unzipSync(duplicates.archive)).length, 2, 'duplicate slug must never create an ambiguous Markdown path');
+await assert.rejects(buildMineralCatalogArchive({ data: [apiEntity], total: 2 }), /Количество карточек API не совпадает/);
+let freshCalls = 0;
+let downloads = 0;
+const filteredTableRows = [alexandrite];
+const freshExport = await exportMineralCatalog(undefined, async () => { freshCalls++; return validCatalog; }, () => { downloads++; });
+assert.equal(filteredTableRows.length, 1);
+assert.equal(freshExport.manifest.summary.exported, 2, 'export must use fresh full API data rather than filtered table rows');
+assert.equal(freshCalls, 1);
+assert.equal(downloads, 1);
+const noFilesExport = await exportMineralCatalog(undefined, async () => ({ data: [invalidCard], total: 1 }), () => { downloads++; });
+assert.equal(noFilesExport.archive, undefined);
+const noRowsExport = await exportMineralCatalog(undefined, async () => ({ data: [], total: 0 }), () => { downloads++; });
+assert.equal(noRowsExport.archive, undefined);
+assert.equal(downloads, 1, 'empty and all-invalid catalogs must never download an archive');
+await assert.rejects(exportMineralCatalog(undefined, async () => { throw new Error('network unavailable'); }, () => { downloads++; }), /network unavailable/);
+assert.equal(downloads, 1, 'network failure must not start a download');
 console.log('V2 regression checks passed');
