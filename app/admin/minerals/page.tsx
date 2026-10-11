@@ -4,6 +4,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { api } from '@/lib/api';
+import { mediaUrl } from '@/lib/media-url';
 import { Mineral } from '@/types/mineral';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,8 +18,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Eye, Search, X, Gem, Sparkles, Layers3 } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Search, X, Gem, Sparkles, Layers3, ImageOff } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -53,6 +55,32 @@ const RARITY_LABELS: Record<string, string> = {
   rare: 'Редкий',
   very_rare: 'Очень редкий',
 };
+
+function MineralThumbnail({ storageKey, path, name }: { storageKey?: string; path?: string; name: string }) {
+  const [failed, setFailed] = useState(false);
+  const src = storageKey && path ? mediaUrl(storageKey, path) : null;
+
+  return src && !failed ? (
+    <Image
+      src={src}
+      alt={name}
+      width={56}
+      height={56}
+      loading="lazy"
+      unoptimized
+      className="size-14 shrink-0 rounded-lg object-cover"
+      onError={() => setFailed(true)}
+    />
+  ) : (
+    <span
+      className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-[var(--color-bone)] text-[var(--color-slate-veil)]"
+      role="img"
+      aria-label={`${failed ? 'Миниатюра недоступна' : 'Миниатюра отсутствует'}: ${name}`}
+    >
+      <ImageOff className="size-5" aria-hidden="true" />
+    </span>
+  );
+}
 
 export default function MineralsPage() {
   const [minerals, setMinerals] = useState<Mineral[]>([]);
@@ -242,7 +270,17 @@ export default function MineralsPage() {
                   {filteredMinerals.map((mineral) => (
                     <TableRow key={mineral.slug} className="border-[var(--color-driftwood)] hover:bg-[var(--color-bone)]">
                       <TableCell className="pl-6 font-mono text-xs text-[var(--color-slate-veil)]">{mineral.slug}</TableCell>
-                      <TableCell className="font-medium text-[var(--color-inkwell-teal)]">{mineral.i18n.ru.name}</TableCell>
+                      <TableCell className="font-medium text-[var(--color-inkwell-teal)]">
+                        <Link href={`/admin/minerals/${mineral.slug}`} className="flex items-center gap-3 hover:underline">
+                          <MineralThumbnail
+                            key={`${mineral.images?.storage_key}:${mineral.images?.thumbnail?.path}`}
+                            storageKey={mineral.images?.storage_key}
+                            path={mineral.images?.thumbnail?.path}
+                            name={mineral.i18n.ru.name}
+                          />
+                          <span>{mineral.i18n.ru.name}</span>
+                        </Link>
+                      </TableCell>
                       <TableCell className="text-[var(--color-slate-veil)]">
                         {mineral.scientific.mineral_family
                           ? MINERAL_FAMILY_LABELS[mineral.scientific.mineral_family] || mineral.scientific.mineral_family

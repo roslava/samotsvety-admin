@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { api, ApiValidationError } from "@/lib/api";
 import { prepareMineralMarkdownExport } from "@/lib/mineral-markdown-export";
+import { mediaUrl } from "@/lib/media-url";
 import { GemEntityV2Response, LocalizedContent } from "@/types/mineral";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -371,9 +372,6 @@ const range = (
   suffix = "",
 ) =>
   `${[value.min, value.max].map((number) => (language === "ru" ? String(number).replace(".", ",") : String(number))).join("–")}${suffix}`;
-const mediaUrl = (storageKey: string, path: string) =>
-  `${(process.env.NEXT_PUBLIC_MEDIA_BASE_URL ?? "https://storage.yandexcloud.net/samotsvety-cdn").replace(/\/$/, "")}/${encodeURIComponent(storageKey)}/${path.split("/").map(encodeURIComponent).join("/")}`;
-
 function Grid({ rows }: { rows: Row[] }) {
   const visible = rows.filter(([, value]) => present(value));
   return visible.length ? (
