@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useFieldArray, UseFormReturn } from 'react-hook-form';
-import { PostFormData, ContentBlockFormData } from '@/lib/validations/post';
+import { PostFormData, ContentBlockFormData } from '@/lib/validations/post-legacy';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,7 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { ImageUploadField } from '@/components/ImageUploadField';
 import { MarkdownTextarea } from '@/components/MarkdownTextarea';
 import { ArrowDown, ArrowUp, GripVertical, ImageIcon, Images, Languages, Plus, Quote, Trash2, Type } from 'lucide-react';
-import type { BlockType } from '@/types/post';
+import type { BlockType } from '@/types/post-legacy';
 
 interface BlockEditorProps {
   form: UseFormReturn<PostFormData>;

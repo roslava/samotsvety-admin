@@ -1,4 +1,17 @@
 import assert from 'node:assert/strict';
+import { mediaUrl, entityImagePathFromUrl } from '../lib/media-url.ts';
+
+const originalMediaBase = process.env.NEXT_PUBLIC_MEDIA_BASE_URL;
+process.env.NEXT_PUBLIC_MEDIA_BASE_URL = 'https://cdn.example/media';
+assert.equal(mediaUrl('bruneau_jasper', 'hero.webp'), 'https://cdn.example/media/entities/bruneau_jasper/images/hero.webp');
+assert.equal(mediaUrl('bruneau_jasper', 'thumbnail.webp'), 'https://cdn.example/media/entities/bruneau_jasper/images/thumbnail.webp');
+assert.equal(mediaUrl('bruneau_jasper', 'gallery/specimen01.webp'), 'https://cdn.example/media/entities/bruneau_jasper/images/gallery/specimen01.webp');
+assert.equal(entityImagePathFromUrl(mediaUrl('bruneau_jasper', 'gallery/specimen01.webp'), 'bruneau_jasper'), 'gallery/specimen01.webp');
+assert.equal(mediaUrl('bruneau_jasper', 'images/hero.webp'), '');
+assert.equal(mediaUrl('bruneau_jasper', '../hero.webp'), '');
+assert.throws(() => entityImagePathFromUrl('https://cdn.example/media/entities/bruneau-jasper/images/hero.webp', 'bruneau_jasper'));
+if (originalMediaBase === undefined) delete process.env.NEXT_PUBLIC_MEDIA_BASE_URL;
+else process.env.NEXT_PUBLIC_MEDIA_BASE_URL = originalMediaBase;
 import { strFromU8, unzipSync } from 'fflate';
 import { toV2WritePayload } from '../lib/v2-helpers.ts';
 import { GemEntityV2ImportSchema, MineralSchema } from '../lib/validations/mineral.ts';
@@ -109,6 +122,20 @@ assert.equal('created_at' in write, false); assert.equal('updated_at' in write, 
 for (const key of ['related_minerals','main_image_url','thumbnail_url','is_russian']) assert.equal(key in write, false);
 
 const markdownRoundTrip = parseMineralMarkdown(serializeMineralMarkdown(kambaba));
+const classified = { ...kambaba, scientific: { ...kambaba.scientific, mineral_group: 'olivine_group', chemical_class: 'silicates', catalog_family: 'jaspers' } };
+const opal = { ...kambaba, slug: 'common-opal', scientific: { chemical_class: 'oxides_hydroxides', catalog_family: 'opals' } };
+const opalPayload = toV2WritePayload(opal);
+assert.equal(opalPayload.scientific.catalog_family, 'opals', 'Admin sends catalog family inside scientific');
+assert.equal(opalPayload.scientific.chemical_class, 'oxides_hydroxides', 'Admin sends chemical class inside scientific');
+assert.equal('mineral_group' in opalPayload.scientific, false, 'opal mineral group stays empty');
+assert.equal('catalog_family' in opalPayload, false, 'classification is never sent at the top level');
+assert.equal(GemEntityV2ImportSchema.safeParse(opalPayload).success, true, 'opal payload follows V2 contract');
+assert.equal(GemEntityV2ImportSchema.safeParse(classified).success, true, 'all three classifications validate independently');
+assert.deepEqual(parseMineralMarkdown(serializeMineralMarkdown(classified)).scientific, classified.scientific, 'Markdown preserves classifications');
+for (const key of ['mineral_group', 'chemical_class', 'catalog_family']) {
+  assert.equal(GemEntityV2ImportSchema.safeParse({ ...classified, scientific: { ...classified.scientific, [key]: 'unknown' } }).success, false, `${key} rejects unknown codes`);
+}
+assert.equal(GemEntityV2ImportSchema.safeParse(kambaba).success, true, 'old records without classification remain valid');
 const markdownRoundTripResult = GemEntityV2ImportSchema.safeParse(markdownRoundTrip);
 assert.equal(markdownRoundTripResult.success, true, 'serialized canonical example must parse and validate as V2');
 assert.equal(markdownRoundTripResult.data.slug, kambaba.slug);

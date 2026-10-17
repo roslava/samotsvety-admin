@@ -47,6 +47,7 @@ export function EsotericSection({ form }: EsotericSectionProps) {
               render={({ field: { value, onChange } }) => (
                 <div className="flex items-center gap-3">
                   <Switch 
+                    aria-label="Включить эзотерический блок (RU)"
                     checked={!!value} 
                     onCheckedChange={(checked) => {
                       if (checked && !value) {
@@ -59,7 +60,7 @@ export function EsotericSection({ form }: EsotericSectionProps) {
                           ritual_uses: '',
                         });
                       } else if (!checked) {
-                        onChange(undefined);
+                        onChange(null);
                       }
                     }}
                   />
@@ -81,6 +82,7 @@ export function EsotericSection({ form }: EsotericSectionProps) {
               render={({ field: { value, onChange } }) => (
                 <div className="flex items-center gap-3">
                   <Switch 
+                    aria-label="Enable Esoteric Block (EN)"
                     checked={!!value} 
                     onCheckedChange={(checked) => {
                       if (checked && !value) {
@@ -93,7 +95,7 @@ export function EsotericSection({ form }: EsotericSectionProps) {
                           ritual_uses: '',
                         });
                       } else if (!checked) {
-                        onChange(undefined);
+                        onChange(null);
                       }
                     }}
                   />
@@ -107,6 +109,7 @@ export function EsotericSection({ form }: EsotericSectionProps) {
             )}
           </TabsContent>
         </Tabs>
+        <p className="mt-6 text-sm text-muted-foreground">Иллюстрации к эзотерике добавляются во вкладке «Изображения»: укажите ссылку CDN и выберите раздел.</p>
       </CardContent>
     </Card>
   );

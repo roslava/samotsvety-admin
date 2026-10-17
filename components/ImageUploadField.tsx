@@ -1,11 +1,13 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import Image from 'next/image';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2, Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { entityImagePathFromUrl, mediaBaseUrl, mediaUrl } from '@/lib/media-url';
 
 type UploadKind = 'hero' | 'thumbnail' | 'gallery' | 'cover' | 'block_image' | 'block_pair';
 
@@ -16,15 +18,11 @@ interface ImageUploadFieldProps {
   /**
    * Куда и как сохранить файл в Object Storage — все варианты конвертируют
    * файл в WebP и требуют slug (минерала или статьи):
-   *   "hero"        — <slug>/hero.webp
-   *   "thumbnail"   — <slug>/thumbnail.webp
-   *   "gallery"     — <slug>/gallery/<slug><NN>.webp (номер — автоматически)
-   *   "cover"       — articles/<slug>/cover.webp (+ "-<lang>", если задан lang)
-   *   "block_image" — articles/<slug>/image-<NN>.webp (требует blockIndex)
-   *   "block_pair"  — articles/<slug>/image-<NN>-<P>.webp (требует blockIndex и pairIndex)
+   * Пути выбирает API. Для hero/thumbnail/gallery необходим storageKey сущности.
    */
   kind: UploadKind;
   slug?: string;
+  storageKey?: string;
   /** Порядковый номер блока статьи (1-based) — обязателен для block_image/block_pair. */
   blockIndex?: number;
   /** 1 или 2 — какая картинка в паре — обязателен для block_pair. */
@@ -43,6 +41,7 @@ export function ImageUploadField({
   label,
   kind,
   slug,
+  storageKey,
   blockIndex,
   pairIndex,
   lang,
@@ -51,10 +50,14 @@ export function ImageUploadField({
   const [uploading, setUploading] = useState(false);
 
   const slugMissing = !slug;
+  const entityKind = kind === 'hero' || kind === 'thumbnail' || kind === 'gallery';
+  const storageKeyMissing = entityKind && !storageKey;
   const blockIndexMissing = (kind === 'block_image' || kind === 'block_pair') && !blockIndex;
   const pairIndexMissing = kind === 'block_pair' && !pairIndex;
   const disabledReason = slugMissing
     ? 'Сначала укажите slug'
+    : storageKeyMissing
+      ? 'Сначала укажите папку изображений'
     : blockIndexMissing
       ? 'Не определён номер блока статьи'
       : pairIndexMissing
@@ -79,11 +82,11 @@ export function ImageUploadField({
 
     setUploading(true);
     try {
-      const { url } = await api.uploadMedia(file, apiKey, { kind, slug, blockIndex, pairIndex, lang });
-      onChange(url);
+      const { url } = await api.uploadMedia(file, apiKey, { kind, slug, storageKey, blockIndex, pairIndex, lang });
+      onChange(entityKind ? entityImagePathFromUrl(url, storageKey!) : url);
       toast.success('Изображение загружено');
-    } catch (error: any) {
-      toast.error(error.message || 'Не удалось загрузить изображение');
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Не удалось загрузить изображение');
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = '';
@@ -99,7 +102,7 @@ export function ImageUploadField({
         <Input
           value={value || ''}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="https://storage.yandexcloud.net/samotsvety-cdn/..."
+          placeholder={entityKind ? 'hero.webp или gallery/image01.webp' : `${mediaBaseUrl()}/...`}
           className="flex-1"
         />
         <Button
@@ -133,10 +136,13 @@ export function ImageUploadField({
         onChange={handleFileSelect}
       />
 
-      {value && (
-        <img
-          src={value}
+      {value && (!entityKind || mediaUrl(storageKey || '', value)) && (
+        <Image
+          src={entityKind ? mediaUrl(storageKey || '', value) : value}
           alt="Предпросмотр"
+          width={320}
+          height={160}
+          unoptimized
           className="max-h-40 rounded-md border object-contain bg-muted"
           onError={(e) => {
             (e.target as HTMLImageElement).style.opacity = '0.3';

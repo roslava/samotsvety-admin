@@ -4,6 +4,7 @@
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { api } from '@/lib/api';
+import { classificationLabel } from '@/lib/classification';
 import { exportMineralCatalog, type CatalogExportProgress, type CatalogManifest } from '@/lib/mineral-markdown-bulk-export';
 import { mediaUrl } from '@/lib/media-url';
 import { Mineral } from '@/types/mineral';
@@ -32,21 +33,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-
-const MINERAL_FAMILY_LABELS: Record<string, string> = {
-  garnet_group: 'Гранаты',
-  feldspar_group: 'Полевые шпаты',
-  quartz_group: 'Кварцы',
-  tourmaline_group: 'Турмалины',
-  mica_group: 'Слюды',
-  pyroxene_group: 'Пироксены',
-  amphibole_group: 'Амфиболы',
-  zeolite_group: 'Цеолиты',
-  beryl_group: 'Бериллы',
-  spinel_group: 'Шпинели',
-  corundum_group: 'Корунды',
-  calcite_group: 'Кальциты',
-};
 
 // Список — админка всегда на русском (нет per-language вкладки, в отличие
 // от карточки минерала), поэтому только один словарь, без ru/en.
@@ -135,7 +121,9 @@ export default function MineralsPage() {
         m.slug,
         m.i18n?.ru?.name,
         m.i18n?.en?.name,
+        m.scientific?.mineral_group,
         m.scientific?.mineral_family,
+        m.scientific?.catalog_family,
         ...(m.i18n?.ru?.synonyms || []),
         ...(m.i18n?.en?.synonyms || []),
       ]
@@ -150,7 +138,7 @@ export default function MineralsPage() {
   const stats = useMemo(() => {
     const uniqueGroups = new Set(
       minerals
-        .map((mineral) => mineral.scientific?.mineral_family)
+        .map((mineral) => mineral.scientific?.mineral_group ?? mineral.scientific?.mineral_family)
         .filter(Boolean)
     ).size;
 
@@ -333,8 +321,8 @@ export default function MineralsPage() {
                         </Link>
                       </TableCell>
                       <TableCell className="text-[var(--color-slate-veil)]">
-                        {mineral.scientific.mineral_family
-                          ? MINERAL_FAMILY_LABELS[mineral.scientific.mineral_family] || mineral.scientific.mineral_family
+                        {(mineral.scientific.mineral_group || mineral.scientific.mineral_family)
+                          ? classificationLabel('mineral_group', mineral.scientific.mineral_group || mineral.scientific.mineral_family || '')
                           : '—'}
                       </TableCell>
                       <TableCell>

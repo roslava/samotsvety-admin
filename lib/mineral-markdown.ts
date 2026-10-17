@@ -1,7 +1,7 @@
 import {
   BASE_COLOR_VALUES, CLEAVAGE_DEGREE_VALUES, CLEAVAGE_DIRECTION_VALUES, CLEAVAGE_TYPE_VALUES,
   CRYSTAL_HABIT_VALUES, CRYSTAL_SYSTEM_VALUES, ENTITY_TYPE_VALUES, FRACTURE_VALUES,
-  IMA_STATUS_VALUES, LUSTER_VALUES, MINERAL_CLASS_VALUES, MINERAL_FAMILY_VALUES,
+  IMA_STATUS_VALUES, LUSTER_VALUES, MINERAL_CLASS_VALUES, MINERAL_FAMILY_VALUES, MINERAL_GROUP_VALUES, CHEMICAL_CLASS_VALUES, CATALOG_FAMILY_VALUES,
   PHENOMENON_VALUES, RARITY_VALUES, ROCK_TYPE_VALUES, SILICATE_SUBCLASS_VALUES,
   STREAK_VALUES, TENACITY_VALUES, TRANSPARENCY_VALUES, type MineralFormData,
 } from './validations/mineral.ts';
@@ -23,7 +23,7 @@ export class MineralMarkdownParseError extends Error {
 
 const scientificKeys = new Set([
   'chemical_formula', 'hardness_min', 'hardness_max', 'specific_gravity_min', 'specific_gravity_max',
-  'rarity', 'base_color', 'mineral_class', 'silicate_subclass', 'mineral_family', 'crystal_system',
+  'rarity', 'base_color', 'mineral_class', 'silicate_subclass', 'mineral_family', 'mineral_group', 'chemical_class', 'catalog_family', 'crystal_system',
   'crystal_habit', 'streak', 'transparency', 'luster', 'tenacity', 'fracture', 'cleavage_degree',
   'cleavage_direction', 'cleavage_type', 'phenomena', 'ima_status', 'rock_type',
 ]);
@@ -31,7 +31,7 @@ const scientificKeys = new Set([
 // scientific table rows that Markdown v1 turns into comma-separated arrays.
 const scientificArrayKeys = new Set(['crystal_habit', 'luster', 'tenacity', 'phenomena']);
 const scientificScalarEnumKeys = [
-  'rarity', 'base_color', 'mineral_class', 'silicate_subclass', 'mineral_family', 'crystal_system',
+  'rarity', 'base_color', 'mineral_class', 'silicate_subclass', 'mineral_family', 'mineral_group', 'chemical_class', 'catalog_family', 'crystal_system',
   'streak', 'transparency', 'fracture', 'cleavage_degree', 'cleavage_direction', 'cleavage_type',
   'ima_status', 'rock_type',
 ] as const;
@@ -295,7 +295,7 @@ export function serializeMineralMarkdown(data: MineralFormData): string {
   const science = source.scientific ?? {};
   const line = (key: string, value: unknown) => `| ${key} | ${cell(value)} |`;
   const scientificRows: [string, unknown][] = [
-    ['chemical_formula', science.chemical_formula], ['hardness_min', science.hardness?.min], ['hardness_max', science.hardness?.max], ['specific_gravity_min', science.specific_gravity?.min], ['specific_gravity_max', science.specific_gravity?.max], ['rarity', science.rarity], ['base_color', science.base_color], ['mineral_class', science.mineral_class], ['silicate_subclass', science.silicate_subclass], ['mineral_family', science.mineral_family], ['crystal_system', science.crystal_system], ['crystal_habit', science.crystal_habit?.join(', ')], ['streak', science.streak], ['transparency', science.transparency], ['luster', science.luster?.join(', ')], ['tenacity', science.tenacity?.join(', ')], ['fracture', science.fracture], ['cleavage_degree', science.cleavage_degree], ['cleavage_direction', science.cleavage_direction], ['cleavage_type', science.cleavage_type], ['phenomena', science.phenomena?.join(', ')], ['ima_status', science.ima_status], ['rock_type', science.rock_type],
+    ['chemical_formula', science.chemical_formula], ['hardness_min', science.hardness?.min], ['hardness_max', science.hardness?.max], ['specific_gravity_min', science.specific_gravity?.min], ['specific_gravity_max', science.specific_gravity?.max], ['rarity', science.rarity], ['base_color', science.base_color], ['mineral_class', science.mineral_class], ['silicate_subclass', science.silicate_subclass], ['mineral_family', science.mineral_family], ['mineral_group', science.mineral_group], ['chemical_class', science.chemical_class], ['catalog_family', science.catalog_family], ['crystal_system', science.crystal_system], ['crystal_habit', science.crystal_habit?.join(', ')], ['streak', science.streak], ['transparency', science.transparency], ['luster', science.luster?.join(', ')], ['tenacity', science.tenacity?.join(', ')], ['fracture', science.fracture], ['cleavage_degree', science.cleavage_degree], ['cleavage_direction', science.cleavage_direction], ['cleavage_type', science.cleavage_type], ['phenomena', science.phenomena?.join(', ')], ['ima_status', science.ima_status], ['rock_type', science.rock_type],
   ];
   const localizedSection = (heading: string, locale: Record<string, any>) => {
     const blocks = [textBlock('name', locale.name), textBlock('synonyms', locale.synonyms?.join(', ')), textBlock('color', locale.color?.join(', ')), textBlock('color_description', locale.color_description), textBlock('lore', locale.lore), textBlock('identification_tips', locale.identification_tips), textBlock('safety_notes', locale.safety_notes), textBlock('scientific_notes.hardness', locale.scientific_notes?.hardness), textBlock('scientific_notes.composition', locale.scientific_notes?.composition), textBlock('esoteric.metaphysical_properties', locale.esoteric?.metaphysical_properties?.join(', ')), textBlock('esoteric.chakras', locale.esoteric?.chakras?.join(', ')), textBlock('esoteric.zodiac', locale.esoteric?.zodiac?.join(', ')), textBlock('esoteric.healing_interpretation', locale.esoteric?.healing_interpretation), textBlock('esoteric.energy_notes', locale.esoteric?.energy_notes), textBlock('esoteric.ritual_uses', locale.esoteric?.ritual_uses)].filter(Boolean).join('');
@@ -331,7 +331,7 @@ export const MINERAL_MARKDOWN_PROMPT_TEMPLATE = `Ты — эксперт-мин�
 
 type: mineral — самостоятельный минеральный вид; rock — горная порода/природная смесь; gem_variety — геммологическая разновидность минерала; organic — материал органического происхождения. Не выбирай mineral только из-за торгового названия. Для rock заполняй rock_type только при достоверном происхождении.
 
-Enum values: type ${enumValues(ENTITY_TYPE_VALUES)}; rarity ${enumValues(RARITY_VALUES)}; base_color ${enumValues(BASE_COLOR_VALUES)}; mineral_class ${enumValues(MINERAL_CLASS_VALUES)}; silicate_subclass ${enumValues(SILICATE_SUBCLASS_VALUES)}; mineral_family ${enumValues(MINERAL_FAMILY_VALUES)}; crystal_system ${enumValues(CRYSTAL_SYSTEM_VALUES)}; crystal_habit ${enumValues(CRYSTAL_HABIT_VALUES)}; streak ${enumValues(STREAK_VALUES)}; transparency ${enumValues(TRANSPARENCY_VALUES)}; luster ${enumValues(LUSTER_VALUES)}; tenacity ${enumValues(TENACITY_VALUES)}; fracture ${enumValues(FRACTURE_VALUES)}; cleavage_degree ${enumValues(CLEAVAGE_DEGREE_VALUES)}; cleavage_direction ${enumValues(CLEAVAGE_DIRECTION_VALUES)}; cleavage_type ${enumValues(CLEAVAGE_TYPE_VALUES)}; phenomena ${enumValues(PHENOMENON_VALUES)}; ima_status ${enumValues(IMA_STATUS_VALUES)}; rock_type ${enumValues(ROCK_TYPE_VALUES)}.
+Enum values: type ${enumValues(ENTITY_TYPE_VALUES)}; rarity ${enumValues(RARITY_VALUES)}; base_color ${enumValues(BASE_COLOR_VALUES)}; mineral_class ${enumValues(MINERAL_CLASS_VALUES)}; silicate_subclass ${enumValues(SILICATE_SUBCLASS_VALUES)}; mineral_family ${enumValues(MINERAL_FAMILY_VALUES)}; mineral_group ${enumValues(MINERAL_GROUP_VALUES)}; chemical_class ${enumValues(CHEMICAL_CLASS_VALUES)}; catalog_family ${enumValues(CATALOG_FAMILY_VALUES)}; crystal_system ${enumValues(CRYSTAL_SYSTEM_VALUES)}; crystal_habit ${enumValues(CRYSTAL_HABIT_VALUES)}; streak ${enumValues(STREAK_VALUES)}; transparency ${enumValues(TRANSPARENCY_VALUES)}; luster ${enumValues(LUSTER_VALUES)}; tenacity ${enumValues(TENACITY_VALUES)}; fracture ${enumValues(FRACTURE_VALUES)}; cleavage_degree ${enumValues(CLEAVAGE_DEGREE_VALUES)}; cleavage_direction ${enumValues(CLEAVAGE_DIRECTION_VALUES)}; cleavage_type ${enumValues(CLEAVAGE_TYPE_VALUES)}; phenomena ${enumValues(PHENOMENON_VALUES)}; ima_status ${enumValues(IMA_STATUS_VALUES)}; rock_type ${enumValues(ROCK_TYPE_VALUES)}.
 
 Scientific scalar enum rows ${scientificScalarEnumKeys.join(', ')}: ровно одно enum-значение или пусто; несколько значений через запятую запрещены. Не превращай scalar enum в список и не выбирай первое значение из нескольких. Только crystal_habit, luster, tenacity и phenomena являются scientific arrays.
 

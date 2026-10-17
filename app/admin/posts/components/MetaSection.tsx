@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import { PostFormData } from '@/lib/validations/post';
+import { PostFormData } from '@/lib/validations/post-legacy';
 import { FormField, FormItem, FormControl } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';

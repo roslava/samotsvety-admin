@@ -88,3 +88,9 @@ API_URL=http://localhost:8080
 
 Если `API_URL` не задан, используется `NEXT_PUBLIC_API_URL` из `.env.local`, затем `http://localhost:8080`.
 После изменения адреса перезапустите Next.js.
+
+Для изображений задайте `NEXT_PUBLIC_MEDIA_BASE_URL=https://storage.yandexcloud.net/lithoteka-cdn` (тот же адрес, что `YC_S3_PUBLIC_URL` backend). URL сущности строится из сохранённых `images.storage_key` и относительного `path` как `entities/{storage_key}/images/{path}`. При загрузке форма передаёт API оба значения — `slug` и фактический `storage_key`; в карточку сохраняется только относительный путь. После изменения переменной перезапустите Next.js.
+
+Редактор Article V2 получает универсальную, русскую и английскую последовательности через `GET /api/v1/posts/{slug}/cover-frames?all=1` и сохраняет их как `i18n.media.cover_frames` через `PUT /api/v1/posts/{slug}` с ETag. В каждой последовательности можно добавить URL из Lithoteka CDN, удалить ссылку и изменить порядок; первый кадр основной. Удаление ссылки не удаляет файл. При отсутствии языковых кадров публичный API использует универсальные. Слайды, аватары и изображения Markdown задаются URL из CDN; редактор не загружает файлы статей с компьютера. Существующие старые URL сохраняются без автоматической замены.
+
+В полях изображений Article V2 можно вставить полный HTTPS URL или путь внутри бакета, например `articles/quartz/images/cover/01.webp`, `entities/bruneau_jasper/images/hero.webp` либо `common_images/home/slider/01.webp`. При добавлении кадра или сохранении статьи относительный путь превращается в полный URL с базой `NEXT_PUBLIC_MEDIA_BASE_URL`; поддерживаются адреса `https://lithoteka-cdn.storage.yandexcloud.net` и `https://storage.yandexcloud.net/lithoteka-cdn`. В данных API остаётся полный URL. Текст Markdown не преобразуется автоматически: ссылки на изображения внутри Markdown редактор сохраняет в том виде, в котором они введены.

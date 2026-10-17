@@ -1,7 +1,7 @@
 'use client';
 
 import { UseFormReturn } from 'react-hook-form';
-import { PostFormData } from '@/lib/validations/post';
+import { PostFormData } from '@/lib/validations/post-legacy';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { BlockEditor } from './BlockEditor';

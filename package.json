@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:v2": "node --experimental-strip-types scripts/v2-regression.mjs"
+    "test:v2": "node --experimental-strip-types scripts/v2-regression.mjs",
+    "test:article-v2": "node --experimental-strip-types scripts/article-v2-regression.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

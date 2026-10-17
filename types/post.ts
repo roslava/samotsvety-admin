@@ -1,66 +1,91 @@
 export type PostType = 'blog' | 'guide' | 'history' | 'esoteric' | 'review';
 
-// PostLangData — контент статьи на одном языке.
-// Раньше title_ru/title_en/content_ru/content_en были плоскими полями прямо
-// на Post — теперь, как и у минералов, всё языкозависимое лежит в i18n.ru/en.
-export interface PostLangData {
+export interface ArticleLanguage {
   title: string;
-  excerpt?: string;
-  content?: string; // Markdown — устаревшее поле, для статей до перехода на content_blocks
-  cover_image?: string; // override общей обложки для этого языка
+  excerpt: string;
+  content: string; // Markdown
 }
 
-// BlockType — тип блока композиции статьи (см. domain.BlockType в API)
-export type BlockType = 'heading' | 'paragraph' | 'image' | 'image_pair' | 'quote';
-
-// ImageLayout — вариант вёрстки одиночной картинки
-export type ImageLayout = 'full' | 'inset';
-
-// HeadingLevel — уровень заголовка: раздел статьи (крупный) или подзаголовок внутри раздела (помельче)
-export type HeadingLevel = 'section' | 'subheading';
-
-// BlockLangData — языкозависимый текст внутри блока.
-// Какие поля используются, зависит от типа блока:
-//   heading / paragraph / quote — text (quote — ещё и attribution)
-//   image                       — caption, и опционально image_url
-//                                  (override общей картинки — для схем со встроенным текстом)
-//   image_pair                  — captions[0], captions[1], и опционально image_urls (override пары)
-export interface BlockLangData {
-  text?: string;
-  attribution?: string;
-  caption?: string;
-  captions?: string[];
-  image_url?: string;
-  image_urls?: string[];
+export interface LocalizedText {
+  ru?: string;
+  en?: string;
 }
 
-export interface ContentBlock {
+export interface ArticleSlide {
   id: string;
-  type: BlockType;
-  level?: HeadingLevel; // только для type === 'heading'
-  layout?: ImageLayout; // только для type === 'image'
-  image_url?: string; // для type === 'image'
-  image_urls?: string[]; // для type === 'image_pair', ровно 2 элемента
-  i18n: {
-    ru: BlockLangData;
-    en: BlockLangData;
-  };
+  url: string;
+  source?: 'cdn';
+  caption?: LocalizedText;
+  alt?: LocalizedText;
 }
 
+export interface CoverSequences { default: string[]; ru: string[]; en: string[] }
+
+// API drafts can omit individual language strings and optional media fields.
 export interface Post {
   id: string;
   slug: string;
   type: PostType;
   i18n: {
-    ru: PostLangData;
-    en: PostLangData;
+    ru: Partial<ArticleLanguage>;
+    en: Partial<ArticleLanguage>;
+    media: {
+      schema_version: 2;
+      slides: ArticleSlide[];
+      author_avatar_url?: string;
+      cover_frames?: CoverSequences;
+    };
   };
-  cover_image?: string;
-  content_blocks?: ContentBlock[];
-  gem_slugs: string[];
-  tags: string[];
+  author?: string;
+  gem_slugs?: string[];
+  tags?: string[];
+  is_published: boolean;
   published_at?: string;
   updated_at: string;
+}
+
+// Form values have explicit strings so controls never receive undefined.
+export interface ArticleV2FormValues {
+  slug: string;
+  type: PostType;
+  i18n: {
+    ru: ArticleLanguage;
+    en: ArticleLanguage;
+    media: {
+      slides: ArticleSlide[];
+      author_avatar_url: string;
+    };
+  };
+  author: string;
+  gem_slugs: string[];
+  tags: string[];
   is_published: boolean;
+}
+
+export interface CreatePostPayload {
+  slug: string;
+  type?: PostType;
+  i18n: {
+    ru: Partial<ArticleLanguage>;
+    en: Partial<ArticleLanguage>;
+    media?: { slides?: ArticleSlide[]; author_avatar_url?: string; cover_frames?: CoverSequences };
+  };
   author?: string;
+  gem_slugs?: string[];
+  tags?: string[];
+  is_published?: boolean;
+}
+
+// Omitted keys keep their server values. Sending slides replaces the array.
+export type UpdatePostPayload = Partial<Omit<CreatePostPayload, 'i18n'>> & {
+  i18n?: {
+    ru?: Partial<ArticleLanguage>;
+    en?: Partial<ArticleLanguage>;
+    media?: { slides?: ArticleSlide[]; author_avatar_url?: string; cover_frames?: CoverSequences };
+  };
+};
+
+export interface ArticleResource {
+  post: Post;
+  etag: string | null;
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { api } from '@/lib/api';
+import { ArticleApiError } from '@/lib/article-api';
 import { Post } from '@/types/post';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,8 +49,9 @@ export default function PostsPage() {
       setLoading(true);
       let page = 1;
       let all: Post[] = [];
+      const apiKey = localStorage.getItem('admin_api_key') || '';
       while (true) {
-        const batch = await api.getPosts({ limit: 100, page });
+        const batch = await api.getPosts(apiKey, { limit: 100, page });
         all = all.concat(batch);
         if (batch.length < 100 || page > 20) break;
         page++;
@@ -57,7 +59,7 @@ export default function PostsPage() {
       setPosts(all);
     } catch (error) {
       console.error(error);
-      toast.error('Не удалось загрузить список статей');
+      toast.error(error instanceof Error ? error.message : 'Не удалось загрузить список статей');
     } finally {
       setLoading(false);
     }
@@ -102,12 +104,17 @@ export default function PostsPage() {
 
     setDeleting(true);
     try {
-      await api.deletePost(slug, apiKey);
+      const { etag } = await api.getPost(slug, apiKey);
+      await api.deletePost(slug, apiKey, etag);
       setPosts((current) => current.filter((p) => p.slug !== slug));
       toast.success('Статья удалена');
       setDeleteConfirm(null);
-    } catch (error: any) {
-      toast.error(error.message || 'Ошибка удаления');
+    } catch (error) {
+      if (error instanceof ArticleApiError && error.status === 412) {
+        toast.error('Статья изменилась после подтверждения удаления. Обновите список.');
+      } else {
+        toast.error(error instanceof Error ? error.message : 'Ошибка удаления');
+      }
     } finally {
       setDeleting(false);
     }
@@ -275,7 +282,7 @@ export default function PostsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Удалить статью?</AlertDialogTitle>
             <AlertDialogDescription>
-              Статья "{posts.find((p) => p.slug === deleteConfirm)?.i18n.ru.title}" будет удалена безвозвратно.
+              Статья «{posts.find((p) => p.slug === deleteConfirm)?.i18n.ru.title}» будет удалена безвозвратно.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex justify-end gap-3">

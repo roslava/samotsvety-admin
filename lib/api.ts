@@ -1,7 +1,15 @@
+import { ArticleApiError, articleResponseError, parseArticlePayload, readArticleList, readArticleResource, requireArticleAdminKey, requireArticleETag } from './article-api.ts';
+import { PostCreateSchema, PostUpdateSchema } from './validations/post.ts';
+import type { ArticleResource, CreatePostPayload, Post, UpdatePostPayload } from '../types/post';
+
 const API_BASE = '/backend';
 
-const getHeaders = (apiKey?: string) => {
-  const headers: HeadersInit = {
+export type CoverLanguage = '' | 'ru' | 'en';
+export interface CoverFrame { index: number; url: string }
+export interface CoverSequences { default: string[]; ru: string[]; en: string[] }
+
+const getHeaders = (apiKey?: string): Record<string, string> => {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
 
@@ -13,7 +21,13 @@ const getHeaders = (apiKey?: string) => {
 };
 
 export class ApiValidationError extends Error {
-  constructor(public readonly fields: Array<{ path: string; message: string; suggestion?: string }>, message: string, public readonly status?: number) { super(message); }
+  readonly fields: Array<{ path: string; message: string; suggestion?: string }>;
+  readonly status?: number;
+  constructor(fields: Array<{ path: string; message: string; suggestion?: string }>, message: string, status?: number) {
+    super(message);
+    this.fields = fields;
+    this.status = status;
+  }
 }
 async function v2Error(res: Response): Promise<never> {
   const body = await res.json().catch(() => ({}));
@@ -135,75 +149,114 @@ export const api = {
   },
 
   // === Посты ===
-  async getPosts(params: { limit?: number; page?: number } = {}) {
+  async getPosts(apiKey: string, params: { limit?: number; page?: number } = {}): Promise<Post[]> {
+    requireArticleAdminKey(apiKey);
     const query = new URLSearchParams();
     if (params.limit) query.append('limit', params.limit.toString());
     if (params.page) query.append('page', params.page.toString());
 
-    const res = await fetch(`${API_BASE}/api/v1/posts?${query}`);
-    if (!res.ok) throw new Error('Failed to fetch posts');
+    const res = await fetch(`${API_BASE}/api/v1/posts?${query}`, { headers: getHeaders(apiKey), cache: 'no-store' });
+    if (!res.ok) await articleResponseError(res);
 
     const result = await res.json();
-    return Array.isArray(result) ? result : (result.data || []);
+    return readArticleList(Array.isArray(result) ? result : result.data);
   },
 
-  async getPost(slug: string) {
-    const res = await fetch(`${API_BASE}/api/v1/posts/${slug}`);
-    if (!res.ok) throw new Error('Post not found');
-    return res.json();
+  async getPost(slug: string, apiKey: string): Promise<ArticleResource> {
+    requireArticleAdminKey(apiKey);
+    const res = await fetch(`${API_BASE}/api/v1/posts/${encodeURIComponent(slug)}`, { headers: getHeaders(apiKey), cache: 'no-store' });
+    if (!res.ok) await articleResponseError(res);
+    return readArticleResource(res, await res.json());
   },
 
-  async createPost(data: Record<string, unknown>, apiKey: string) {
+  async createPost(data: CreatePostPayload, apiKey: string): Promise<ArticleResource> {
+    requireArticleAdminKey(apiKey);
+    const payload = parseArticlePayload(PostCreateSchema, data);
     const res = await fetch(`${API_BASE}/api/v1/posts`, {
       method: 'POST',
       headers: getHeaders(apiKey),
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
-    if (!res.ok) {
-      const error = await res.json().catch(() => ({}));
-      throw new Error(error.message || 'Failed to create post');
-    }
-    return res.json();
+    if (!res.ok) await articleResponseError(res);
+    return readArticleResource(res, await res.json());
   },
 
-  async updatePost(slug: string, data: Record<string, unknown>, apiKey: string) {
-    const res = await fetch(`${API_BASE}/api/v1/posts/${slug}`, {
+  async updatePost(slug: string, data: UpdatePostPayload, apiKey: string, etag: string | null): Promise<ArticleResource> {
+    requireArticleAdminKey(apiKey);
+    const currentETag = requireArticleETag(etag);
+    const payload = parseArticlePayload(PostUpdateSchema, data);
+    const res = await fetch(`${API_BASE}/api/v1/posts/${encodeURIComponent(slug)}`, {
       method: 'PUT',
-      headers: getHeaders(apiKey),
-      body: JSON.stringify(data),
+      headers: { ...getHeaders(apiKey), 'If-Match': currentETag },
+      body: JSON.stringify(payload),
     });
-    if (!res.ok) {
-      const error = await res.json().catch(() => ({}));
-      throw new Error(error.message || 'Failed to update post');
-    }
-    return res.json();
+    if (!res.ok) await articleResponseError(res);
+    return readArticleResource(res, await res.json());
   },
 
-  async deletePost(slug: string, apiKey: string) {
-    const res = await fetch(`${API_BASE}/api/v1/posts/${slug}`, {
+  async deletePost(slug: string, apiKey: string, etag: string | null) {
+    requireArticleAdminKey(apiKey);
+    const currentETag = requireArticleETag(etag);
+    const res = await fetch(`${API_BASE}/api/v1/posts/${encodeURIComponent(slug)}`, {
       method: 'DELETE',
-      headers: getHeaders(apiKey),
+      headers: { ...getHeaders(apiKey), 'If-Match': currentETag },
     });
-    if (!res.ok) throw new Error('Failed to delete post');
+    if (!res.ok) await articleResponseError(res);
     return res.ok;
   },
 
   // === Медиа (иллюстрации минералов и статей) ===
+  async getCoverFrames(slug: string, lang: CoverLanguage = ''): Promise<CoverFrame[]> {
+    const query = lang ? `?lang=${lang}` : '';
+    const res = await fetch(`${API_BASE}/api/v1/posts/${encodeURIComponent(slug)}/cover-frames${query}`, { cache: 'no-store' });
+    if (!res.ok) await articleResponseError(res);
+    const body: unknown = await res.json();
+    const record = body && typeof body === 'object' ? body as Record<string, unknown> : {};
+    if (record.slug !== slug || record.lang !== lang || !Array.isArray(record.frames) ||
+        !record.frames.every((frame: unknown) => frame && typeof frame === 'object' &&
+          Number.isSafeInteger((frame as CoverFrame).index) && (frame as CoverFrame).index > 0 &&
+          typeof (frame as CoverFrame).url === 'string' && (frame as CoverFrame).url.startsWith('https://'))) {
+      throw new ArticleApiError(502, 'invalid_cover_frames', 'response', [], 'API вернул некорректный список кадров');
+    }
+    return (record.frames as CoverFrame[]).sort((a, b) => a.index - b.index);
+  },
+
+  async getCoverSequences(slug: string, apiKey: string): Promise<{ sequences: CoverSequences; managed: boolean }> {
+    requireArticleAdminKey(apiKey);
+    const res = await fetch(`${API_BASE}/api/v1/posts/${encodeURIComponent(slug)}/cover-frames?all=1`, {
+      headers: { 'X-API-Key': apiKey }, cache: 'no-store',
+    });
+    if (!res.ok) await articleResponseError(res);
+    const body: unknown = await res.json();
+    const record = body && typeof body === 'object' ? body as Record<string, unknown> : {};
+    const sequences = record.sequences as CoverSequences | undefined;
+    if (record.slug !== slug || typeof record.managed !== 'boolean' || !sequences ||
+        !(['default', 'ru', 'en'] as const).every((lang) => Array.isArray(sequences[lang]) &&
+          sequences[lang].every((url) => typeof url === 'string'))) {
+      throw new ArticleApiError(502, 'invalid_cover_frames', 'response', [], 'API вернул некорректные последовательности обложки');
+    }
+    return { sequences, managed: record.managed };
+  },
+
   async uploadMedia(
     file: File,
     apiKey: string,
     options?: {
-      kind?: 'hero' | 'thumbnail' | 'gallery' | 'cover' | 'block_image' | 'block_pair';
+      kind?: 'hero' | 'thumbnail' | 'gallery' | 'cover' | 'block_image' | 'block_pair' | 'article_slide' | 'author_avatar';
       slug?: string;
+      storageKey?: string;
+      slideId?: string;
       blockIndex?: number;
       pairIndex?: 1 | 2;
       lang?: 'ru' | 'en';
     }
-  ): Promise<{ url: string }> {
+  ): Promise<{ url: string; index?: number }> {
     const formData = new FormData();
     formData.append('file', file);
     if (options?.kind) formData.append('kind', options.kind);
     if (options?.slug) formData.append('slug', options.slug);
+    if (options?.storageKey) formData.append('storage_key', options.storageKey);
+    if (options?.slideId) formData.append('slide_id', options.slideId);
     if (options?.blockIndex !== undefined) formData.append('block_index', String(options.blockIndex));
     if (options?.pairIndex !== undefined) formData.append('pair_index', String(options.pairIndex));
     if (options?.lang) formData.append('lang', options.lang);
@@ -215,9 +268,28 @@ export const api = {
     });
 
     if (!res.ok) {
-      const error = await res.json().catch(() => ({}));
-      throw new Error(error.message || 'Не удалось загрузить файл');
+      await articleResponseError(res);
     }
-    return res.json();
+    const result: unknown = await res.json();
+    if (!result || typeof result !== 'object' || typeof (result as { url?: unknown }).url !== 'string') {
+      throw new ArticleApiError(502, 'invalid_media_response', 'response', [], 'API вернул некорректный URL изображения');
+    }
+    if (options?.kind === 'cover' && (!Number.isSafeInteger((result as { index?: unknown }).index) ||
+        (result as { index: number }).index < 1)) {
+      throw new ArticleApiError(502, 'invalid_media_response', 'response', [], 'API вернул некорректный номер кадра');
+    }
+    return result as { url: string; index?: number };
+  },
+
+  async uploadArticleSlide(file: File, apiKey: string, slug: string, slideId: string): Promise<{ url: string }> {
+    requireArticleAdminKey(apiKey);
+    if (!slug || !slideId) throw new ArticleApiError(400, 'validation_error', 'validation', [], 'Нужны slug и slide_id');
+    return this.uploadMedia(file, apiKey, { kind: 'article_slide', slug, slideId });
+  },
+
+  async uploadAuthorAvatar(file: File, apiKey: string, slug: string): Promise<{ url: string }> {
+    requireArticleAdminKey(apiKey);
+    if (!slug) throw new ArticleApiError(400, 'validation_error', 'validation', [], 'Нужен slug');
+    return this.uploadMedia(file, apiKey, { kind: 'author_avatar', slug });
   },
 };

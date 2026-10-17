@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Bold, List } from 'lucide-react';
+import { Bold, Heading2, Link, List } from 'lucide-react';
 
 interface MarkdownTextareaProps {
   value: string;
@@ -63,9 +63,39 @@ export function MarkdownTextarea({ value, onChange, rows = 4, placeholder }: Mar
     }
   };
 
+  const applyHeading = () => {
+    const el = ref.current;
+    if (!el) return;
+    const lineStart = value.lastIndexOf('\n', el.selectionStart - 1) + 1;
+    const next = value.slice(0, lineStart) + '## ' + value.slice(lineStart);
+    onChange(next);
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(el.selectionStart + 3, el.selectionStart + 3);
+    });
+  };
+
+  const applyLink = () => {
+    const el = ref.current;
+    if (!el) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const label = value.slice(start, end) || 'текст ссылки';
+    const insertion = '[' + label + '](https://example.com)';
+    onChange(value.slice(0, start) + insertion + value.slice(end));
+    requestAnimationFrame(() => {
+      el.focus();
+      const urlStart = start + label.length + 3;
+      el.setSelectionRange(urlStart, urlStart + 'https://example.com'.length);
+    });
+  };
+
   return (
     <div className="space-y-1.5">
       <div className="flex gap-1">
+        <Button type="button" variant="outline" size="icon" className="h-7 w-7" onClick={applyHeading} title="Заголовок второго уровня" aria-label="Добавить заголовок">
+          <Heading2 className="h-3.5 w-3.5" />
+        </Button>
         <Button
           type="button"
           variant="outline"
@@ -75,6 +105,9 @@ export function MarkdownTextarea({ value, onChange, rows = 4, placeholder }: Mar
           title="Полужирный"
         >
           <Bold className="h-3.5 w-3.5" />
+        </Button>
+        <Button type="button" variant="outline" size="icon" className="h-7 w-7" onClick={applyLink} title="Ссылка" aria-label="Добавить ссылку">
+          <Link className="h-3.5 w-3.5" />
         </Button>
         <Button
           type="button"

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { api, ApiValidationError } from "@/lib/api";
 import { prepareMineralMarkdownExport } from "@/lib/mineral-markdown-export";
+import { classificationLabel } from "@/lib/classification";
 import { mediaUrl } from "@/lib/media-url";
 import { GemEntityV2Response, LocalizedContent } from "@/types/mineral";
 import { Badge } from "@/components/ui/badge";
@@ -67,6 +68,9 @@ const scientificLabels: Record<Language, Record<string, string>> = {
     mineral_class: "Класс минерала",
     silicate_subclass: "Подкласс силикатов",
     mineral_family: "Минеральная группа",
+    mineral_group: "Минеральная группа",
+    chemical_class: "Химический класс",
+    catalog_family: "Каталожное семейство",
     crystal_system: "Кристаллическая система",
     crystal_habit: "Форма выделения",
     streak: "Цвет черты",
@@ -88,6 +92,9 @@ const scientificLabels: Record<Language, Record<string, string>> = {
     mineral_class: "Mineral class",
     silicate_subclass: "Silicate subclass",
     mineral_family: "Mineral family",
+    mineral_group: "Mineral group",
+    chemical_class: "Chemical class",
+    catalog_family: "Catalog family",
     crystal_system: "Crystal system",
     crystal_habit: "Crystal habit",
     streak: "Streak",
@@ -438,12 +445,16 @@ function Preview({
 function Localized({
   language,
   content,
+  images,
 }: {
   language: Language;
   content: LocalizedContent;
+  images: GemEntityV2Response["images"];
 }) {
   const ru = language === "ru";
   const e = content.esoteric;
+  const sectionImages = (section: string) => <div className="grid gap-4 sm:grid-cols-2">{images?.gallery?.filter(image => image.type === 'section:' + section).map((image, index) => <figure key={image.path + index} className="space-y-2"><img src={mediaUrl(images.storage_key, image.path)} alt={image.caption?.[language] || ''} className="max-h-96 w-full rounded-lg object-contain" loading="lazy" />{image.caption?.[language] && <figcaption className="text-sm text-muted-foreground">{image.caption[language]}</figcaption>}</figure>)}</div>;
+
   const l = ru
     ? {
         about: "О камне",
@@ -512,9 +523,9 @@ function Localized({
         </div>
       </section>
       <Paragraph title={l.color} value={content.color_description} />
-      <Paragraph title={l.lore} value={content.lore} />
+      <Paragraph title={l.lore} value={content.lore} />{sectionImages("lore")}
       <Paragraph title={l.identification} value={content.identification_tips} />
-      <Paragraph title={l.safety} value={content.safety_notes} />
+      <Paragraph title={l.safety} value={content.safety_notes} />{sectionImages("safety")}
       <Paragraph
         title={l.hardness}
         value={content.scientific_notes?.hardness}
@@ -523,9 +534,11 @@ function Localized({
         title={l.composition}
         value={content.scientific_notes?.composition}
       />
-      {hasEsoteric && (
+      {(
+
         <section className="space-y-5 border-t pt-8">
-          <h2 className="text-xl font-semibold">{l.esoteric}</h2>
+          <h2 className="text-xl font-semibold">{ru ? "Эзотерика" : "Esotericism"}</h2>
+          {!hasEsoteric && <p className="text-sm text-muted-foreground">{ru ? "Эзотерические сведения для этого языка пока не заполнены. Добавить их можно на вкладке «Эзотерика» при редактировании." : "Esoteric information has not been added for this language. Use the Esotericism tab in the editor to add it."}</p>}
           {present(e?.metaphysical_properties) && (
             <div>
               <p className="mb-2 text-sm font-medium">{l.esoteric}</p>
@@ -546,7 +559,7 @@ function Localized({
           )}
           <Paragraph title={l.healing} value={e?.healing_interpretation} />
           <Paragraph title={l.energy} value={e?.energy_notes} />
-          <Paragraph title={l.ritual} value={e?.ritual_uses} />
+          <Paragraph title={l.ritual} value={e?.ritual_uses} />{sectionImages("esoteric")}
         </section>
       )}
     </div>
@@ -700,7 +713,7 @@ export default function MineralDetailPage() {
       Array.isArray(value)
         ? value.map(translate).join(", ")
         : typeof value === "string"
-          ? translate(value)
+          ? (key === 'mineral_group' || key === 'chemical_class' || key === 'catalog_family' ? classificationLabel(key, value, language) : translate(value))
           : null,
     ]);
   return (
@@ -760,7 +773,7 @@ export default function MineralDetailPage() {
           <Grid rows={keyProperties} />
         </div>
       </section>
-      <Localized language={language} content={entity.i18n[language]} />
+      <Localized language={language} content={entity.i18n[language]} images={entity.images} />
       {rest.some(([, value]) => present(value)) && (
         <section className="border-t pt-8">
           <h2 className="mb-5 text-xl font-semibold">

@@ -21,6 +21,7 @@ import { I18nSection } from './I18nSection';
 import { LocalitiesSection } from './LocalitiesSection';
 import { GallerySection } from './GallerySection';
 import { SourcesSection } from './SourcesSection';
+import { EsotericSection } from './EsotericSection';
 import { normalizeErrorMessage, relatedEntityWarningText, resolveRelatedEntities } from '@/lib/related-entities';
 
 interface MineralFormProps {
@@ -32,6 +33,7 @@ interface MineralFormProps {
 // Определяет, к какой вкладке формы относится путь невалидного поля,
 // чтобы можно было показать пользователю, где именно искать ошибку.
 function getTab(path: string): { value: string; label: string } {
+  if (/^i18n\.(ru|en)\.esoteric(?:\.|$)/.test(path)) return { value: 'esoteric', label: 'Эзотерика' };
   if (path.startsWith('i18n')) return { value: 'i18n', label: 'RU / EN' };
   if (path.startsWith('scientific')) return { value: 'scientific', label: 'Научные' };
   if (path.startsWith('localities')) return { value: 'localities', label: 'Месторождения' };
@@ -220,10 +222,11 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
           <CardContent className="pt-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <div className="overflow-x-auto">
-                <TabsList className="grid min-w-[44rem] grid-cols-6">
+                <TabsList className="grid min-w-[52rem] grid-cols-7">
                   <TabsTrigger value="basic">Основное</TabsTrigger>
                   <TabsTrigger value="scientific">Научные</TabsTrigger>
                   <TabsTrigger value="i18n">RU / EN</TabsTrigger>
+                  <TabsTrigger value="esoteric">Эзотерика</TabsTrigger>
                   <TabsTrigger value="localities">Месторождения</TabsTrigger>
                   <TabsTrigger value="images">Изображения</TabsTrigger>
                   <TabsTrigger value="sources">Источники</TabsTrigger>
@@ -232,6 +235,7 @@ export default function MineralForm({ defaultValues, isEdit = false, slug: editS
               <TabsContent value="basic" className="mt-6"><BasicInfoSection key={importRevision} form={form} /></TabsContent>
               <TabsContent value="scientific" className="mt-6"><ScientificSection form={form} /></TabsContent>
               <TabsContent value="i18n" className="mt-6"><I18nSection form={form} /></TabsContent>
+              <TabsContent value="esoteric" className="mt-6"><EsotericSection form={form} /></TabsContent>
               <TabsContent value="localities" className="mt-6"><LocalitiesSection form={form} /></TabsContent>
               <TabsContent value="images" className="mt-6"><GallerySection form={form} onStorageKeyManualChange={() => { storageKeyEdited.current = true; }} /></TabsContent>
               <TabsContent value="sources" className="mt-6"><SourcesSection form={form} /></TabsContent>
